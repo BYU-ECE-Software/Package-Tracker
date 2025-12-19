@@ -1,0 +1,377 @@
+"use client";
+// Template for the Site Admin Page. Allows for CRUD functionality on any desired fields
+
+import { useEffect, useState, useRef } from 'react';
+import type { CrudConfig, FieldConfig } from '@/types/crud';
+import type { ToastProps } from '@/types/toast';
+import ConfirmDeleteAdminPage from './ConfirmDeleteAdminPage';
+
+// Generic props: title to display and a CRUD config for a specific model
+interface Props<T extends { id: number }, CreatePayload> {
+  title: string;
+  config: CrudConfig<T, CreatePayload>;
+  setToast: (toast: Omit<ToastProps, 'onClose' | 'duration'>) => void;
+}
+
+// Generic reusable CRUD admin panel for any model with an `id`
+export default function AdminCrudPanel<
+  T extends { id: number },
+  CreatePayload,
+>({ title, config, setToast }: Props<T, CreatePayload>) {
+  // State to store all records, form data, and editing ID
+  const [items, setItems] = useState<T[]>([]);
+  const [formData, setFormData] = useState<Partial<CreatePayload>>({});
+  const [editingId, setEditingId] = useState<number | null>(null);
+
+  // Loading state
+  const [loading, setLoading] = useState(true);
+
+  // Ref to auto-focus the first input when editing begins
+  const firstInputRef = useRef<HTMLInputElement>(null);
+
+  // State for Delete Confirmation
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<T | null>(null);
+
+  // Load all records when the component mounts
+  useEffect(() => {
+    const loadItems = async () => {
+      try {
+        setLoading(true);
+        const data = await config.api.getAll();
+        setItems(data);
+      } catch (err) {
+        console.error('Error loading items:', err);
+        setToast({
+          type: 'error',
+          title: 'Error',
+          message: `Failed to load ${config.noun}s. Please try again later.`,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadItems();
+  }, [config, setToast]);
+
+  // Update form field value when user types/selects input
+  const handleInputChange = (
+    field: keyof CreatePayload,
+    value: string | number | boolean
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  // Submit handler for both create and update modes
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingId !== null) {
+        await config.api.update(editingId, formData as Partial<T>);
+        setToast({
+          type: 'success',
+          title: 'Success',
+          message: `${config.noun} updated`,
+        });
+      } else {
+        await config.api.create(formData as CreatePayload);
+        setToast({
+          type: 'success',
+          title: 'Success',
+          message: `${config.noun} created`,
+        });
+      }
+
+      // Reset form and reload data
+      setFormData({});
+      setEditingId(null);
+      const updated = await config.api.getAll();
+      setItems(updated);
+    } catch (err) {
+      console.error('Error saving:', err);
+      setToast({
+        type: 'error',
+        title: 'Error',
+        message: `Failed to ${editingId ? 'update' : 'create'} ${config.noun}`,
+      });
+    }
+  };
+
+  // Trigger edit mode, populate form with selected record, and focus first input
+  const handleEdit = (item: T) => {
+    const editable: Partial<CreatePayload> = {};
+    for (const key in config.fields) {
+      editable[key as keyof CreatePayload] = item[key as keyof T] as any;
+    }
+    setFormData(editable);
+    setEditingId(item.id);
+
+    // Wait for input to render before setting focus
+    setTimeout(() => {
+      firstInputRef.current?.focus();
+    }, 0);
+  };
+
+  // Confirm and delete a record
+  // open the dialog for a specific row
+  const openDelete = (item: T) => {
+    setPendingDelete(item);
+    setConfirmOpen(true);
+  };
+
+  // user clicked "Delete" in the dialog
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    try {
+      await config.api.remove(pendingDelete.id);
+      setItems((prev) => prev.filter((i) => i.id !== pendingDelete.id));
+      setToast({
+        type: 'success',
+        title: 'Success',
+        message: `${config.noun} deleted`,
+      });
+    } catch (err) {
+      console.error('Error deleting:', err);
+      setToast({
+        type: 'error',
+        title: 'Error',
+        message: `Failed to delete ${config.noun}`,
+      });
+    } finally {
+      setConfirmOpen(false);
+      setPendingDelete(null);
+    }
+  };
+
+  // user clicked "Cancel" in the dialog
+  const cancelDelete = () => {
+    setConfirmOpen(false);
+    setPendingDelete(null);
+  };
+
+  return (
+    <div className="p-4 bg-white border rounded-lg shadow text-byuNavy">
+      <h2 className="text-xl font-semibold text-byuNavy mb-4">{title}</h2>
+
+      {/* Main layout: Form on the left, table on the right - Responsive */}
+      <div className="flex flex-col lg:flex-row gap-8 items-start">
+        {/* Form section */}
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 w-full lg:w-[45%] mb-6"
+        >
+          {Object.entries(config.fields).map(
+            ([fieldName, fieldMetaRaw], index) => {
+              const field = fieldName as keyof CreatePayload;
+              const meta = fieldMetaRaw as FieldConfig;
+              const value =
+                formData[field] ?? (meta.type === 'checkbox' ? false : '');
+
+              return (
+                <div key={fieldName}>
+                  <label className="block text-sm font-medium text-byuNavy">
+                    {meta.label}
+                    {meta.required && <span className="text-byuNavy"> *</span>}
+                  </label>
+
+                  {/* Render appropriate input type based on meta config */}
+                  {meta.type === 'radio' ? (
+                    <div className="flex gap-4 mt-1">
+                      <label className="flex items-center gap-1">
+                        <input
+                          type="radio"
+                          name={String(field)}
+                          value="true"
+                          checked={value === true}
+                          onChange={() => handleInputChange(field, true)}
+                          required={meta.required}
+                        />
+                        Yes
+                      </label>
+                      <label className="flex items-center gap-1">
+                        <input
+                          type="radio"
+                          name={String(field)}
+                          value="false"
+                          checked={value === false}
+                          onChange={() => handleInputChange(field, false)}
+                        />
+                        No
+                      </label>
+                    </div>
+                  ) : meta.type === 'checkbox' ? (
+                    <input
+                      type="checkbox"
+                      checked={Boolean(value)}
+                      onChange={(e) =>
+                        handleInputChange(field, e.target.checked)
+                      }
+                      className="mt-1"
+                    />
+                  ) : (
+                    <input
+                      ref={index === 0 ? firstInputRef : undefined}
+                      type={meta.type}
+                      value={value as string | number}
+                      onChange={(e) =>
+                        handleInputChange(
+                          field,
+                          meta.type === 'number'
+                            ? Number(e.target.value)
+                            : e.target.value
+                        )
+                      }
+                      required={meta.required}
+                      className="mt-1 block w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-byuRoyal focus:border-transparent"
+                    />
+                  )}
+                </div>
+              );
+            }
+          )}
+
+          {/* Action buttons */}
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              className="bg-byuNavy text-white px-4 py-2 rounded hover:bg-[#001F40] transition-colors"
+            >
+              {editingId ? 'Save' : 'Add'}
+            </button>
+            {editingId && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({});
+                  setEditingId(null);
+                }}
+                className="bg-byuMediumGray text-white px-4 py-2 rounded hover:bg-[#4d4d4d] transition-colors"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+
+        {/* Table section - Mobile scrollable */}
+        <div className="w-full lg:w-[55%] overflow-x-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="flex flex-col items-center gap-3">
+                <svg 
+                  className="animate-spin h-8 w-8 text-byuNavy" 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  fill="none" 
+                  viewBox="0 0 24 24"
+                >
+                  <circle 
+                    className="opacity-25" 
+                    cx="12" 
+                    cy="12" 
+                    r="10" 
+                    stroke="currentColor" 
+                    strokeWidth="4"
+                  />
+                  <path 
+                    className="opacity-75" 
+                    fill="currentColor" 
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                <p className="text-gray-500">Loading...</p>
+              </div>
+            </div>
+          ) : items.length === 0 ? (
+            <div className="text-center text-gray-500 py-8">
+              <p>No {config.noun}s found. Add one to get started!</p>
+            </div>
+          ) : (
+            <table className="table-auto w-full text-sm border border-gray-300">
+              <thead className="bg-gray-100">
+                <tr>
+                  {/* Render table headers dynamically based on config */}
+                  {Object.entries(config.fields).map(
+                    ([fieldName, fieldMetaRaw]) => {
+                      const meta = fieldMetaRaw as FieldConfig;
+                      return (
+                        <th
+                          key={fieldName}
+                          className="px-4 py-2 border whitespace-nowrap text-left"
+                        >
+                          {meta.label}
+                        </th>
+                      );
+                    }
+                  )}
+                  <th className="px-4 py-2 border whitespace-nowrap text-center">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item) => {
+                  const allowEdit = config.canEdit?.(item) ?? true;
+                  const allowDelete = config.canDelete?.(item) ?? true;
+
+                  return (
+                    <tr key={item.id} className="hover:bg-gray-50">
+                      {Object.keys(config.fields).map((fieldName) => (
+                        <td
+                          key={fieldName}
+                          className="px-4 py-2 border whitespace-nowrap"
+                        >
+                          {String(item[fieldName as keyof T] ?? '')}
+                        </td>
+                      ))}
+
+                      <td className="px-4 py-2 border whitespace-nowrap">
+                        <div className="flex justify-center gap-2 sm:gap-5">
+                          {allowEdit && (
+                            <button
+                              onClick={() => handleEdit(item)}
+                              className="bg-byuRoyal text-white px-2 sm:px-3 py-1 rounded hover:bg-[#003B9A] transition-colors text-xs sm:text-sm"
+                            >
+                              Edit
+                            </button>
+                          )}
+                          {allowDelete && (
+                            <button
+                              onClick={() => openDelete(item)}
+                              className="bg-byuRedBright text-white px-2 sm:px-3 py-1 rounded hover:bg-byuRedDark transition-colors text-xs sm:text-sm"
+                            >
+                              Delete
+                            </button>
+                          )}
+                          {!allowEdit && !allowDelete && (
+                            <span className="text-gray-400 text-xs">
+                              Unable to edit
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+      
+      {/* Confirmation Dialog */}
+      <ConfirmDeleteAdminPage
+        isOpen={confirmOpen}
+        title={`Delete ${config.noun}?`}
+        message={`This will permanently remove the selected ${config.noun}.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
+    </div>
+  );
+}

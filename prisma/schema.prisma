@@ -1,0 +1,81 @@
+// ============================================
+// 1. PRISMA SCHEMA (prisma/schema.prisma)
+// ============================================
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  SECRETARY
+  ADMIN
+}
+
+enum PackageStatus {
+  AWAITING_ARRIVAL
+  ARRIVED
+  READY_FOR_PICKUP
+  PICKED_UP
+  RETURNED_TO_SENDER
+  LOST
+}
+
+model User {
+  id                    String    @id @default(cuid())
+  netId                 String    @unique
+  email                 String    @unique
+  fullName              String
+  role                  UserRole  @default(STUDENT)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  // Relations
+  orderedPackages       Package[] @relation("StudentPackages")
+  checkedInPackages     Package[] @relation("CheckedInBy")
+  checkedOutPackages    Package[] @relation("CheckedOutBy")
+  
+  @@index([netId])
+  @@index([email])
+}
+
+model Package {
+  id                    String         @id @default(cuid())
+  trackingNumber        String?        @unique
+  carrier               String?        // UPS, FedEx, USPS, DHL, Amazon, etc.
+  sender                String?        // Who sent the package (vendor/person)
+  status                PackageStatus  @default(AWAITING_ARRIVAL)
+  
+  // Dates
+  expectedArrivalDate   DateTime?
+  dateArrived           DateTime?
+  datePickedUp          DateTime?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  
+  // Relations
+  studentId             String
+  student               User           @relation("StudentPackages", fields: [studentId], references: [id], onDelete: Cascade)
+  
+  checkedInById         String?
+  checkedInBy           User?          @relation("CheckedInBy", fields: [checkedInById], references: [id], onDelete: SetNull)
+  
+  checkedOutById        String?
+  checkedOutBy          User?          @relation("CheckedOutBy", fields: [checkedOutById], references: [id], onDelete: SetNull)
+  
+  // Additional fields
+  notes                 String?        @db.Text
+  location              String?        // Shelf number, bin location, etc.
+  notificationSent      Boolean        @default(false)
+  
+  @@index([studentId])
+  @@index([status])
+  @@index([trackingNumber])
+  @@index([dateArrived])
+}

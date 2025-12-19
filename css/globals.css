@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+/* === Design tokens translated from tailwind.config.js === */
+@theme {
+  /* BYU brand colors */
+  --color-byuNavy: #002e5d;
+  --color-byuRoyal: #0047ba;
+  --color-byuDarkGray: #141414;
+  --color-byuMediumGray: #666666;
+  --color-byuWhite: #ffffff;
+  --color-byuRedBright: #e61744;
+  --color-byuRedDark: #a3082a;
+  --color-byuYellowBright: #ffb700;
+  --color-byuBrown: #8c3a00;
+  --color-byuGreenBright: #10a170;
+  --color-byuGreenDark: #006141;
+  --color-byuInfoBlueBright: #1fb3d1;
+  --color-byuInfoBlueDark: #006073;
+
+  /* Font family (maps to `font-sans`) */
+  --font-sans: "IBM Plex Sans", Helvetica, Arial, sans-serif;
+}
+
+/* === Animation translated from keyframes/animation config === */
+@keyframes fade-in-out {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* Utility so you can keep using `animate-fade-in-out` */
+@utility animate-fade-in-out {
+  animation: fade-in-out 3s ease-in-out forwards;
+}
+
+/* === Optional: some sensible base styles (tweak or remove if you want) === */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply font-sans bg-byuWhite text-byuDarkGray antialiased;
+}
