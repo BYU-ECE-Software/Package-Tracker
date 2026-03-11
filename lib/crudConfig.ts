@@ -3,10 +3,13 @@ import {
   createUser,
   updateUser,
   deleteUser,
-} from './clientapi';
+  CreateUserRequest,
+  // UpdateUserRequest,
+} from './clientApi';
 
 import type { CrudConfig } from '../types/crud';
 import type { User } from '../types/user';
+import { Update } from 'next/dist/build/swc/types';
 
 /**
  * Central configuration for generating CRUD panels for different models.
@@ -22,7 +25,7 @@ export const crudConfigs = {
     noun: 'Student',
     fields: {
       fullName: { label: 'Full Name', type: 'text', required: true },
-      byuNetId: { label: 'BYU Net ID', type: 'text', required: true },
+      netId: { label: 'BYU Net ID', type: 'text', required: true },
       email: { label: 'Email', type: 'text', required: true },
     },
     api: {
@@ -31,5 +34,5 @@ export const crudConfigs = {
       update: updateUser,
       remove: deleteUser,
     },
-  } satisfies CrudConfig<User, Omit<User, 'id'>>,
+  } satisfies CrudConfig<User, CreateUserRequest>,
 };

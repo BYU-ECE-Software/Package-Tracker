@@ -35,8 +35,7 @@ const AddPackageModal: React.FC<AddPackageModalProps> = ({
     trackingNumber: '',
     carrier: '',
     sender: '',
-    expectedArrivalDate: '',
-    location: '',
+    arrivalDate: '',
     notes: '',
   });
   
@@ -59,8 +58,7 @@ const AddPackageModal: React.FC<AddPackageModalProps> = ({
       trackingNumber: '',
       carrier: '',
       sender: '',
-      expectedArrivalDate: '',
-      location: '',
+      arrivalDate: '',
       notes: '',
     });
   };
@@ -187,33 +185,29 @@ const AddPackageModal: React.FC<AddPackageModalProps> = ({
             />
           </div>
 
-          {/* Expected Arrival Date */}
+          {/* Arrival Date */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-byuNavy">
-              Expected Arrival Date
+              Arrival Date
             </label>
             <input
               type="date"
-              value={formData.expectedArrivalDate}
-              onChange={(e) => handleChange('expectedArrivalDate', e.target.value)}
+              value={formData.arrivalDate}
+              onChange={(e) => handleChange('arrivalDate', e.target.value)}
               className="w-full p-2 sm:p-3 border rounded text-sm text-byuNavy focus:ring-2 focus:ring-byuRoyal focus:border-transparent"
               disabled={isSubmitting}
             />
-          </div>
-
-          {/* Storage Location */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-byuNavy">
-              Storage Location
-            </label>
-            <input
-              type="text"
-              value={formData.location}
-              onChange={(e) => handleChange('location', e.target.value)}
-              placeholder="e.g., Shelf A3, Bin 5"
-              className="w-full p-2 sm:p-3 border rounded text-sm text-byuNavy focus:ring-2 focus:ring-byuRoyal focus:border-transparent"
-              disabled={isSubmitting}
-            />
+            {/* Button that assigns today's date */}
+            <div>
+              <button
+                type="button"
+                onClick={() => handleChange('arrivalDate', new Date().toISOString().split('T')[0])}
+                className="mt-2 px-3 py-1 bg-byuRoyal text-white rounded hover:bg-[#003a9a] text-sm"
+                disabled={isSubmitting}
+              >
+                Set to Today
+              </button>
+            </div>
           </div>
 
           {/* Notes */}

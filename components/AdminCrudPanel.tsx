@@ -313,7 +313,7 @@ export default function AdminCrudPanel<
                 </tr>
               </thead>
               <tbody>
-                {items.map((item) => {
+                {items.data.map((item) => {
                   const allowEdit = config.canEdit?.(item) ?? true;
                   const allowDelete = config.canDelete?.(item) ?? true;
 

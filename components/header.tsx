@@ -39,13 +39,13 @@ const HeaderBar = () => {
     return () => window.removeEventListener('resize', update);
   }, []);
 
-  // const navLinks = [
-    // { href: '/purchaseRequest', label: 'Purchase Request Form' },
-    // { href: '/receiptSubmit', label: 'Submit Receipts' },
+  const navLinks = [
+    { href: '/', label: 'Dashboard' },
+    { href: '/Admin', label: 'Admin' },
     // { href: '/orderHistory', label: 'Student Order History' },
     // { href: '/orderDashboard', label: 'Order Dashboard' },
     // { href: '/admin', label: 'Site Admin' },
-  // ];
+  ];
 
   const handleSignOut = async () => {
     try {
@@ -146,7 +146,7 @@ const HeaderBar = () => {
           </div>
 
           {/* Nav links */}
-          {/* <nav className="flex flex-col py-2">
+          <nav className="flex flex-col py-2">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -159,12 +159,12 @@ const HeaderBar = () => {
                 {link.label}
               </Link>
             ))}
-          </nav> */}
+          </nav>
         </div>
       )}
 
       {/* White nav bar – desktop only */}
-      {/* <nav className="hidden md:block w-full bg-white text-byuNavy shadow">
+      <nav className="hidden md:block w-full bg-white text-byuNavy shadow">
         <div
           className="flex text-base font-medium px-6"
           style={{ paddingLeft: navPadLeft }}
@@ -181,7 +181,7 @@ const HeaderBar = () => {
             </Link>
           ))}
         </div>
-      </nav> */}
+      </nav>
     </div>
   );
 };

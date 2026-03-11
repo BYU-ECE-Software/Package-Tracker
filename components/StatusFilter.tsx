@@ -7,11 +7,9 @@ type StatusFilterProps = {
 };
 
 const statuses = [
-  'Requested',
-  'Purchased',
-  'Completed',
-  'Returned',
-  'Cancelled',
+  'Received',
+  'Email Sent',
+  'Picked Up',
 ];
 
 const StatusFilter: React.FC<StatusFilterProps> = ({

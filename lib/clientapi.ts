@@ -86,7 +86,7 @@ export async function checkOutPackage(id: string, employeeId: string): Promise<P
 // lib/api/users.ts - User API Functions
 // ============================================
 
-import type { User, UserRole } from '@/types/package';
+import type { User, UserRole } from '@/types/user';
 
 // Query parameters for fetching users
 export interface UserQueryParams {
@@ -127,7 +127,7 @@ export interface UserWithPackages extends User {
 /**
  * Fetch all users with optional filtering and pagination
  */
-export async function fetchUsers(params: UserQueryParams): Promise<UserListResponse> {
+export async function fetchUsers(params: UserQueryParams = {}): Promise<UserListResponse> {
   const searchParams = new URLSearchParams();
   
   Object.entries(params).forEach(([key, value]) => {
@@ -135,8 +135,10 @@ export async function fetchUsers(params: UserQueryParams): Promise<UserListRespo
       searchParams.append(key, String(value));
     }
   });
+
+  const qs = searchParams.toString();
   
-  const res = await fetch(`/api/users?${searchParams}`, {
+  const res = await fetch(`/api/users?${qs}`, {
     cache: 'no-store',
   });
   

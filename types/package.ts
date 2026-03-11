@@ -51,8 +51,7 @@ export interface AddPackageData {
   trackingNumber?: string;
   carrier?: string;
   sender?: string;
-  expectedArrivalDate?: string;
-  location?: string;
+  arrivalDate?: string;
   notes?: string;
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Package, PackageStatus } from "@/types/package";
 import type { User } from "@/types/user";
 import {
@@ -8,24 +8,17 @@ import {
   updatePackage,
   checkInPackage,
   checkOutPackage,
-} from "@/lib/clientapi";
+  createPackage,
+  fetchUsers,
+} from "@/lib/clientApi";
 import { type AddPackageData } from "@/types/package";
 import AddPackageModal from "./AddPackageModal";
-import { createPackage } from "@/lib/clientapi";
-// import { fetchUsers } from '@/lib/clientapi';
 import EditPackageModal from "./EditPackageModal";
-import SearchBar from "./SearchBar";
-import React from "react";
 import ViewPackageModal from "./ViewPackageModal";
-import { BarsArrowDownIcon, BarsArrowUpIcon } from "@heroicons/react/24/solid";
-import StatusFilter from "./StatusFilter";
-import Pagination from "./Pagination";
 import Toast from "./Toast";
 import type { ToastProps } from "@/types/toast";
-import { getPackageStatusColor } from "@/utils/getPackageStatusColor";
-import { formatDate } from "@/utils/formatDate";
-
-// Package dashboard component for viewing and managing packages
+import PackageTableControls from "./PackageTableControls";
+import PackageDataTable from "./PackageDataTable";
 
 const PackageDashboard = () => {
   // State to hold all packages
@@ -355,256 +348,45 @@ const PackageDashboard = () => {
     }
   };
 
+  const handleClearFilters = () => {
+    setSelectedStatus("");
+    setSearchTerm("");
+    setDate("");
+    setSortBy("createdAt");
+    setSortOrder("desc");
+    setHasUserSorted(false);
+    loadAndSetPackages();
+  };
+
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-      <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-        {/* Left-aligned filter */}
-        <div>
-          <StatusFilter
-            selectedStatus={selectedStatus}
-            setSelectedStatus={setSelectedStatus}
-            onClearFilters={() => {
-              setSelectedStatus("");
-              setSearchTerm("");
-              setDate("");
-              setSortBy("createdAt");
-              setSortOrder("desc");
-              setHasUserSorted(false);
-              loadAndSetPackages();
-            }}
-            statuses={[
-              "AWAITING_ARRIVAL",
-              "ARRIVED",
-              "READY_FOR_PICKUP",
-              "PICKED_UP",
-              "RETURNED_TO_SENDER",
-              "LOST",
-            ]}
-          />
-
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2 bg-byuRoyal text-white rounded hover:bg-[#003a9a] font-medium flex items-center justify-center gap-2 whitespace-nowrap"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Add Package
-          </button>
-        </div>
-
-        {/* Right-aligned search */}
-        <div className="flex justify-end w-full sm:w-auto">
-          <SearchBar
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            onSearch={handleSearch}
-            onClear={handleClearSearch}
-            date={date}
-            setDate={setDate}
-            placeholder="Search tracking #, carrier, sender, student..."
-          />
-        </div>
-      </div>
-
-      {/* Table to display all packages and their status */}
-      <table className="w-full table-fixed border-collapse border text-byuNavy">
-        <thead className="bg-gray-100">
-          <tr>
-            <th
-              className="border px-4 py-2 cursor-pointer"
-              onClick={() => handleSort("status")}
-            >
-              <div className="flex items-center justify-center gap-2">
-                Status
-                {sortBy === "status" ? (
-                  sortOrder === "asc" ? (
-                    <BarsArrowUpIcon className="h-4 w-4 text-byuNavy" />
-                  ) : (
-                    <BarsArrowDownIcon className="h-4 w-4 text-byuNavy" />
-                  )
-                ) : (
-                  <BarsArrowDownIcon className="h-4 w-4 text-byuMediumGray" />
-                )}
-              </div>
-            </th>
-            <th
-              className="border px-4 py-2 cursor-pointer"
-              onClick={() => handleSort("trackingNumber")}
-            >
-              <div className="flex items-center justify-center gap-2">
-                Tracking #
-                {sortBy === "trackingNumber" ? (
-                  sortOrder === "asc" ? (
-                    <BarsArrowUpIcon className="h-4 w-4 text-byuNavy" />
-                  ) : (
-                    <BarsArrowDownIcon className="h-4 w-4 text-byuNavy" />
-                  )
-                ) : (
-                  <BarsArrowDownIcon className="h-4 w-4 text-byuMediumGray" />
-                )}
-              </div>
-            </th>
-            <th
-              className="border px-4 py-2 cursor-pointer"
-              onClick={() => handleSort("carrier")}
-            >
-              <div className="flex items-center justify-center gap-2">
-                Carrier
-                {sortBy === "carrier" ? (
-                  sortOrder === "asc" ? (
-                    <BarsArrowUpIcon className="h-4 w-4 text-byuNavy" />
-                  ) : (
-                    <BarsArrowDownIcon className="h-4 w-4 text-byuNavy" />
-                  )
-                ) : (
-                  <BarsArrowDownIcon className="h-4 w-4 text-byuMediumGray" />
-                )}
-              </div>
-            </th>
-            <th
-              className="border px-4 py-2 cursor-pointer"
-              onClick={() => handleSort("sender")}
-            >
-              <div className="flex items-center justify-center gap-2">
-                Sender
-                {sortBy === "sender" ? (
-                  sortOrder === "asc" ? (
-                    <BarsArrowUpIcon className="h-4 w-4 text-byuNavy" />
-                  ) : (
-                    <BarsArrowDownIcon className="h-4 w-4 text-byuNavy" />
-                  )
-                ) : (
-                  <BarsArrowDownIcon className="h-4 w-4 text-byuMediumGray" />
-                )}
-              </div>
-            </th>
-            <th
-              className="border px-4 py-2 cursor-pointer"
-              onClick={() => handleSort("student")}
-            >
-              <div className="flex items-center justify-center gap-2">
-                Student
-                {sortBy === "student" ? (
-                  sortOrder === "asc" ? (
-                    <BarsArrowUpIcon className="h-4 w-4 text-byuNavy" />
-                  ) : (
-                    <BarsArrowDownIcon className="h-4 w-4 text-byuNavy" />
-                  )
-                ) : (
-                  <BarsArrowDownIcon className="h-4 w-4 text-byuMediumGray" />
-                )}
-              </div>
-            </th>
-            <th
-              className="border px-4 py-2 cursor-pointer"
-              onClick={() => handleSort("dateArrived")}
-            >
-              <div className="flex items-center justify-center gap-2">
-                Date Arrived
-                {sortBy === "dateArrived" ? (
-                  sortOrder === "asc" ? (
-                    <BarsArrowUpIcon className="h-4 w-4 text-byuNavy" />
-                  ) : (
-                    <BarsArrowDownIcon className="h-4 w-4 text-byuNavy" />
-                  )
-                ) : (
-                  <BarsArrowDownIcon className="h-4 w-4 text-byuMediumGray" />
-                )}
-              </div>
-            </th>
-            <th
-              className="border px-4 py-2 cursor-pointer"
-              onClick={() => handleSort("location")}
-            >
-              <div className="flex items-center justify-center gap-2">
-                Location
-                {sortBy === "location" ? (
-                  sortOrder === "asc" ? (
-                    <BarsArrowUpIcon className="h-4 w-4 text-byuNavy" />
-                  ) : (
-                    <BarsArrowDownIcon className="h-4 w-4 text-byuNavy" />
-                  )
-                ) : (
-                  <BarsArrowDownIcon className="h-4 w-4 text-byuMediumGray" />
-                )}
-              </div>
-            </th>
-            <th className="border px-4 py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {/* Map through all packages and display them in the table */}
-          {packages.map((pkg) => {
-            return (
-              <React.Fragment key={pkg.id}>
-                <tr className="bg-white hover:bg-gray-50">
-                  <td className="border px-4 py-2 text-center">
-                    <span
-                      className={`px-3 py-1 rounded font-medium inline-block text-xs ${getPackageStatusColor(
-                        pkg.status
-                      )}`}
-                    >
-                      {pkg.status.replace("_", " ")}
-                    </span>
-                  </td>
-                  <td className="border px-4 py-2 text-center text-sm">
-                    {pkg.trackingNumber || "N/A"}
-                  </td>
-                  <td className="border px-4 py-2 text-center">
-                    {pkg.carrier || "N/A"}
-                  </td>
-                  <td className="border px-4 py-2 text-center">
-                    {pkg.sender || "N/A"}
-                  </td>
-                  <td className="border px-4 py-2 text-center">
-                    {pkg.student?.fullName || "N/A"}
-                  </td>
-                  <td className="border px-4 py-2 text-center">
-                    {pkg.dateArrived ? formatDate(pkg.dateArrived) : "N/A"}
-                  </td>
-                  <td className="border px-4 py-2 text-center">
-                    {pkg.location || "N/A"}
-                  </td>
-                  <td className="border px-4 py-2 text-center">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => openViewModal(pkg)}
-                        className="px-2 py-1 border border-byuNavy text-byuNavy rounded hover:bg-byuNavy hover:text-white transition-colors duration-150 text-xs font-medium"
-                      >
-                        View
-                      </button>
-                      <button
-                        onClick={() => openEditModal(pkg)}
-                        className="px-2 py-1 border border-byuRoyal text-byuRoyal rounded hover:bg-byuRoyal hover:text-white transition-colors duration-150 text-xs font-medium"
-                      >
-                        Edit
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </React.Fragment>
-            );
-          })}
-        </tbody>
-      </table>
-
-      {/* Table Pagination */}
-      <Pagination
+    <div className="space-y-4">
+      {/* Controls Component */}
+      <PackageTableControls
+        selectedStatus={selectedStatus}
+        setSelectedStatus={setSelectedStatus}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        date={date}
+        setDate={setDate}
+        onSearch={handleSearch}
+        onClearSearch={handleClearSearch}
+        onClearFilters={handleClearFilters}
+        onAddPackage={() => setIsAddModalOpen(true)}
         currentPage={currentPage}
         totalPages={totalPages}
-        onPageChange={(page) => setCurrentPage(page)}
         pageSize={pageSize}
+        onPageChange={setCurrentPage}
         setPageSize={setPageSize}
+      />
+
+      {/* Data Table Component */}
+      <PackageDataTable
+        packages={packages}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSort}
+        onView={openViewModal}
+        onEdit={openEditModal}
       />
 
       {/* View Package Modal  */}
