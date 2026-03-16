@@ -10,7 +10,7 @@ export async function POST(
   try {
     const body = await request.json();
     
-    const package = await prisma.package.update({
+    const updatedPackage = await prisma.package.update({
       where: { id: params.id },
       data: {
         status: 'ARRIVED',
@@ -26,7 +26,7 @@ export async function POST(
     
     // TODO: Send notification to student
     
-    return NextResponse.json(package);
+    return NextResponse.json(updatedPackage);
   } catch (error) {
     console.error('Error checking in package:', error);
     return NextResponse.json(

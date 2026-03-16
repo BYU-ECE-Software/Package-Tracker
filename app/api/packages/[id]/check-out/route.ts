@@ -10,7 +10,7 @@ export async function POST(
   try {
     const body = await request.json();
     
-    const package = await prisma.package.update({
+    const updatedPackage = await prisma.package.update({
       where: { id: params.id },
       data: {
         status: 'PICKED_UP',
@@ -23,7 +23,7 @@ export async function POST(
       },
     });
     
-    return NextResponse.json(package);
+    return NextResponse.json(updatedPackage);
   } catch (error) {
     console.error('Error checking out package:', error);
     return NextResponse.json(

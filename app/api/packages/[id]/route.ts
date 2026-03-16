@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const package = await prisma.package.findUnique({
+    const updatedPackage = await prisma.package.findUnique({
       where: { id: params.id },
       include: {
         student: true,
@@ -18,14 +18,14 @@ export async function GET(
       },
     });
     
-    if (!package) {
+    if (!updatedPackage) {
       return NextResponse.json(
         { error: 'Package not found' },
         { status: 404 }
       );
     }
     
-    return NextResponse.json(package);
+    return NextResponse.json(updatedPackage);
   } catch (error) {
     console.error('Error fetching package:', error);
     return NextResponse.json(
@@ -63,7 +63,7 @@ export async function PUT(
     if (body.location !== undefined) updateData.location = body.location;
     if (body.notificationSent !== undefined) updateData.notificationSent = body.notificationSent;
     
-    const package = await prisma.package.update({
+    const updatedPackage = await prisma.package.update({
       where: { id: params.id },
       data: updateData,
       include: {
@@ -73,7 +73,7 @@ export async function PUT(
       },
     });
     
-    return NextResponse.json(package);
+    return NextResponse.json(updatedPackage);
   } catch (error) {
     console.error('Error updating package:', error);
     return NextResponse.json(
