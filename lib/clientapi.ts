@@ -86,7 +86,7 @@ export async function checkOutPackage(id: string, employeeId: string): Promise<P
 // lib/api/users.ts - User API Functions
 // ============================================
 
-import type { User, UserRole } from '@/types/user';
+import { type User, UserRole } from '@/types/user';
 
 // Query parameters for fetching users
 export interface UserQueryParams {
@@ -237,7 +237,7 @@ export async function fetchUsersByRole(role: UserRole): Promise<User[]> {
  * Fetch all students (convenience function)
  */
 export async function fetchStudents(): Promise<User[]> {
-  return fetchUsersByRole('STUDENT');
+  return fetchUsersByRole(UserRole.STUDENT);
 }
 
 /**
