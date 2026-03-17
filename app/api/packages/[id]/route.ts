@@ -6,11 +6,12 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const updatedPackage = await prisma.package.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         student: true,
         checkedInBy: true,
@@ -37,11 +38,12 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
-    
+
     const updateData: any = {};
     
     if (body.trackingNumber !== undefined) updateData.trackingNumber = body.trackingNumber;
@@ -64,7 +66,7 @@ export async function PUT(
     if (body.notificationSent !== undefined) updateData.notificationSent = body.notificationSent;
     
     const updatedPackage = await prisma.package.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         student: true,
@@ -85,11 +87,12 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await prisma.package.delete({
-      where: { id: params.id },
+      where: { id },
     });
     
     return NextResponse.json({ success: true });
