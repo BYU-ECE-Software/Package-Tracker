@@ -9,7 +9,6 @@ import {
 
 import type { CrudConfig } from '../types/crud';
 import type { User } from '../types/user';
-import { Update } from 'next/dist/build/swc/types';
 
 /**
  * Central configuration for generating CRUD panels for different models.
@@ -29,7 +28,7 @@ export const crudConfigs = {
       email: { label: 'Email', type: 'text', required: true },
     },
     api: {
-      getAll: fetchUsers,
+      getAll: () => fetchUsers({ pageSize: 1000 }).then((r) => r.data),
       create: createUser,
       update: updateUser,
       remove: deleteUser,

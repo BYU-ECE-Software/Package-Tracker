@@ -19,8 +19,8 @@ export type CrudConfig<T, CreatePayload = Partial<T>> = {
   api: {
     getAll: () => Promise<T[]>;
     create: (data: CreatePayload) => Promise<T>;
-    update: (id: number, data: Partial<T>) => Promise<T>;
-    remove: (id: number) => Promise<void>;
+    update: (id: string, data: Partial<T>) => Promise<T>;
+    remove: (id: string) => Promise<void>;
   };
 
   // Title/Name used in UI and toasts for each table

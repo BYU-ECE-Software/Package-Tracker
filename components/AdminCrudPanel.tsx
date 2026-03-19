@@ -7,7 +7,7 @@ import type { ToastProps } from '@/types/toast';
 import ConfirmDeleteAdminPage from './ConfirmDeleteAdminPage';
 
 // Generic props: title to display and a CRUD config for a specific model
-interface Props<T extends { id: number }, CreatePayload> {
+interface Props<T extends { id: string }, CreatePayload> {
   title: string;
   config: CrudConfig<T, CreatePayload>;
   setToast: (toast: Omit<ToastProps, 'onClose' | 'duration'>) => void;
@@ -15,13 +15,13 @@ interface Props<T extends { id: number }, CreatePayload> {
 
 // Generic reusable CRUD admin panel for any model with an `id`
 export default function AdminCrudPanel<
-  T extends { id: number },
+  T extends { id: string },
   CreatePayload,
 >({ title, config, setToast }: Props<T, CreatePayload>) {
   // State to store all records, form data, and editing ID
   const [items, setItems] = useState<T[]>([]);
   const [formData, setFormData] = useState<Partial<CreatePayload>>({});
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Loading state
   const [loading, setLoading] = useState(true);
@@ -313,7 +313,7 @@ export default function AdminCrudPanel<
                 </tr>
               </thead>
               <tbody>
-                {items.data.map((item) => {
+                {items.map((item) => {
                   const allowEdit = config.canEdit?.(item) ?? true;
                   const allowDelete = config.canDelete?.(item) ?? true;
 
