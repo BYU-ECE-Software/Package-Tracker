@@ -201,17 +201,17 @@ const PackageDashboard = () => {
     try {
       // Prepare payload
       const payload = {
-        trackingNumber: editedPackage.trackingNumber,
-        carrier: editedPackage.carrier,
-        sender: editedPackage.sender,
+        trackingNumber: editedPackage.trackingNumber ?? undefined,
+        carrier: editedPackage.carrier ?? undefined,
+        sender: editedPackage.sender ?? undefined,
         status: editedPackage.status,
-        expectedArrivalDate: editedPackage.expectedArrivalDate?.toString(),
-        dateArrived: editedPackage.dateArrived?.toString(),
-        datePickedUp: editedPackage.datePickedUp?.toString(),
-        checkedInById: editedPackage.checkedInById,
-        checkedOutById: editedPackage.checkedOutById,
-        notes: editedPackage.notes,
-        location: editedPackage.location,
+        expectedArrivalDate: editedPackage.expectedArrivalDate?.toString() ?? undefined,
+        dateArrived: editedPackage.dateArrived?.toString() ?? undefined,
+        datePickedUp: editedPackage.datePickedUp?.toString() ?? undefined,
+        checkedInById: editedPackage.checkedInById ?? undefined,
+        checkedOutById: editedPackage.checkedOutById ?? undefined,
+        notes: editedPackage.notes ?? undefined,
+        location: editedPackage.location ?? undefined,
         notificationSent: editedPackage.notificationSent,
       };
 
