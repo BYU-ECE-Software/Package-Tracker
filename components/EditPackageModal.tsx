@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import type { Package, PackageStatus, User } from '@/types/package';
+import type { User } from '@/types/user';
+import type { Package, PackageStatus } from '@/types/package';
 import Toast from './Toast';
 import type { ToastProps } from '@/types/toast';
 
