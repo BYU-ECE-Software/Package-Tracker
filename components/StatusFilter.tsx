@@ -1,20 +1,17 @@
 import React from 'react';
+import type { PackageStatus } from '@/types/package';
 
 type StatusFilterProps = {
-  selectedStatus: string;
-  setSelectedStatus: (status: string) => void;
+  selectedStatus: PackageStatus | "";
+  setSelectedStatus: (status: PackageStatus | "") => void;
+  statuses: PackageStatus[];
   onClearFilters: () => void;
 };
-
-const statuses = [
-  'Received',
-  'Email Sent',
-  'Picked Up',
-];
 
 const StatusFilter: React.FC<StatusFilterProps> = ({
   selectedStatus,
   setSelectedStatus,
+  statuses,
   onClearFilters,
 }) => {
   return (
@@ -22,7 +19,7 @@ const StatusFilter: React.FC<StatusFilterProps> = ({
       <select
         className="border border-gray-300 text-byuNavy bg-white text-sm rounded-md px-4 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-byuRoyal transition-all"
         value={selectedStatus}
-        onChange={(e) => setSelectedStatus(e.target.value)}
+        onChange={(e) => setSelectedStatus(e.target.value as PackageStatus | "")}
       >
         {/* Placeholder option */}
         <option value="" disabled hidden>

@@ -5,8 +5,9 @@ interface SearchBarProps {
   setSearchTerm: (value: string) => void;
   onSearch: () => void;
   onClear: () => void;
-  purchaseDate: string; // New prop
-  setPurchaseDate: (value: string) => void; // New setter
+  date: string;
+  setDate: (value: string) => void;
+  placeholder?: string;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -14,8 +15,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
   setSearchTerm,
   onSearch,
   onClear,
-  purchaseDate,
-  setPurchaseDate,
+  date,
+  setDate,
+  placeholder = 'Search packages...',
 }) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -29,7 +31,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       <div className="flex items-center space-x-2">
         <input
           type="text"
-          placeholder="Search orders..."
+          placeholder={placeholder}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -41,7 +43,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         >
           Search
         </button>
-        {(searchTerm || purchaseDate) && (
+        {(searchTerm || date) && (
           <button
             onClick={onClear}
             className="text-sm text-gray-600 underline hover:text-gray-800"
@@ -56,9 +58,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
         <span>Search by date:</span>
         <input
           type="date"
-          value={purchaseDate}
+          value={date}
           onChange={(e) => {
-            setPurchaseDate(e.target.value);
+            setDate(e.target.value);
           }}
           className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-byuRoyal"
         />

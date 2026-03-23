@@ -112,7 +112,7 @@ const Pagination: React.FC<PaginationProps> = ({
       {/* Page size selector */}
       <div className="flex items-center gap-2">
         <label htmlFor="pageSize" className="text-sm text-byuNavy font-normal">
-          Orders per page:
+          Packages per page:
         </label>
         <select
           id="pageSize"
