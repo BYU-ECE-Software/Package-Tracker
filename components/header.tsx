@@ -50,7 +50,7 @@ const HeaderBar = () => {
   const handleSignOut = async () => {
     try {
       // await adminLogout(); // clears httpOnly cookie on backend
-      router.push('/purchaseRequest'); // navigate to public page
+      router.push('/login'); // navigate to public page
       // optional: force reload
       // router.refresh();
     } catch (error) {

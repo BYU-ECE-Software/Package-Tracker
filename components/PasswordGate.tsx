@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { adminLogin } from '../api/auth.ts';
+import { adminLogin } from '../api/auth';
 
 export default function PasswordGate({ onSuccess }: { onSuccess: () => void }) {
   const [pwd, setPwd] = useState('');
