@@ -58,7 +58,7 @@ const ViewPackageModal: React.FC<ViewPackageModalProps> = ({
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
               <span className="text-sm font-medium text-byuNavy">Status</span>
               <span className="text-sm text-gray-700 font-semibold">
-                {pkg.status.replace('_', ' ')}
+                {pkg.status.replaceAll('_', ' ')}
               </span>
             </div>
 
