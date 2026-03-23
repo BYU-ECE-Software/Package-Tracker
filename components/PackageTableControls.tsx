@@ -1,5 +1,5 @@
 import React from "react";
-import type { PackageStatus } from "@/types/package";
+import { PackageStatus } from "@/types/package";
 import SearchBar from "./SearchBar";
 import StatusFilter from "./StatusFilter";
 import Pagination from "./Pagination";
@@ -55,12 +55,12 @@ const PackageTableControls: React.FC<PackageTableControlsProps> = ({
             setSelectedStatus={setSelectedStatus}
             onClearFilters={onClearFilters}
             statuses={[
-              "AWAITING_ARRIVAL",
-              "ARRIVED",
-              "READY_FOR_PICKUP",
-              "PICKED_UP",
-              "RETURNED_TO_SENDER",
-              "LOST",
+              PackageStatus.AWAITING_ARRIVAL,
+              PackageStatus.ARRIVED,
+              PackageStatus.READY_FOR_PICKUP,
+              PackageStatus.PICKED_UP,
+              PackageStatus.RETURNED_TO_SENDER,
+              PackageStatus.LOST,
             ]}
           />
 
@@ -96,7 +96,7 @@ const PackageTableControls: React.FC<PackageTableControlsProps> = ({
             onClear={onClearSearch}
             date={date}
             setDate={setDate}
-            placeholder="Search tracking #, carrier, sender, student..."
+            placeholder="Search packages..."
           />
         </div>
       </div>
