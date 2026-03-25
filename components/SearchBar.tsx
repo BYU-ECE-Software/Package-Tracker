@@ -17,7 +17,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onClear,
   date,
   setDate,
-  placeholder = 'Search packages...',
+  placeholder = 'Search',
 }) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
