@@ -14,7 +14,6 @@ export async function POST(
     const updatedPackage = await prisma.package.update({
       where: { id },
       data: {
-        status: 'PICKED_UP',
         datePickedUp: new Date(),
         checkedOutById: body.employeeId,
       },

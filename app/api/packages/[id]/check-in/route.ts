@@ -14,10 +14,8 @@ export async function POST(
     const updatedPackage = await prisma.package.update({
       where: { id },
       data: {
-        status: 'ARRIVED',
         dateArrived: new Date(),
         checkedInById: body.employeeId,
-        location: body.location,
       },
       include: {
         student: true,

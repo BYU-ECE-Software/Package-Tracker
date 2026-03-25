@@ -46,23 +46,14 @@ export async function PUT(
 
     const updateData: any = {};
     
-    if (body.trackingNumber !== undefined) updateData.trackingNumber = body.trackingNumber;
-    if (body.carrier !== undefined) updateData.carrier = body.carrier;
-    if (body.sender !== undefined) updateData.sender = body.sender;
-    if (body.status !== undefined) updateData.status = body.status;
-    if (body.expectedArrivalDate !== undefined) {
-      updateData.expectedArrivalDate = body.expectedArrivalDate ? new Date(body.expectedArrivalDate) : null;
-    }
-    if (body.dateArrived !== undefined) {
-      updateData.dateArrived = body.dateArrived ? new Date(body.dateArrived) : null;
-    }
-    if (body.datePickedUp !== undefined) {
-      updateData.datePickedUp = body.datePickedUp ? new Date(body.datePickedUp) : null;
-    }
-    if (body.checkedInById !== undefined) updateData.checkedInById = body.checkedInById;
-    if (body.checkedOutById !== undefined) updateData.checkedOutById = body.checkedOutById;
-    if (body.notes !== undefined) updateData.notes = body.notes;
-    if (body.location !== undefined) updateData.location = body.location;
+    if (body.carrierId        !== undefined) updateData.carrierId        = body.carrierId;
+    if (body.senderId         !== undefined) updateData.senderId         = body.senderId;
+    if (body.dateArrived      !== undefined) updateData.dateArrived      = body.dateArrived  ? new Date(body.dateArrived)  : null;
+    if (body.datePickedUp     !== undefined) updateData.datePickedUp     = body.datePickedUp ? new Date(body.datePickedUp) : null;
+    if (body.checkedInById    !== undefined) updateData.checkedInById    = body.checkedInById;
+    if (body.checkedOutById   !== undefined) updateData.checkedOutById   = body.checkedOutById;
+    if (body.deliveredToOffice !== undefined) updateData.deliveredToOffice = body.deliveredToOffice;
+    if (body.notes            !== undefined) updateData.notes            = body.notes;
     if (body.notificationSent !== undefined) updateData.notificationSent = body.notificationSent;
     
     const updatedPackage = await prisma.package.update({

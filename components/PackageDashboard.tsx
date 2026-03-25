@@ -9,8 +9,8 @@ import {
   checkInPackage,
   checkOutPackage,
   createPackage,
-  fetchUsers,
-} from "@/lib/clientApi";
+} from "@/lib/api/packages";
+import { fetchUsers } from "@/lib/api/users";
 import { type AddPackageData } from "@/types/package";
 import AddPackageModal from "./AddPackageModal";
 import EditPackageModal from "./EditPackageModal";
