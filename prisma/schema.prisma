@@ -18,15 +18,6 @@ enum UserRole {
   ADMIN
 }
 
-enum PackageStatus {
-  AWAITING_ARRIVAL
-  ARRIVED
-  READY_FOR_PICKUP
-  PICKED_UP
-  RETURNED_TO_SENDER
-  LOST
-}
-
 model User {
   id                    String    @id @default(cuid())
   netId                 String    @unique
@@ -37,7 +28,7 @@ model User {
   updatedAt             DateTime  @updatedAt
   
   // Relations
-  orderedPackages       Package[] @relation("StudentPackages")
+  packages              Package[] @relation("StudentPackages")
   checkedInPackages     Package[] @relation("CheckedInBy")
   checkedOutPackages    Package[] @relation("CheckedOutBy")
   
@@ -45,37 +36,52 @@ model User {
   @@index([email])
 }
 
+model Carrier {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  packages Package[]
+}
+
+model Sender {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  packages Package[]
+}
+
 model Package {
   id                    String         @id @default(cuid())
-  trackingNumber        String?        @unique
-  carrier               String?        // UPS, FedEx, USPS, DHL, Amazon, etc.
-  sender                String?        // Who sent the package (vendor/person)
-  status                PackageStatus  @default(AWAITING_ARRIVAL)
-  
-  // Dates
-  expectedArrivalDate   DateTime?
-  dateArrived           DateTime?
-  datePickedUp          DateTime?
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
-  
-  // Relations
-  studentId             String
+
+  // Dropdown Menus
+  carrierId   String?
+  carrier     Carrier? @relation(fields: [carrierId], references: [id], onDelete: SetNull)
+
+  senderId    String?
+  sender      Sender?  @relation(fields: [senderId], references: [id], onDelete: SetNull)
+
+  // Dates
+  dateArrived           DateTime        @default(now())
+  datePickedUp          DateTime?
+
+  // User Relations
+  studentId             String         // Recipient
   student               User           @relation("StudentPackages", fields: [studentId], references: [id], onDelete: Cascade)
   
-  checkedInById         String?
+  checkedInById         String?        // Secretary logging package
   checkedInBy           User?          @relation("CheckedInBy", fields: [checkedInById], references: [id], onDelete: SetNull)
   
-  checkedOutById        String?
+  checkedOutById        String?        // Secretary updating delivered package
   checkedOutBy          User?          @relation("CheckedOutBy", fields: [checkedOutById], references: [id], onDelete: SetNull)
   
+  deliveredToOffice     Boolean        @default(false)
+
   // Additional fields
   notes                 String?        @db.Text
-  location              String?        // Shelf number, bin location, etc.
   notificationSent      Boolean        @default(false)
   
   @@index([studentId])
-  @@index([status])
-  @@index([trackingNumber])
+  @@index([carrierId])
+  @@index([senderId])
   @@index([dateArrived])
 }
