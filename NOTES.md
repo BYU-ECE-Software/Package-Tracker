@@ -49,6 +49,10 @@ Secretaries use it to log incoming packages, track their status, and record pick
 For each new feature: **Prisma → API Endpoints → Frontend**
 
 1. Schema changes + migrations
+    - docker compose -f docker-compose.migrate.yaml up -d
+    - npx prisma generate
+    - npx prisma migrate dev --name give-migration-a-name
+    - npx prisma studio
 2. Seed filler data (students, secretaries, carriers, senders, packages)
 3. API routes for new models (carriers, senders)
 4. Update Admin panel (`crudConfigs`) for carriers and senders

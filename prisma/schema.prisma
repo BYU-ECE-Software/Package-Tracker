@@ -39,12 +39,14 @@ model User {
 model Carrier {
   id       String    @id @default(cuid())
   name     String    @unique
+  isActive Boolean   @default(true)
   packages Package[]
 }
 
 model Sender {
   id       String    @id @default(cuid())
   name     String    @unique
+  isActive Boolean   @default(true)
   packages Package[]
 }
 
