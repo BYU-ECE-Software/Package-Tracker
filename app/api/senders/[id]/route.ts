@@ -10,8 +10,8 @@ export async function PUT(
     const body = await request.json();
 
     const updateData: { name?: string; isActive?: boolean } = {};
-    if (body.name \!== undefined) updateData.name = body.name;
-    if (body.isActive \!== undefined) updateData.isActive = body.isActive;
+    if (body.name !== undefined) updateData.name = body.name;
+    if (body.isActive !== undefined) updateData.isActive = body.isActive;
 
     const sender = await prisma.sender.update({
       where: { id },
