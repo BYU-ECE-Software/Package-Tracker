@@ -1,6 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    const packageCount = await prisma.package.count({ where: { senderId: id } });
+    if (packageCount > 0) {
+      return NextResponse.json(
+        { error: `Cannot delete: ${packageCount} package${packageCount === 1 ? '' : 's'} use this sender. Consider marking it as hidden instead.` },
+        { status: 409 }
+      );
+    }
+
+    await prisma.sender.delete({ where: { id } });
+    return NextResponse.json({ deleted: true });
+  } catch (error: any) {
+    if (error?.code === 'P2025') {
+      return NextResponse.json({ error: 'Sender not found' }, { status: 404 });
+    }
+    console.error('Error deleting sender:', error);
+    return NextResponse.json({ error: 'Failed to delete sender' }, { status: 500 });
+  }
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

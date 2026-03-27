@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
 
     const senders = await prisma.sender.findMany({
       where: activeOnly ? { isActive: true } : undefined,
-      orderBy: { name: 'asc' },
+      orderBy: [{ order: 'asc' }, { name: 'asc' }],
     });
 
     return NextResponse.json(senders);

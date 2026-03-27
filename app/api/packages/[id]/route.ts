@@ -13,7 +13,7 @@ export async function GET(
     const updatedPackage = await prisma.package.findUnique({
       where: { id },
       include: {
-        student: true,
+        recipient: true,
         checkedInBy: true,
         checkedOutBy: true,
       },
@@ -60,7 +60,7 @@ export async function PUT(
       where: { id },
       data: updateData,
       include: {
-        student: true,
+        recipient: true,
         checkedInBy: true,
         checkedOutBy: true,
       },

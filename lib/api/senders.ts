@@ -1,3 +1,7 @@
+// ============================================
+// Sender API Functions
+// ============================================
+
 import type { Sender, CreateSenderRequest, UpdateSenderRequest } from '@/types/sender';
 
 export async function fetchSenders(activeOnly?: boolean): Promise<Sender[]> {
@@ -46,4 +50,16 @@ export async function updateSender(id: string, data: UpdateSenderRequest): Promi
   }
 
   return res.json();
+}
+
+export async function deleteSender(id: string): Promise<void> {
+  const res = await fetch(`/api/senders/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!res.ok) {
+    if (res.status === 404) throw new Error('Sender not found');
+    const error = await res.json().catch(() => ({ error: 'Failed to delete sender' }));
+    throw new Error(error.error || 'Failed to delete sender');
+  }
 }

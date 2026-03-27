@@ -51,3 +51,15 @@ export async function updateCarrier(id: string, data: UpdateCarrierRequest): Pro
 
   return res.json();
 }
+
+export async function deleteCarrier(id: string): Promise<void> {
+  const res = await fetch(`/api/carriers/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!res.ok) {
+    if (res.status === 404) throw new Error('Carrier not found');
+    const error = await res.json().catch(() => ({ error: 'Failed to delete carrier' }));
+    throw new Error(error.error || 'Failed to delete carrier');
+  }
+}

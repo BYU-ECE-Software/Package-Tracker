@@ -18,12 +18,12 @@ export async function POST(
         checkedInById: body.employeeId,
       },
       include: {
-        student: true,
+        recipient: true,
         checkedInBy: true,
       },
     });
     
-    // TODO: Send notification to student
+    // TODO: Send notification to recipient
     
     return NextResponse.json(updatedPackage);
   } catch (error) {

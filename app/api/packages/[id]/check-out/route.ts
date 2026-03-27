@@ -18,7 +18,7 @@ export async function POST(
         checkedOutById: body.employeeId,
       },
       include: {
-        student: true,
+        recipient: true,
         checkedOutBy: true,
       },
     });

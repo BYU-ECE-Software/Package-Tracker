@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const order = searchParams.get('order') || 'desc';
 
     // Filters
-    const studentId = searchParams.get('studentId');
+    const recipientId = searchParams.get('recipientId');
     const search = searchParams.get('search');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
@@ -24,14 +24,14 @@ export async function GET(request: NextRequest) {
     // Build where clause
     const where: any = {};
 
-    if (studentId) where.studentId = studentId;
+    if (recipientId) where.recipientId = recipientId;
 
     if (search) {
       where.OR = [
         { carrier: { name: { contains: search, mode: 'insensitive' } } },
         { sender:  { name: { contains: search, mode: 'insensitive' } } },
-        { student: { fullName: { contains: search, mode: 'insensitive' } } },
-        { student: { netId:    { contains: search, mode: 'insensitive' } } },
+        { recipient: { fullName: { contains: search, mode: 'insensitive' } } },
+        { recipient: { netId:    { contains: search, mode: 'insensitive' } } },
       ];
     }
     
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
         take: pageSize,
         orderBy: { [sortBy]: order },
         include: {
-          student: true,
+          recipient: true,
           checkedInBy: true,
           checkedOutBy: true,
         },
@@ -79,13 +79,13 @@ export async function POST(request: NextRequest) {
     
     const new_package = await prisma.package.create({
       data: {
-        studentId: body.studentId,
+        recipientId: body.recipientId,
         carrierId: body.carrierId ?? null,
         senderId:  body.senderId  ?? null,
         notes:     body.notes     ?? null,
       },
       include: {
-        student: true,
+        recipient: true,
       },
     });
     

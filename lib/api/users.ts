@@ -37,7 +37,7 @@ export interface UserListResponse {
 
 // User with packages included
 export interface UserWithPackages extends User {
-  orderedPackages: any[]; // Use your Package type here
+  packages: any[]; // Use your Package type here
 }
 
 /**

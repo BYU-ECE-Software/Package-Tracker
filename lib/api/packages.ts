@@ -1,5 +1,5 @@
 // ============================================
-// CLIENT API FUNCTIONS (lib/api/packages.ts)
+// Package API Functions
 // ============================================
 
 import type { Package, PackageQueryParams, CreatePackageRequest, UpdatePackageRequest } from '@/types/package';
