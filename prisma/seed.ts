@@ -53,11 +53,11 @@ async function main() {
   const carrierNames = ['Amazon', 'FedEx', 'UPS', 'USPS', 'DHL'];
 
   const carriers = await Promise.all(
-    carrierNames.map((name) =>
+    carrierNames.map((name, i) =>
       prisma.carrier.upsert({
         where: { name },
         update: {},
-        create: { name, isActive: true },
+        create: { name, isActive: true, order: i },
       })
     )
   );
@@ -67,11 +67,11 @@ async function main() {
   const senderNames = ['ThorLabs', 'McMaster Carr', 'Mouser', 'DigiKey', 'Amazon'];
 
   const senders = await Promise.all(
-    senderNames.map((name) =>
+    senderNames.map((name, i) =>
       prisma.sender.upsert({
         where: { name },
         update: {},
-        create: { name, isActive: true },
+        create: { name, isActive: true, order: i },
       })
     )
   );
@@ -131,7 +131,7 @@ async function main() {
 
     await prisma.package.create({
       data: {
-        student:      { connect: { id: students[def.studentIdx].id } },
+        recipient:    { connect: { id: students[def.studentIdx].id } },
         carrier:      { connect: { id: carriers[def.carrierIdx].id } },
         sender:       { connect: { id: senders[def.senderIdx].id } },
         dateArrived:  arrivedDate,
