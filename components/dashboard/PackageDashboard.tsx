@@ -15,7 +15,7 @@ import { type AddPackageData } from "@/types/package";
 import AddPackageModal from "./AddPackageModal";
 import EditPackageModal from "./EditPackageModal";
 import ViewPackageModal from "./ViewPackageModal";
-import Toast from "./Toast";
+import Toast from "../shared/Toast";
 import type { ToastProps } from "@/types/toast";
 import PackageTableControls from "./PackageTableControls";
 import PackageDataTable from "./PackageDataTable";

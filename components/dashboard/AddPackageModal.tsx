@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import type { User } from '@/types/user';
 import type { PackageStatus } from '@/types/package';
-import Toast from './Toast';
+import Toast from '../shared/Toast';
 import type { ToastProps } from '@/types/toast';
 import type { AddPackageData } from '@/types/package';
 

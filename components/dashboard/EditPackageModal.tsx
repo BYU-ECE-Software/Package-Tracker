@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import type { User } from '@/types/user';
-import { PackageStatus } from '@/types/package';
 import type { Package } from '@/types/package';
-import Toast from './Toast';
+import Toast from '../shared/Toast';
 import type { ToastProps } from '@/types/toast';
 
 interface EditPackageModalProps {
@@ -15,14 +14,6 @@ interface EditPackageModalProps {
 }
 
 // Package status options
-const statusOptions: PackageStatus[] = [
-  PackageStatus.AWAITING_ARRIVAL,
-  PackageStatus.ARRIVED,
-  PackageStatus.READY_FOR_PICKUP,
-  PackageStatus.PICKED_UP,
-  PackageStatus.RETURNED_TO_SENDER,
-  PackageStatus.LOST,
-];
 
 // Carrier options
 const carrierOptions = [

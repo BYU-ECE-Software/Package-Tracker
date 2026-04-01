@@ -1,13 +1,10 @@
 import React from "react";
-import { PackageStatus } from "@/types/package";
-import SearchBar from "./SearchBar";
-import StatusFilter from "./StatusFilter";
-import Pagination from "./Pagination";
+import SearchBar from "../shared/SearchBar";
+import StatusFilter from "../shared/StatusFilter";
+import Pagination from "../shared/Pagination";
 
 interface PackageTableControlsProps {
   // Filter and search props
-  selectedStatus: PackageStatus | "";
-  setSelectedStatus: (status: PackageStatus | "") => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   date: string;
@@ -28,8 +25,6 @@ interface PackageTableControlsProps {
 }
 
 const PackageTableControls: React.FC<PackageTableControlsProps> = ({
-  selectedStatus,
-  setSelectedStatus,
   searchTerm,
   setSearchTerm,
   date,
@@ -50,19 +45,7 @@ const PackageTableControls: React.FC<PackageTableControlsProps> = ({
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
         {/* Left side: Filter and Add button */}
         <div className="flex gap-3">
-          <StatusFilter
-            selectedStatus={selectedStatus}
-            setSelectedStatus={setSelectedStatus}
-            onClearFilters={onClearFilters}
-            statuses={[
-              PackageStatus.AWAITING_ARRIVAL,
-              PackageStatus.ARRIVED,
-              PackageStatus.READY_FOR_PICKUP,
-              PackageStatus.PICKED_UP,
-              PackageStatus.RETURNED_TO_SENDER,
-              PackageStatus.LOST,
-            ]}
-          />
+          {/* REMOVED STATUS FILTER */}
 
           <button
             onClick={onAddPackage}
