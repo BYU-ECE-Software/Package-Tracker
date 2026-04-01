@@ -1,13 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import HeaderBar from '@/components/header';
-import FooterBar from '@/components/footer';
-import PageTitle from '@/components/pageTitle';
-import AdminTabs from '@/components/SiteAdminTabs';
-import AdminCrudPanel from '@/components/AdminCrudPanel';
+import PageTitle from '@/components/layout/pageTitle';
+import AdminTabs from '@/components/admin/SiteAdminTabs';
+import AdminCrudPanel from '@/components/admin/AdminCrudPanel';
 import { crudConfigs } from '@/lib/crudConfig';
-import Toast from '@/components/Toast';
+import Toast from '@/components/shared/Toast';
 import type { ToastProps } from '@/types/toast';
 
 // Get all the keys (tab names) from the crudConfigs object
@@ -24,7 +22,6 @@ export default function AdminPage() {
 
   return (
     <>
-      <HeaderBar />
       <PageTitle title="SITE ADMIN" />
 
       {toast && (
@@ -51,7 +48,6 @@ export default function AdminPage() {
           />
         </div>
       </div>
-      <FooterBar />
     </>
   );
 }
