@@ -2,22 +2,22 @@
 // Template for the Site Admin Page. Allows for CRUD functionality on any desired fields
 
 import { useEffect, useState, useRef } from 'react';
-import type { CrudConfig, FieldConfig } from '@/types/crud';
+import type { ConfigPanel, FieldConfig } from '@/types/configPanel';
 import type { ToastProps } from '@/types/toast';
-import ConfirmDeleteAdminPage from './ConfirmDeleteAdminPage';
+import Toast from '@/components/shared/Toast';
+import ConfirmDeleteAdminPage from '../shared/ConfirmDeleteModal';
 
 // Generic props: title to display and a CRUD config for a specific model
 interface Props<T extends { id: string }, CreatePayload> {
   title: string;
-  config: CrudConfig<T, CreatePayload>;
-  setToast: (toast: Omit<ToastProps, 'onClose' | 'duration'>) => void;
+  config: ConfigPanel<T, CreatePayload>;
 }
 
 // Generic reusable CRUD admin panel for any model with an `id`
 export default function AdminCrudPanel<
   T extends { id: string },
   CreatePayload,
->({ title, config, setToast }: Props<T, CreatePayload>) {
+>({ title, config }: Props<T, CreatePayload>) {
   // State to store all records, form data, and editing ID
   const [items, setItems] = useState<T[]>([]);
   const [formData, setFormData] = useState<Partial<CreatePayload>>({});
@@ -32,6 +32,9 @@ export default function AdminCrudPanel<
   // State for Delete Confirmation
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<T | null>(null);
+
+  // Toast
+  const [toast, setToast] = useState<Omit<ToastProps, 'onClose' | 'duration'> | null>(null);
 
   // Load all records when the component mounts
   useEffect(() => {
@@ -372,6 +375,16 @@ export default function AdminCrudPanel<
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
       />
+      {toast && (
+        <div className="fixed top-6 right-6 z-50 animate-fade-in-out">
+          <Toast
+            type={toast.type}
+            title={toast.title}
+            message={toast.message}
+            onClose={() => setToast(null)}
+          />
+        </div>
+      )}
     </div>
   );
 }
