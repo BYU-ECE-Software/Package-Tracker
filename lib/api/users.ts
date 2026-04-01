@@ -2,43 +2,15 @@
 // lib/api/users.ts - User API Functions
 // ============================================
 
-import { type User, UserRole } from '@/types/user';
-
-// Query parameters for fetching users
-export interface UserQueryParams {
-  page?: number;
-  pageSize?: number;
-  role?: UserRole;
-  search?: string;
-}
-
-// Request types for creating/updating users
-export interface CreateUserRequest {
-  netId: string;
-  email: string;
-  fullName: string;
-  role?: UserRole;
-}
-
-export interface UpdateUserRequest {
-  email?: string;
-  fullName?: string;
-  role?: UserRole;
-}
-
-// Response type for paginated user list
-export interface UserListResponse {
-  data: User[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
-
-// User with packages included
-export interface UserWithPackages extends User {
-  packages: any[]; // Use your Package type here
-}
+import { type
+  User,
+  UserRole,
+  UserListResponse,
+  UserQueryParams,
+  UserWithPackages,
+  CreateUserRequest,
+  UpdateUserRequest,
+} from '@/types/user';
 
 /**
  * Fetch all users with optional filtering and pagination

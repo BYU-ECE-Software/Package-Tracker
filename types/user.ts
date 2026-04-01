@@ -1,3 +1,9 @@
+import type { Package } from './package';
+import type { PaginatedResponse } from './pagination';
+
+
+export type UserListResponse = PaginatedResponse<User>;
+
 export enum UserRole {
   STUDENT = 'STUDENT',
   SECRETARY = 'SECRETARY',
@@ -25,4 +31,17 @@ export interface UpdateUserRequest {
   email?: string;
   fullName?: string;
   role?: UserRole;
+}
+
+// Query parameters for fetching users
+export interface UserQueryParams {
+  page?: number;
+  pageSize?: number;
+  role?: UserRole;
+  search?: string;
+}
+
+// User with packages included
+export interface UserWithPackages extends User {
+  packages: Package[];
 }

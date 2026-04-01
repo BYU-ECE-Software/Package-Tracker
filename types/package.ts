@@ -1,16 +1,9 @@
 import { User } from './user';
+import { Carrier } from './carrier';
+import { Sender } from './sender';
+import type { PaginatedResponse } from './pagination';
 
-export interface Carrier {
-  id: string;
-  name: string;
-  isActive: boolean;
-}
-
-export interface Sender {
-  id: string;
-  name: string;
-  isActive: boolean;
-}
+export type PackageListResponse = PaginatedResponse<Package>;
 
 export interface Package {
   id: string;
