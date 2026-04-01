@@ -6,7 +6,7 @@ import {
   FaExclamationTriangle,
 } from 'react-icons/fa';
 import type { IconType } from 'react-icons';
-import type { ToastProps } from '../types/toast';
+import type { ToastProps } from '@/types/toast';
 
 // Define style settings for each toast type (success, error, info, warning)
 const typeStyles: Record<
@@ -60,6 +60,7 @@ const Toast: React.FC<ToastProps> = ({
   }, [onClose, duration]);
 
   return (
+    <div className="fixed top-6 right-6 z-50 animate-fade-in-out">
     <div
       className={`flex items-start p-4 bg-white rounded shadow-md border-l-4 ${borderColor}`}
     >
@@ -85,6 +86,7 @@ const Toast: React.FC<ToastProps> = ({
           ×
         </button>
       )}
+    </div>
     </div>
   );
 };

@@ -376,14 +376,12 @@ export default function AdminCrudPanel<
         onCancel={cancelDelete}
       />
       {toast && (
-        <div className="fixed top-6 right-6 z-50 animate-fade-in-out">
-          <Toast
-            type={toast.type}
-            title={toast.title}
-            message={toast.message}
-            onClose={() => setToast(null)}
-          />
-        </div>
+        <Toast
+          type={toast.type}
+          title={toast.title}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
       )}
     </div>
   );
