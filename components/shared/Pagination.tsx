@@ -1,34 +1,30 @@
-import React from 'react';
+'use client';
 
-type PaginationProps = {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  pageSize: number;
-  setPageSize: (size: number) => void;
-};
+import React from 'react';
+import type { PaginationProps } from '@/types/pagination';
 
 const Pagination: React.FC<PaginationProps> = ({
-  currentPage,
-  totalPages,
+  totalItems,
+  pagination,
   onPageChange,
-  pageSize,
   setPageSize,
 }) => {
+  const totalPages = Math.ceil(totalItems / pagination.pageSize);
+  const { currentPage, pageSize } = pagination;
+
+  const [inputPage, setInputPage] = React.useState('');
+
   const handleClick = (page: number) => {
     if (page >= 1 && page <= totalPages && page !== currentPage) {
       onPageChange(page);
     }
   };
 
-  const [inputPage, setInputPage] = React.useState('');
-
   const renderPageNumbers = () => {
     const pageNumbers = [];
-    const delta = 1; // number of pages to show on either side of current
+    const delta = 1;
 
     for (let i = 1; i <= totalPages; i++) {
-      // Always show first, last, current, and neighbors
       if (
         i === 1 ||
         i === totalPages ||
@@ -47,16 +43,11 @@ const Pagination: React.FC<PaginationProps> = ({
             {i}
           </button>
         );
-      } else if (
-        // Add ellipses only if the last entry isn't already ...
-        pageNumbers[pageNumbers.length - 1] !== 'ellipsis'
-      ) {
+      } else if (pageNumbers[pageNumbers.length - 1] !== 'ellipsis') {
         pageNumbers.push(
-          <span key={`ellipsis-${i}`} className="px-2 text-gray-400">
-            ...
-          </span>
+          <span key={`ellipsis-${i}`} className="px-2 text-gray-400">...</span>
         );
-        pageNumbers.push('ellipsis'); // placeholder to prevent double dots
+        pageNumbers.push('ellipsis');
       }
     }
 
@@ -65,7 +56,6 @@ const Pagination: React.FC<PaginationProps> = ({
 
   return (
     <div className="flex flex-col md:flex-row justify-center items-center mt-6 gap-4 flex-wrap">
-      {/* Page navigation buttons */}
       <div className="flex items-center gap-2">
         <button
           onClick={() => handleClick(currentPage - 1)}
@@ -109,7 +99,6 @@ const Pagination: React.FC<PaginationProps> = ({
         />
       </div>
 
-      {/* Page size selector */}
       <div className="flex items-center gap-2">
         <label htmlFor="pageSize" className="text-sm text-byuNavy font-normal">
           Packages per page:
@@ -124,9 +113,7 @@ const Pagination: React.FC<PaginationProps> = ({
           className="border border-byuNavy text-byuNavy bg-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-byuNavy transition"
         >
           {[10, 25, 50, 100].map((size) => (
-            <option key={size} value={size}>
-              {size}
-            </option>
+            <option key={size} value={size}>{size}</option>
           ))}
         </select>
       </div>
