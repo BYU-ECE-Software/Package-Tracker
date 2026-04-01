@@ -31,6 +31,8 @@ export interface CreatePackageRequest {
   carrierId?: string;
   senderId?: string;
   notes?: string;
+  dateArrived?: string;
+  checkedInById?: string;
 }
 
 export interface UpdatePackageRequest {

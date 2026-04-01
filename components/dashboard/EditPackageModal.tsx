@@ -1,80 +1,83 @@
-import React, { useState } from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
-import type { Package } from '@/types/package';
-import Toast from '../shared/Toast';
+import type { Package, UpdatePackageRequest } from '@/types/package';
+import type { Carrier } from '@/types/carrier';
+import type { Sender } from '@/types/sender';
 import type { ToastProps } from '@/types/toast';
+import { updatePackage } from '@/lib/api/packages';
+import { fetchCarriers } from '@/lib/api/carriers';
+import { fetchSenders } from '@/lib/api/senders';
+import Toast from '@/components/shared/Toast';
 
 interface EditPackageModalProps {
   isOpen: boolean;
   onClose: () => void;
-  package: Package;
-  users: User[];
-  onPackageFieldChange: (field: string, value: any) => void;
-  onSave: () => void;
+  pkg: Package;
+  recipients: User[];
+  secretaries: User[];
+  onSuccess: () => Promise<void>;
 }
-
-// Package status options
-
-// Carrier options
-const carrierOptions = [
-  'UPS',
-  'FedEx',
-  'USPS',
-  'DHL',
-  'Amazon',
-  'Other',
-];
 
 const EditPackageModal: React.FC<EditPackageModalProps> = ({
   isOpen,
   onClose,
-  package: pkg,
-  users,
-  onPackageFieldChange,
-  onSave,
+  pkg,
+  recipients,
+  secretaries,
+  onSuccess,
 }) => {
   const [activeTab, setActiveTab] = useState<'details' | 'tracking'>('details');
-  const [toast, setToast] = useState<Omit<ToastProps, 'onClose' | 'duration'> | null>(null);
+  const [formData, setFormData] = useState<UpdatePackageRequest>({});
+  const [carriers, setCarriers] = useState<Carrier[]>([]);
+  const [senders, setSenders] = useState<Sender[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toast, setToast] = useState<ToastProps | null>(null);
 
-  // Filter users by role
-  const students = users.filter((u) => u.role === 'STUDENT');
-  const employees = users.filter((u) => u.role === 'SECRETARY' || u.role === 'ADMIN');
+  // Load carriers and senders on mount
+  useEffect(() => {
+    fetchCarriers(true).then(setCarriers).catch(console.error);
+    fetchSenders(true).then(setSenders).catch(console.error);
+  }, []);
 
-  // Required fields
-  const REQUIRED_FIELDS = [
-    { key: 'studentId', label: 'Student', section: 'details' as const },
-    { key: 'status', label: 'Status', section: 'details' as const },
-  ];
-
-  // Helper to validate and save
-  const attemptSave = () => {
-    const missing = REQUIRED_FIELDS.filter(({ key }) => {
-      const v = (pkg as any)[key];
-      return (
-        v === null ||
-        v === undefined ||
-        (typeof v === 'string' && v.trim() === '')
-      );
+  // Initialize form data from package
+  useEffect(() => {
+    setFormData({
+      carrierId: pkg.carrierId ?? undefined,
+      senderId: pkg.senderId ?? undefined,
+      dateArrived: pkg.dateArrived
+        ? new Date(pkg.dateArrived).toISOString().slice(0, 10)
+        : undefined,
+      datePickedUp: pkg.datePickedUp
+        ? new Date(pkg.datePickedUp).toISOString().slice(0, 10)
+        : undefined,
+      checkedInById: pkg.checkedInById ?? undefined,
+      checkedOutById: pkg.checkedOutById ?? undefined,
+      deliveredToOffice: pkg.deliveredToOffice,
+      notes: pkg.notes ?? undefined,
+      notificationSent: pkg.notificationSent,
     });
+  }, [pkg]);
 
-    if (missing.length) {
-      const first = missing[0];
-      if (first.section !== activeTab) setActiveTab(first.section);
+  const handleChange = (field: keyof UpdatePackageRequest, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
-      setTimeout(() => {
-        const el = document.getElementById(`package-${first.key}`) as HTMLElement | null;
-        el?.focus();
-      }, 0);
-
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await updatePackage(pkg.id, formData);
+      await onSuccess();
+    } catch {
       setToast({
         type: 'error',
-        title: 'Missing required fields',
-        message: `Please fill: ${missing.map((m) => m.label).join(', ')}`,
+        title: 'Update Failed',
+        message: 'Something went wrong while updating the package.',
       });
-      return;
+    } finally {
+      setIsSubmitting(false);
     }
-
-    onSave();
   };
 
   if (!isOpen) return null;
@@ -85,6 +88,7 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-black text-lg"
+          disabled={isSubmitting}
         >
           ✕
         </button>
@@ -107,148 +111,79 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
           </button>
         </div>
 
-        {/* Tab Content */}
         {/* Details Tab */}
         {activeTab === 'details' && (
           <div className="space-y-3">
-            {/* Row: Student */}
+
+            {/* Recipient */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">
-                Student <span className="text-red-600">*</span>
-              </label>
+              <label className="text-sm font-medium text-byuNavy">Recipient</label>
               <select
-                id="package-studentId"
-                value={pkg.studentId ?? ''}
-                onChange={(e) => onPackageFieldChange('studentId', e.target.value)}
-                className="p-2 border rounded text-sm text-byuNavy w-1/2"
+                value={pkg.recipientId}
+                disabled
+                className="p-2 border rounded text-sm text-gray-400 w-1/2 bg-gray-50 cursor-not-allowed"
               >
-                <option value="" disabled hidden>
-                  Select a student
+                <option value={pkg.recipientId}>
+                  {pkg.recipient?.fullName} ({pkg.recipient?.netId})
                 </option>
-                {students.map((student) => (
-                  <option key={student.id} value={student.id}>
-                    {student.fullName} ({student.netId})
-                  </option>
-                ))}
               </select>
             </div>
 
-            {/* Row: Status */}
+            {/* Carrier */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">
-                Status <span className="text-red-600">*</span>
-              </label>
+              <label className="text-sm font-medium text-byuNavy">Carrier</label>
               <select
-                id="package-status"
-                value={pkg.status}
-                onChange={(e) => onPackageFieldChange('status', e.target.value)}
+                value={formData.carrierId ?? ''}
+                onChange={(e) => handleChange('carrierId', e.target.value || undefined)}
                 className="p-2 border rounded text-sm text-byuNavy w-1/2"
-              >
-                {statusOptions.map((status) => (
-                  <option key={status} value={status}>
-                    {status.replaceAll('_', ' ')}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Row: Tracking Number */}
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">
-                Tracking Number
-              </label>
-              <input
-                type="text"
-                value={pkg.trackingNumber ?? ''}
-                onChange={(e) => onPackageFieldChange('trackingNumber', e.target.value)}
-                placeholder="Enter tracking number"
-                className="p-2 border rounded text-sm text-byuNavy w-1/2"
-              />
-            </div>
-
-            {/* Row: Carrier */}
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">
-                Carrier
-              </label>
-              <select
-                value={pkg.carrier ?? ''}
-                onChange={(e) => onPackageFieldChange('carrier', e.target.value)}
-                className="p-2 border rounded text-sm text-byuNavy w-1/2"
+                disabled={isSubmitting}
               >
                 <option value="">Select carrier</option>
-                {carrierOptions.map((carrier) => (
-                  <option key={carrier} value={carrier}>
-                    {carrier}
-                  </option>
+                {carriers.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
             </div>
 
-            {/* Row: Sender */}
+            {/* Sender */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">
-                Sender/Vendor
-              </label>
-              <input
-                type="text"
-                value={pkg.sender ?? ''}
-                onChange={(e) => onPackageFieldChange('sender', e.target.value)}
-                placeholder="e.g., Amazon, BYU Store"
+              <label className="text-sm font-medium text-byuNavy">Sender</label>
+              <select
+                value={formData.senderId ?? ''}
+                onChange={(e) => handleChange('senderId', e.target.value || undefined)}
                 className="p-2 border rounded text-sm text-byuNavy w-1/2"
-              />
+                disabled={isSubmitting}
+              >
+                <option value="">Select sender</option>
+                {senders.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
             </div>
 
-            {/* Row: Location */}
+            {/* Notification Sent */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">
-                Storage Location
-              </label>
-              <input
-                type="text"
-                value={pkg.location ?? ''}
-                onChange={(e) => onPackageFieldChange('location', e.target.value)}
-                placeholder="e.g., Shelf A3, Bin 5"
-                className="p-2 border rounded text-sm text-byuNavy w-1/2"
-              />
-            </div>
-
-            {/* Row: Expected Arrival Date */}
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">
-                Expected Arrival Date
-              </label>
-              <input
-                type="date"
-                value={pkg.expectedArrivalDate ? new Date(pkg.expectedArrivalDate).toISOString().slice(0, 10) : ''}
-                onChange={(e) => onPackageFieldChange('expectedArrivalDate', e.target.value ? new Date(e.target.value) : null)}
-                className="p-2 border rounded text-sm text-byuNavy w-1/2"
-              />
-            </div>
-
-            {/* Row: Notification Sent */}
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">
-                Student Notified
-              </label>
+              <label className="text-sm font-medium text-byuNavy">Recipient Notified</label>
               <input
                 type="checkbox"
-                checked={pkg.notificationSent}
-                onChange={(e) => onPackageFieldChange('notificationSent', e.target.checked)}
+                checked={formData.notificationSent ?? false}
+                onChange={(e) => handleChange('notificationSent', e.target.checked)}
                 className="h-5 w-5 text-byuRoyal"
+                disabled={isSubmitting}
               />
             </div>
 
-            {/* Row: Notes */}
+            {/* Notes */}
             <div className="py-2">
               <label className="text-sm font-medium text-byuNavy block mb-2">
                 Internal Notes
               </label>
               <textarea
-                value={pkg.notes ?? ''}
-                onChange={(e) => onPackageFieldChange('notes', e.target.value)}
+                value={formData.notes ?? ''}
+                onChange={(e) => handleChange('notes', e.target.value || undefined)}
                 placeholder="Any internal notes about this package..."
                 className="w-full border border-gray-300 rounded p-2 resize-y min-h-[80px] text-sm text-byuNavy"
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -257,68 +192,73 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
         {/* Tracking Tab */}
         {activeTab === 'tracking' && (
           <div className="space-y-3">
-            {/* Row: Date Arrived */}
+
+            {/* Date Arrived */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">
-                Date Arrived
-              </label>
+              <label className="text-sm font-medium text-byuNavy">Date Arrived</label>
               <input
                 type="date"
-                value={pkg.dateArrived ? new Date(pkg.dateArrived).toISOString().slice(0, 10) : ''}
-                onChange={(e) => onPackageFieldChange('dateArrived', e.target.value ? new Date(e.target.value) : null)}
+                value={formData.dateArrived ?? ''}
+                onChange={(e) => handleChange('dateArrived', e.target.value || undefined)}
                 className="p-2 border rounded text-sm text-byuNavy w-1/2"
+                disabled={isSubmitting}
               />
             </div>
 
-            {/* Row: Checked In By */}
+            {/* Checked In By */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">
-                Checked In By
-              </label>
+              <label className="text-sm font-medium text-byuNavy">Logged By</label>
               <select
-                value={pkg.checkedInById ?? ''}
-                onChange={(e) => onPackageFieldChange('checkedInById', e.target.value || null)}
+                value={formData.checkedInById ?? ''}
+                onChange={(e) => handleChange('checkedInById', e.target.value || undefined)}
                 className="p-2 border rounded text-sm text-byuNavy w-1/2"
+                disabled={isSubmitting}
               >
-                <option value="">Not checked in yet</option>
-                {employees.map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.fullName}
-                  </option>
+                <option value="">Not logged yet</option>
+                {secretaries.map((s) => (
+                  <option key={s.id} value={s.id}>{s.fullName}</option>
                 ))}
               </select>
             </div>
 
-            {/* Row: Date Picked Up */}
+            {/* Date Picked Up */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">
-                Date Picked Up
-              </label>
+              <label className="text-sm font-medium text-byuNavy">Date Picked Up</label>
               <input
                 type="date"
-                value={pkg.datePickedUp ? new Date(pkg.datePickedUp).toISOString().slice(0, 10) : ''}
-                onChange={(e) => onPackageFieldChange('datePickedUp', e.target.value ? new Date(e.target.value) : null)}
+                value={formData.datePickedUp ?? ''}
+                onChange={(e) => handleChange('datePickedUp', e.target.value || undefined)}
                 className="p-2 border rounded text-sm text-byuNavy w-1/2"
+                disabled={isSubmitting}
               />
             </div>
 
-            {/* Row: Checked Out By */}
+            {/* Checked Out By */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">
-                Checked Out By
-              </label>
+              <label className="text-sm font-medium text-byuNavy">Checked Out By</label>
               <select
-                value={pkg.checkedOutById ?? ''}
-                onChange={(e) => onPackageFieldChange('checkedOutById', e.target.value || null)}
+                value={formData.checkedOutById ?? ''}
+                onChange={(e) => handleChange('checkedOutById', e.target.value || undefined)}
                 className="p-2 border rounded text-sm text-byuNavy w-1/2"
+                disabled={isSubmitting}
               >
                 <option value="">Not checked out yet</option>
-                {employees.map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.fullName}
-                  </option>
+                {secretaries.map((s) => (
+                  <option key={s.id} value={s.id}>{s.fullName}</option>
                 ))}
               </select>
+            </div>
+
+            {/* Delivered to Office */}
+            <div className="flex items-center justify-between py-2 border-b border-gray-200">
+              <label className="text-sm font-medium text-byuNavy">Delivered to Office</label>
+              <input
+                type="checkbox"
+                checked={formData.deliveredToOffice ?? false}
+                onChange={(e) => handleChange('deliveredToOffice', e.target.checked)}
+                className="h-5 w-5 text-byuRoyal"
+                disabled={isSubmitting}
+              />
             </div>
 
             {/* Timeline Summary */}
@@ -328,17 +268,9 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
                 <div className="flex justify-between">
                   <span>Created:</span>
                   <span className="font-medium">
-                    {pkg.createdAt ? new Date(pkg.createdAt).toLocaleDateString() : 'N/A'}
+                    {new Date(pkg.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                {pkg.expectedArrivalDate && (
-                  <div className="flex justify-between">
-                    <span>Expected Arrival:</span>
-                    <span className="font-medium">
-                      {new Date(pkg.expectedArrivalDate).toLocaleDateString()}
-                    </span>
-                  </div>
-                )}
                 {pkg.dateArrived && (
                   <div className="flex justify-between">
                     <span>Arrived:</span>
@@ -355,38 +287,51 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
                     </span>
                   </div>
                 )}
+                {pkg.deliveredToOffice && (
+                  <div className="flex justify-between">
+                    <span>Delivered to Office:</span>
+                    <span className="font-medium text-byuGreenBright">Yes</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
 
-        {/* Save and cancel buttons */}
+        {/* Footer */}
         <div className="mt-6 flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+            disabled={isSubmitting}
+            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
-            onClick={attemptSave}
-            className="px-4 py-2 bg-byuRoyal text-white rounded hover:bg-[#003a9a]"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="px-4 py-2 bg-byuRoyal text-white rounded hover:bg-[#003a9a] disabled:opacity-50 flex items-center gap-2"
           >
-            Save Changes
+            {isSubmitting ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Saving...
+              </>
+            ) : 'Save Changes'}
           </button>
         </div>
       </div>
 
-      {/* Toast */}
       {toast && (
-        <div className="fixed top-6 right-6 z-50 animate-fade-in-out">
-          <Toast
-            type={toast.type}
-            title={toast.title}
-            message={toast.message}
-            onClose={() => setToast(null)}
-          />
-        </div>
+        <Toast
+          type={toast.type}
+          title={toast.title}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
       )}
     </div>
   );
