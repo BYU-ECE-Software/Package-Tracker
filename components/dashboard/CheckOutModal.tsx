@@ -59,15 +59,16 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      if (deliveredToOffice) {
+        if (deliveredToOffice) {
         await updatePackage(pkg.id, {
-          deliveredToOffice: true,
-          checkedOutById,
+            deliveredToOffice: true,
+            checkedOutById,
+            datePickedUp: new Date().toISOString().split('T')[0],
         });
-      } else {
+        } else {
         await checkOutPackage(pkg.id, checkedOutById);
-      }
-      await onSuccess();
+        }
+        await onSuccess();
     } catch {
       setToast({
         type: 'error',

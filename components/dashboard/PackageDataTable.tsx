@@ -29,14 +29,16 @@ const PackageDataTable: React.FC<PackageDataTableProps> = ({
   }
 
   return (
-    <table className="w-full table-fixed border-collapse border text-byuNavy">
+    <table className="w-full border-collapse border text-byuNavy text-sm">
       <thead className="bg-gray-100">
         <tr>
-          <th className="border px-4 py-2 text-left">Date Arrived</th>
-          <th className="border px-4 py-2 text-left">Carrier</th>
-          <th className="border px-4 py-2 text-left">Sender</th>
-          <th className="border px-4 py-2 text-left">Recipient</th>
-          <th className="border px-4 py-2 text-center">Actions</th>
+          <th className="border px-3 py-2 text-left">Recipient</th>
+          <th className="border px-3 py-2 text-left">Arrived</th>
+          <th className="border px-3 py-2 text-left">Carrier</th>
+          <th className="border px-3 py-2 text-left">Sender</th>
+          <th className="border px-3 py-2 text-left">Checked Out</th>
+          <th className="border px-3 py-2 text-left">Picked Up By</th>
+          <th className="border px-3 py-2 text-center">Edit</th>
         </tr>
       </thead>
       <tbody>
@@ -48,20 +50,30 @@ const PackageDataTable: React.FC<PackageDataTableProps> = ({
               onClick={() => onRowClick(pkg)}
               className={`cursor-pointer hover:bg-gray-50 ${checkedOut ? 'opacity-50' : 'bg-white'}`}
             >
-              <td className="border px-4 py-2 text-sm">
-                {formatDate(pkg.dateArrived)}
-              </td>
-              <td className="border px-4 py-2 text-sm">
-                {pkg.carrier?.name ?? 'N/A'}
-              </td>
-              <td className="border px-4 py-2 text-sm">
-                {pkg.sender?.name ?? 'N/A'}
-              </td>
-              <td className="border px-4 py-2 text-sm">
+              <td className="border px-3 py-2">
                 {pkg.recipient?.fullName ?? 'N/A'}
               </td>
+              <td className="border px-3 py-2 whitespace-nowrap">
+                {formatDate(pkg.dateArrived)}
+              </td>
+              <td className="border px-3 py-2">
+                {pkg.carrier?.name ?? '—'}
+              </td>
+              <td className="border px-3 py-2">
+                {pkg.sender?.name ?? '—'}
+              </td>
+              <td className="border px-3 py-2 whitespace-nowrap">
+                {pkg.datePickedUp ? formatDate(pkg.datePickedUp) : '—'}
+              </td>
+              <td className="border px-3 py-2">
+                {pkg.deliveredToOffice
+                  ? 'Delivered to Office'
+                  : pkg.datePickedUp
+                    ? pkg.recipient?.fullName ?? '—'
+                    : '—'}
+              </td>
               <td
-                className="border px-4 py-2 text-center"
+                className="border px-3 py-2 text-center"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex justify-center gap-2">

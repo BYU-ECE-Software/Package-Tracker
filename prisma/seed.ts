@@ -115,9 +115,9 @@ async function main() {
     { studentIdx: 8, carrierIdx: 2, senderIdx: 4, arrivedDaysAgo: 14, pickedUpDaysAgo: 12, deliveredToOffice: false, checkedInByIdx: 0, checkedOutByIdx: 1 },
 
     // Delivered to office
-    { studentIdx: 9, carrierIdx: 1, senderIdx: 1, arrivedDaysAgo: 6,  deliveredToOffice: true,  checkedInByIdx: 1, checkedOutByIdx: 3, notes: 'Delivered to lab directly' },
-    { studentIdx: 0, carrierIdx: 4, senderIdx: 3, arrivedDaysAgo: 8,  deliveredToOffice: true,  checkedInByIdx: 2, checkedOutByIdx: 0 },
-    { studentIdx: 3, carrierIdx: 0, senderIdx: 2, arrivedDaysAgo: 12, deliveredToOffice: true,  checkedInByIdx: 0, checkedOutByIdx: 2 },
+    { studentIdx: 9, carrierIdx: 1, senderIdx: 1, arrivedDaysAgo: 6,  pickedUpDaysAgo: 4,  deliveredToOffice: true,  checkedInByIdx: 1, checkedOutByIdx: 3, notes: 'Delivered to lab directly' },
+    { studentIdx: 0, carrierIdx: 4, senderIdx: 3, arrivedDaysAgo: 8,  pickedUpDaysAgo: 5,  deliveredToOffice: true,  checkedInByIdx: 2, checkedOutByIdx: 0 },
+    { studentIdx: 3, carrierIdx: 0, senderIdx: 2, arrivedDaysAgo: 12, pickedUpDaysAgo: 9,  deliveredToOffice: true,  checkedInByIdx: 0, checkedOutByIdx: 2 },
 
     // Mix of additional packages
     { studentIdx: 1, carrierIdx: 3, senderIdx: 0, arrivedDaysAgo: 2,  deliveredToOffice: false, checkedInByIdx: 1 },
