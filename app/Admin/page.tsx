@@ -27,7 +27,7 @@ export default function AdminPage() {
         />
         <div className="flex-1">
           {adminConfigs[activeTab].component === 'dropdown'
-            ? <DropdownEditor config={adminConfigs[activeTab] as any} />
+            ? <DropdownEditor {...adminConfigs[activeTab].dropdown} />
             : <AdminCrudPanel title={activeTab} config={adminConfigs[activeTab] as any} />
           }
         </div>

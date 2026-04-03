@@ -52,6 +52,8 @@ export async function GET(request: NextRequest) {
           recipient: true,
           checkedInBy: true,
           checkedOutBy: true,
+          carrier: true,
+          sender: true,
         },
       }),
       prisma.package.count({ where }),

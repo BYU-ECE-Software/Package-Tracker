@@ -24,19 +24,20 @@ import type { User, CreateUserRequest } from '../types/user';
 import type { Carrier, CreateCarrierRequest } from '../types/carrier';
 import type { Sender, CreateSenderRequest } from '../types/sender';
 
-/**
- * Central configuration for generating CRUD panels for different models.
- * Each key represents a tab title and includes:
- * - Noun for descriptor to display on toast
- * - Field definitions (for form rendering)
- * - API functions (for backend interaction)
- */
+export interface DropdownConfig {
+  noun: string;
+  fetchItems: () => Promise<any[]>;
+  createItem: (data: { name: string }) => Promise<any>;
+  updateItem: (id: string, data: { name?: string; isActive?: boolean }) => Promise<any>;
+  deleteItem: (id: string) => Promise<void>;
+}
+
 export const adminConfigs = {
 
   // Students
   Students: {
     noun: 'Student',
-    component: 'crud',
+    component: 'crud' as const,
     fields: {
       fullName: { label: 'Full Name', type: 'text', required: true },
       netId: { label: 'BYU Net ID', type: 'text', required: true },
@@ -53,7 +54,7 @@ export const adminConfigs = {
   // Carriers
   Carriers: {
     noun: 'Carrier',
-    component: 'dropdown',
+    component: 'dropdown' as const,
     fields: {
       name:     { label: 'Name',   type: 'text',     required: true  },
       isActive: { label: 'Active', type: 'checkbox', required: false },
@@ -62,15 +63,21 @@ export const adminConfigs = {
       getAll: fetchCarriers,
       create: createCarrier,
       update: updateCarrier,
-      // Soft-hide only — set isActive to false instead of deleting
       remove: (id: string) => updateCarrier(id, { isActive: false }).then(() => {}),
     },
-  } satisfies ConfigPanel<Carrier, CreateCarrierRequest>,
+    dropdown: {
+      noun: 'Carrier',
+      fetchItems: fetchCarriers,
+      createItem: (data: { name: string }) => createCarrier(data),
+      updateItem: (id: string, data: { name?: string; isActive?: boolean }) => updateCarrier(id, data),
+      deleteItem: deleteCarrier,
+    } satisfies DropdownConfig,
+  },
 
   // Senders
   Senders: {
     noun: 'Sender',
-    component: 'dropdown',
+    component: 'dropdown' as const,
     fields: {
       name:     { label: 'Name',   type: 'text',     required: true  },
       isActive: { label: 'Active', type: 'checkbox', required: false },
@@ -79,8 +86,14 @@ export const adminConfigs = {
       getAll: fetchSenders,
       create: createSender,
       update: updateSender,
-      // Soft-hide only — set isActive to false instead of deleting
       remove: (id: string) => updateSender(id, { isActive: false }).then(() => {}),
     },
-  } satisfies ConfigPanel<Sender, CreateSenderRequest>,
+    dropdown: {
+      noun: 'Sender',
+      fetchItems: fetchSenders,
+      createItem: (data: { name: string }) => createSender(data),
+      updateItem: (id: string, data: { name?: string; isActive?: boolean }) => updateSender(id, data),
+      deleteItem: deleteSender,
+    } satisfies DropdownConfig,
+  },
 };

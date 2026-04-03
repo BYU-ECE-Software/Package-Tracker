@@ -16,6 +16,8 @@ export async function GET(
         recipient: true,
         checkedInBy: true,
         checkedOutBy: true,
+        carrier: true,
+        sender: true,
       },
     });
     

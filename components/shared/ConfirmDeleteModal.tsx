@@ -4,7 +4,7 @@ type Props = {
   message?: string;
   confirmText?: string;
   cancelText?: string;
-  onConfirm: () => void;
+  onConfirm?: () => void;
   onCancel: () => void;
 };
 
