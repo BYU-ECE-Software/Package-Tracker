@@ -1,0 +1,47 @@
+name: Deploy to Test
+
+# Trigger on push or merge to the 'sandbox' branch
+on:
+  push:
+    branches:
+      - "dev"
+
+jobs:
+  deploy-via-ssh:
+    runs-on: self-hosted
+    steps:
+      - name: Execute Remote SSH Commands
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          # These secrets are stored in your GitHub Repo Settings
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          # script_stop: true ensures the workflow fails if any command fails
+          script_stop: true
+          script: |
+            set -euo pipefail # Exit on error, unset variables, or failed pipes
+
+            # Navigate to your project folder (CHANGE THIS PATH)
+            cd ~/Package-Tracker
+
+            # 1. Pull changes
+            echo "Pulling latest changes..."
+            git pull origin dev
+
+            # 2. Build the new code
+            echo "Building new code"
+            docker compose -f docker-compose.test.yaml -p travel-receipts build --no-cache app migrate
+
+            # 3. Prisma Migration
+            echo "Implementing prisma migrations..."
+            docker compose -f docker-compose.test.yaml -p travel-receipts up --no-build migrate
+
+            # 4. Docker Operations
+            echo "Starting Docker containers..."
+            docker compose -f docker-compose.test.yaml -p travel-receipts up -d --remove-orphans
+
+            # 5. Docker image cleanup
+            echo "Cleaning up dangling images..."
+            docker image prune -f

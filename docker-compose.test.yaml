@@ -1,0 +1,95 @@
+services:
+
+  app:
+    build:
+      context: .
+      target: runner
+    container_name: ece_mail_app
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    networks:
+      - ece-mail-network
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.ece_mail-api.rule=Host(`ecemail.ecesoftwaretesting.byu.edu`) && PathPrefix(`/api`)
+      - traefik.http.routers.ece_mail-api.entrypoints=websecure
+      - traefik.http.routers.ece_mail-api.tls=true
+      - traefik.http.services.ece_mail-api.loadbalancer.server.port=3000
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: ece_mail_nginx
+    depends_on:
+      app:
+        condition: service_started
+    restart: unless-stopped
+    expose:
+      - "80"
+    networks:
+      - ece-mail-network
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.ece_mail.rule=Host(`ece-mail.ecesoftwaretesting.byu.edu`)
+      - traefik.http.routers.ece_mail.entrypoints=websecure
+      - traefik.http.routers.ece_mail.tls=true
+      - traefik.http.services.ece_mail.loadbalancer.server.port=80
+      # If your frontend needs bigger uploads:
+      # - traefik.http.middlewares.site1-buffer.buffering.maxRequestBodyBytes=104857600
+      # - traefik.http.routers.site1.middlewares=site1-buffer
+
+  db:
+    image: postgres:16
+    container_name: ece_mail_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    restart: unless-stopped
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ece-mail-network
+
+  migrate:
+    build:
+      context: .
+      target: migrator        # uses the migrator stage
+    command: npx prisma migrate deploy
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    restart: "no"             # run once and exit
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - ece-mail-network
+
+networks:
+  ece-mail-network:
+    driver: bridge
+  proxy:
+    external: true
+
+volumes:
+  db_data:
