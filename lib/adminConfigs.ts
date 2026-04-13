@@ -21,14 +21,18 @@ import {
 
 import type { ConfigPanel } from '../types/configPanel';
 import type { User, CreateUserRequest } from '../types/user';
-import type { Carrier, CreateCarrierRequest } from '../types/carrier';
-import type { Sender, CreateSenderRequest } from '../types/sender';
+
+export interface DropdownItem {
+  id: string;
+  name: string;
+  isActive?: boolean;
+}
 
 export interface DropdownConfig {
   noun: string;
-  fetchItems: () => Promise<any[]>;
-  createItem: (data: { name: string }) => Promise<any>;
-  updateItem: (id: string, data: { name?: string; isActive?: boolean }) => Promise<any>;
+  fetchItems: () => Promise<DropdownItem[]>;
+  createItem: (data: { name: string }) => Promise<DropdownItem>;
+  updateItem: (id: string, data: { name?: string; isActive?: boolean }) => Promise<DropdownItem>;
   deleteItem: (id: string) => Promise<void>;
 }
 

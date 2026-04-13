@@ -108,6 +108,7 @@ export default function AdminCrudPanel<
   const handleEdit = (item: T) => {
     const editable: Partial<CreatePayload> = {};
     for (const key in config.fields) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       editable[key as keyof CreatePayload] = item[key as keyof T] as any;
     }
     setFormData(editable);
@@ -157,8 +158,8 @@ export default function AdminCrudPanel<
   };
 
   return (
-    <div className="p-4 bg-white border rounded-lg shadow text-byuNavy">
-      <h2 className="text-xl font-semibold text-byuNavy mb-4">{title}</h2>
+    <div className="p-4 bg-white border rounded-lg shadow text-byu-navy">
+      <h2 className="text-xl font-semibold text-byu-navy mb-4">{title}</h2>
 
       {/* Main layout: Form on the left, table on the right - Responsive */}
       <div className="flex flex-col lg:flex-row gap-8 items-start">
@@ -176,9 +177,9 @@ export default function AdminCrudPanel<
 
               return (
                 <div key={fieldName}>
-                  <label className="block text-sm font-medium text-byuNavy">
+                  <label className="block text-sm font-medium text-byu-navy">
                     {meta.label}
-                    {meta.required && <span className="text-byuNavy"> *</span>}
+                    {meta.required && <span className="text-byu-navy"> *</span>}
                   </label>
 
                   {/* Render appropriate input type based on meta config */}
@@ -229,7 +230,7 @@ export default function AdminCrudPanel<
                         )
                       }
                       required={meta.required}
-                      className="mt-1 block w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-byuRoyal focus:border-transparent"
+                      className="mt-1 block w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-byu-royal focus:border-transparent"
                     />
                   )}
                 </div>
@@ -241,7 +242,7 @@ export default function AdminCrudPanel<
           <div className="flex gap-4">
             <button
               type="submit"
-              className="bg-byuNavy text-white px-4 py-2 rounded hover:bg-[#001F40] transition-colors"
+              className="bg-byu-navy text-white px-4 py-2 rounded hover:bg-[#001F40] transition-colors"
             >
               {editingId ? 'Save' : 'Add'}
             </button>
@@ -252,7 +253,7 @@ export default function AdminCrudPanel<
                   setFormData({});
                   setEditingId(null);
                 }}
-                className="bg-byuMediumGray text-white px-4 py-2 rounded hover:bg-[#4d4d4d] transition-colors"
+                className="bg-byu-medium-gray text-white px-4 py-2 rounded hover:bg-[#4d4d4d] transition-colors"
               >
                 Cancel
               </button>
@@ -266,7 +267,7 @@ export default function AdminCrudPanel<
             <div className="flex items-center justify-center py-8">
               <div className="flex flex-col items-center gap-3">
                 <svg 
-                  className="animate-spin h-8 w-8 text-byuNavy" 
+                  className="animate-spin h-8 w-8 text-byu-navy" 
                   xmlns="http://www.w3.org/2000/svg" 
                   fill="none" 
                   viewBox="0 0 24 24"
@@ -336,7 +337,7 @@ export default function AdminCrudPanel<
                           {allowEdit && (
                             <button
                               onClick={() => handleEdit(item)}
-                              className="bg-byuRoyal text-white px-2 sm:px-3 py-1 rounded hover:bg-[#003B9A] transition-colors text-xs sm:text-sm"
+                              className="bg-byu-royal text-white px-2 sm:px-3 py-1 rounded hover:bg-[#003B9A] transition-colors text-xs sm:text-sm"
                             >
                               Edit
                             </button>
@@ -344,7 +345,7 @@ export default function AdminCrudPanel<
                           {allowDelete && (
                             <button
                               onClick={() => openDelete(item)}
-                              className="bg-byuRedBright text-white px-2 sm:px-3 py-1 rounded hover:bg-byuRedDark transition-colors text-xs sm:text-sm"
+                              className="bg-byu-red-bright text-white px-2 sm:px-3 py-1 rounded hover:bg-byu-red-dark transition-colors text-xs sm:text-sm"
                             >
                               Delete
                             </button>

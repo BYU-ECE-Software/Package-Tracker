@@ -2,6 +2,7 @@
 
 
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(
@@ -46,11 +47,11 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    const updateData: any = {};
+    const updateData: Prisma.PackageUncheckedUpdateInput = {};
     
     if (body.carrierId        !== undefined) updateData.carrierId        = body.carrierId;
     if (body.senderId         !== undefined) updateData.senderId         = body.senderId;
-    if (body.dateArrived      !== undefined) updateData.dateArrived      = body.dateArrived  ? new Date(body.dateArrived)  : null;
+    if (body.dateArrived      !== undefined && body.dateArrived !== null) updateData.dateArrived = new Date(body.dateArrived);
     if (body.datePickedUp     !== undefined) updateData.datePickedUp     = body.datePickedUp ? new Date(body.datePickedUp) : null;
     if (body.checkedInById    !== undefined) updateData.checkedInById    = body.checkedInById;
     if (body.checkedOutById   !== undefined) updateData.checkedOutById   = body.checkedOutById;

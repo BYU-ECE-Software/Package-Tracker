@@ -21,7 +21,7 @@ export default function ConfirmDeleteAdminPage({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-      <div className="bg-white w-full max-w-md rounded-lg shadow-xl p-6 text-byuNavy">
+      <div className="bg-white w-full max-w-md rounded-lg shadow-xl p-6 text-byu-navy">
         <h3 className="text-lg font-semibold mb-2">{title}</h3>
         <p className="text-sm text-gray-700 mb-6">{message}</p>
 
@@ -34,7 +34,7 @@ export default function ConfirmDeleteAdminPage({
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 rounded bg-byuNavy text-white hover:bg-[#002954]"
+            className="px-4 py-2 rounded bg-byu-navy text-white hover:bg-[#002954]"
           >
             {confirmText}
           </button>

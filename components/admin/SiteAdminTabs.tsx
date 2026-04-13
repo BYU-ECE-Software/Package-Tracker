@@ -19,7 +19,7 @@ function AdminTabs<T extends string>({
           onClick={() => setActiveTab(tab)}
           className={`text-left px-4 py-2 rounded ${
             activeTab === tab
-              ? 'bg-byuNavy text-white'
+              ? 'bg-byu-navy text-white'
               : 'bg-gray-100 hover:bg-gray-200'
           }`}
         >

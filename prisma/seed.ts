@@ -78,8 +78,6 @@ async function main() {
   console.log(`  ${senders.length} senders seeded`);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  const pick = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
-
   const daysAgo = (n: number): Date => {
     const d = new Date();
     d.setDate(d.getDate() - n);

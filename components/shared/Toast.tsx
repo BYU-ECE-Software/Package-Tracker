@@ -18,23 +18,23 @@ const typeStyles: Record<
   }
 > = {
   success: {
-    borderColor: 'border-byuGreenBright',
-    iconColor: 'text-byuGreenBright',
+    borderColor: 'border-byu-green-bright',
+    iconColor: 'text-byu-green-bright',
     Icon: FaCheckCircle,
   },
   error: {
-    borderColor: 'border-byuRedBright',
-    iconColor: 'text-byuRedBright',
+    borderColor: 'border-byu-red-bright',
+    iconColor: 'text-byu-red-bright',
     Icon: FaTimesCircle,
   },
   info: {
-    borderColor: 'border-byuInfoBlueBright',
-    iconColor: 'text-byuInfoBlueBright',
+    borderColor: 'border-byu-info-blue-bright',
+    iconColor: 'text-byu-info-blue-bright',
     Icon: FaInfoCircle,
   },
   warning: {
-    borderColor: 'border-byuYellowBright',
-    iconColor: 'text-byuYellowBright',
+    borderColor: 'border-byu-yellow-bright',
+    iconColor: 'text-byu-yellow-bright',
     Icon: FaExclamationTriangle,
   },
 };

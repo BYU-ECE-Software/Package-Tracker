@@ -18,6 +18,7 @@ export async function DELETE(
 
     await prisma.carrier.delete({ where: { id } });
     return NextResponse.json({ deleted: true });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error?.code === 'P2025') {
       return NextResponse.json({ error: 'Carrier not found' }, { status: 404 });
@@ -45,6 +46,7 @@ export async function PUT(
     });
 
     return NextResponse.json(carrier);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error?.code === 'P2025') {
       return NextResponse.json({ error: 'Carrier not found' }, { status: 404 });

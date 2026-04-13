@@ -1,6 +1,7 @@
 // ===== SINGLE USER API (app/api/users/[id]/route.ts) =====
 
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(
@@ -44,7 +45,7 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    const updateData: any = {};
+    const updateData: Prisma.UserUncheckedUpdateInput = {};
 
     if (body.email !== undefined) updateData.email = body.email;
     if (body.fullName !== undefined) updateData.fullName = body.fullName;

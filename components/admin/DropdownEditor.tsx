@@ -51,6 +51,7 @@ export default function DropdownEditor({
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Focus edit input when editing starts
@@ -121,15 +122,16 @@ export default function DropdownEditor({
       setConfirmDelete(null);
       await load();
       setToast({ type: 'success', title: 'Deleted', message: `${noun} deleted successfully.` });
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Server returns 409 with message if packages depend on this item
-      setDeleteError(err.message || `Failed to delete ${noun}.`);
+      const message = err instanceof Error ? err.message : `Failed to delete ${noun}.`;
+      setDeleteError(message);
     }
   };
 
   return (
-    <div className="p-4 bg-white border rounded-lg shadow text-byuNavy">
-      <h2 className="text-xl font-semibold text-byuNavy mb-4">{noun}s</h2>
+    <div className="p-4 bg-white border rounded-lg shadow text-byu-navy">
+      <h2 className="text-xl font-semibold text-byu-navy mb-4">{noun}s</h2>
 
       {/* Add new item */}
       <div className="flex gap-2 mb-6">
@@ -139,11 +141,11 @@ export default function DropdownEditor({
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
           placeholder={`New ${noun} name...`}
-          className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-byuRoyal focus:border-transparent"
+          className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-byu-royal focus:border-transparent"
         />
         <button
           onClick={handleAdd}
-          className="bg-byuNavy text-white px-4 py-2 rounded hover:bg-[#001F40] transition-colors text-sm"
+          className="bg-byu-navy text-white px-4 py-2 rounded hover:bg-[#001F40] transition-colors text-sm"
         >
           Add
         </button>
@@ -178,11 +180,11 @@ export default function DropdownEditor({
                         if (e.key === 'Enter') handleEditSave(item.id);
                         if (e.key === 'Escape') handleEditCancel();
                       }}
-                      className="border border-byuRoyal rounded px-2 py-1 text-sm flex-1 focus:ring-2 focus:ring-byuRoyal focus:border-transparent"
+                      className="border border-byu-royal rounded px-2 py-1 text-sm flex-1 focus:ring-2 focus:ring-byu-royal focus:border-transparent"
                     />
                     <button
                       onClick={() => handleEditSave(item.id)}
-                      className="text-xs text-white bg-byuRoyal px-2 py-1 rounded hover:bg-[#003a9a]"
+                      className="text-xs text-white bg-byu-royal px-2 py-1 rounded hover:bg-[#003a9a]"
                     >
                       Save
                     </button>
@@ -194,7 +196,7 @@ export default function DropdownEditor({
                     </button>
                   </div>
                 ) : (
-                  <span className={`text-sm ${!item.isActive ? 'text-gray-400 line-through' : 'text-byuNavy'}`}>
+                  <span className={`text-sm ${!item.isActive ? 'text-gray-400 line-through' : 'text-byu-navy'}`}>
                     {item.name}
                   </span>
                 )}
@@ -207,7 +209,7 @@ export default function DropdownEditor({
                   <button
                     onClick={() => handleToggleActive(item)}
                     title={item.isActive ? 'Hide from dropdown' : 'Show in dropdown'}
-                    className="text-gray-400 hover:text-byuNavy transition-colors"
+                    className="text-gray-400 hover:text-byu-navy transition-colors"
                   >
                     {item.isActive ? (
                       // Eye open
@@ -227,7 +229,7 @@ export default function DropdownEditor({
                   <button
                     onClick={() => handleEditStart(item)}
                     title="Edit name"
-                    className="text-gray-400 hover:text-byuRoyal transition-colors"
+                    className="text-gray-400 hover:text-byu-royal transition-colors"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -238,7 +240,7 @@ export default function DropdownEditor({
                   <button
                     onClick={() => handleDeleteAttempt(item)}
                     title="Delete"
-                    className="text-gray-400 hover:text-byuRedBright transition-colors"
+                    className="text-gray-400 hover:text-byu-red-bright transition-colors"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

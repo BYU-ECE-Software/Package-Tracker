@@ -102,7 +102,7 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
           >
             ✕
           </button>
-          <h2 className="text-xl sm:text-2xl font-bold text-byuNavy pr-8">Check Out Package</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-byu-navy pr-8">Check Out Package</h2>
           <p className="text-sm text-gray-500 mt-1">
             For: {pkg.recipient?.fullName ?? 'Unknown'} ({pkg.recipient?.netId ?? '—'})
           </p>
@@ -113,17 +113,17 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
 
           {/* Picked Up By */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-byuNavy">
+            <label className="block text-sm font-medium text-byu-navy">
               Picked Up By
             </label>
             <select
               value={pickedUpById}
               onChange={(e) => handlePickedUpByChange(e.target.value)}
               disabled={deliveredToOffice || isSubmitting}
-              className={`w-full p-2 sm:p-3 border rounded text-sm focus:ring-2 focus:ring-byuRoyal focus:border-transparent ${
+              className={`w-full p-2 sm:p-3 border rounded text-sm focus:ring-2 focus:ring-byu-royal focus:border-transparent ${
                 deliveredToOffice
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'text-byuNavy'
+                  : 'text-byu-navy'
               }`}
             >
               <option value="">Select recipient</option>
@@ -151,7 +151,7 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
 
           {/* Delivered to Office */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-byuNavy">
+            <label className="block text-sm font-medium text-byu-navy">
               Delivered to Office
             </label>
             <div className="flex items-center gap-3">
@@ -162,14 +162,14 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
                 onChange={(e) => handleDeliveredToOfficeChange(e.target.checked)}
                 disabled={!!pickedUpById || isSubmitting}
                 className={`h-5 w-5 ${
-                  pickedUpById ? 'cursor-not-allowed opacity-50' : 'text-byuRoyal cursor-pointer'
+                  pickedUpById ? 'cursor-not-allowed opacity-50' : 'text-byu-royal cursor-pointer'
                 }`}
               />
               <label
                 htmlFor="deliveredToOffice"
-                className={`text-sm ${pickedUpById ? 'text-gray-400' : 'text-byuNavy cursor-pointer'}`}
+                className={`text-sm ${pickedUpById ? 'text-gray-400' : 'text-byu-navy cursor-pointer'}`}
               >
-                Package was delivered directly to a professor's office
+                Package was delivered directly to a professor&apos;s office
               </label>
             </div>
             {pickedUpById && (
@@ -179,14 +179,14 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
 
           {/* Checked Out By (secretary) */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-byuNavy">
+            <label className="block text-sm font-medium text-byu-navy">
               Checked Out By <span className="text-red-600">*</span>
             </label>
             <select
               value={checkedOutById}
               onChange={(e) => setCheckedOutById(e.target.value)}
               disabled={isSubmitting}
-              className="w-full p-2 sm:p-3 border rounded text-sm text-byuNavy focus:ring-2 focus:ring-byuRoyal focus:border-transparent"
+              className="w-full p-2 sm:p-3 border rounded text-sm text-byu-navy focus:ring-2 focus:ring-byu-royal focus:border-transparent"
             >
               <option value="">Select a secretary</option>
               {secretaries.map((s) => (
@@ -213,7 +213,7 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="w-full sm:w-auto px-4 py-2 bg-byuNavy text-white rounded hover:bg-[#001F40] disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-4 py-2 bg-byu-navy text-white rounded hover:bg-[#001F40] disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>

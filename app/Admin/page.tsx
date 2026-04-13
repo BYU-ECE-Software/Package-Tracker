@@ -28,6 +28,7 @@ export default function AdminPage() {
         <div className="flex-1">
           {adminConfigs[activeTab].component === 'dropdown'
             ? <DropdownEditor key={activeTab} {...adminConfigs[activeTab].dropdown} />
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             : <AdminCrudPanel title={activeTab} config={adminConfigs[activeTab] as any} />
           }
         </div>

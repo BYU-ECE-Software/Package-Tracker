@@ -1,6 +1,7 @@
 // ===== PACKAGES API (app/api/packages/route.ts) =====
 
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 export async function GET(request: NextRequest) {
   try {
@@ -22,7 +23,8 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get('endDate');
 
     // Build where clause
-    const where: any = {};
+    const where: Prisma.PackageWhereInput = {};
+    const dateArrived: Prisma.DateTimeFilter = {};
 
     if (recipientId) where.recipientId = recipientId;
 
@@ -36,9 +38,9 @@ export async function GET(request: NextRequest) {
     }
     
     if (startDate || endDate) {
-      where.dateArrived = {};
-      if (startDate) where.dateArrived.gte = new Date(startDate);
-      if (endDate) where.dateArrived.lte = new Date(endDate);
+      if (startDate) dateArrived.gte = new Date(startDate);
+      if (endDate) dateArrived.lte = new Date(endDate);
+      where.dateArrived = dateArrived;
     }
     
     // Execute query

@@ -1,8 +1,9 @@
 // ===== USERS API (app/api/users/route.ts) =====
 
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { type User, UserRole } from '@/types/user';
+import { UserRole } from '@/types/user';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     const role = searchParams.get('role') as UserRole | null;
     const search = searchParams.get('search');
     
-    const where: any = {};
+    const where: Prisma.UserWhereInput = {};
     
     if (role) where.role = role;
     

@@ -3,19 +3,19 @@
 /* === Design tokens translated from tailwind.config.js === */
 @theme {
   /* BYU brand colors */
-  --color-byuNavy: #002e5d;
-  --color-byuRoyal: #0047ba;
-  --color-byuDarkGray: #141414;
-  --color-byuMediumGray: #666666;
-  --color-byuWhite: #ffffff;
-  --color-byuRedBright: #e61744;
-  --color-byuRedDark: #a3082a;
-  --color-byuYellowBright: #ffb700;
-  --color-byuBrown: #8c3a00;
-  --color-byuGreenBright: #10a170;
-  --color-byuGreenDark: #006141;
-  --color-byuInfoBlueBright: #1fb3d1;
-  --color-byuInfoBlueDark: #006073;
+  --color-byu-navy: #002e5d;
+  --color-byu-royal: #0047ba;
+  --color-byu-dark-gray: #141414;
+  --color-byu-medium-gray: #666666;
+  --color-byu-white: #ffffff;
+  --color-byu-red-bright: #e61744;
+  --color-byu-red-dark: #a3082a;
+  --color-byu-yellow-bright: #ffb700;
+  --color-byu-brown: #8c3a00;
+  --color-byu-green-bright: #10a170;
+  --color-byu-green-dark: #006141;
+  --color-byu-info-blue-bright: #1fb3d1;
+  --color-byu-info-blue-dark: #006073;
 
   /* Font family (maps to `font-sans`) */
   --font-sans: "IBM Plex Sans", Helvetica, Arial, sans-serif;
@@ -59,5 +59,5 @@ body {
 }
 
 body {
-  @apply font-sans bg-byuWhite text-byuDarkGray antialiased;
+  @apply font-sans bg-byu-white text-byu-dark-gray antialiased;
 }

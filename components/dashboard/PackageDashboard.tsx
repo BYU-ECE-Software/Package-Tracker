@@ -2,16 +2,17 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { Package } from '@/types/package';
-import type { User } from '@/types/user';
+import { UserRole, type User } from '@/types/user';
 import type { ToastProps } from '@/types/toast';
 import type { PaginationState } from '@/types/pagination';
-import { fetchPackages, createPackage } from '@/lib/api/packages';
+import { fetchPackages, deletePackage } from '@/lib/api/packages';
 import { fetchUsers } from '@/lib/api/users';
 import AddPackageModal from './AddPackageModal';
 import EditPackageModal from './EditPackageModal';
 import ViewPackageModal from './ViewPackageModal';
 import CheckOutModal from './CheckOutModal';
 import Toast from '@/components/shared/Toast';
+import ConfirmDeleteModal from '@/components/shared/ConfirmDeleteModal';
 import PackageTableControls from './PackageTableControls';
 import PackageDataTable from './PackageDataTable';
 
@@ -22,8 +23,8 @@ const PackageDashboard = () => {
 
   // Search
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [date, setDate] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
 
   // Pagination
   const [pagination, setPagination] = useState<PaginationState>({
@@ -36,6 +37,8 @@ const PackageDashboard = () => {
   const [detailsPackage, setDetailsPackage] = useState<Package | null>(null);
   const [editPackage, setEditPackage] = useState<Package | null>(null);
   const [checkOutPackage, setCheckOutPackage] = useState<Package | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Package | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Users for dropdowns
   const [recipients, setRecipients] = useState<User[]>([]);
@@ -50,7 +53,7 @@ const PackageDashboard = () => {
       try {
         const [recipientRes, secretaryRes] = await Promise.all([
           fetchUsers({ pageSize: 1000 }),
-          fetchUsers({ role: 'SECRETARY' as any, pageSize: 100 }),
+          fetchUsers({ role: UserRole.SECRETARY, pageSize: 100 }),
         ]);
         setRecipients(recipientRes.data);
         setSecretaries(secretaryRes.data);
@@ -61,14 +64,25 @@ const PackageDashboard = () => {
     loadUsers();
   }, []);
 
+  // Debounce the search input
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setPagination(prev => (prev.currentPage === 1 ? prev : { ...prev, currentPage: 1 }));
+  }, [debouncedSearch, date]);
+
   // Load packages
   const loadPackages = useCallback(async () => {
     try {
       const res = await fetchPackages({
         page: pagination.currentPage,
         pageSize: pagination.pageSize,
-        search: isSearching ? searchTerm.trim() || undefined : undefined,
-        startDate: isSearching ? date || undefined : undefined,
+        search: debouncedSearch || undefined,
+        startDate: date || undefined,
       });
       setPackages(res.data);
       setTotalItems(res.total);
@@ -79,30 +93,11 @@ const PackageDashboard = () => {
         message: 'Failed to load packages.',
       });
     }
-  }, [pagination.currentPage, pagination.pageSize, isSearching, searchTerm, date]);
+  }, [pagination.currentPage, pagination.pageSize, debouncedSearch, date]);
 
   useEffect(() => {
     loadPackages();
   }, [loadPackages]);
-
-  // Search
-  const handleSearch = useCallback(async () => {
-    if (!searchTerm.trim() && !date) return;
-    setIsSearching(true);
-    setPagination(prev => ({ ...prev, currentPage: 1 }));
-  }, [searchTerm, date]);
-
-  // Trigger search when date is selected
-  useEffect(() => {
-    if (date) handleSearch();
-  }, [date, handleSearch]);
-
-  const handleClearSearch = () => {
-    setSearchTerm('');
-    setDate('');
-    setIsSearching(false);
-    setPagination(prev => ({ ...prev, currentPage: 1 }));
-  };
 
   return (
     <div className="px-4 sm:px-6 py-6 space-y-4">
@@ -111,8 +106,6 @@ const PackageDashboard = () => {
         setSearchTerm={setSearchTerm}
         date={date}
         setDate={setDate}
-        onSearch={handleSearch}
-        onClearSearch={handleClearSearch}
         onAddPackage={() => setIsAddModalOpen(true)}
         pagination={pagination}
         totalItems={totalItems}
@@ -125,6 +118,7 @@ const PackageDashboard = () => {
         onRowClick={setDetailsPackage}
         onEdit={setEditPackage}
         onCheckOut={setCheckOutPackage}
+        onDelete={setDeleteTarget}
       />
 
       {isAddModalOpen && (
@@ -189,6 +183,40 @@ const PackageDashboard = () => {
           }}
         />
       )}
+
+      <ConfirmDeleteModal
+        isOpen={!!deleteTarget}
+        title="Delete package?"
+        message={
+          deleteTarget?.recipient?.fullName
+            ? `Delete package for "${deleteTarget.recipient.fullName}"? This cannot be undone.`
+            : 'Delete this package? This cannot be undone.'
+        }
+        confirmText={deleting ? 'Deleting…' : 'Delete'}
+        onCancel={() => !deleting && setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (!deleteTarget) return;
+          setDeleting(true);
+          try {
+            await deletePackage(deleteTarget.id);
+            setDeleteTarget(null);
+            await loadPackages();
+            setToast({
+              type: 'success',
+              title: 'Package Deleted',
+              message: 'Package has been removed.',
+            });
+          } catch {
+            setToast({
+              type: 'error',
+              title: 'Delete Failed',
+              message: 'Could not delete the package. Try again.',
+            });
+          } finally {
+            setDeleting(false);
+          }
+        }}
+      />
 
       {toast && (
           <Toast

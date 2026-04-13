@@ -24,7 +24,6 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
   isOpen,
   onClose,
   pkg,
-  recipients,
   secretaries,
   onSuccess,
 }) => {
@@ -60,7 +59,7 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
     });
   }, [pkg]);
 
-  const handleChange = (field: keyof UpdatePackageRequest, value: any) => {
+  const handleChange = <K extends keyof UpdatePackageRequest>(field: K, value: UpdatePackageRequest[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -93,19 +92,19 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
           ✕
         </button>
 
-        <h2 className="text-2xl font-bold text-byuNavy mb-4 pt-6">Edit Package</h2>
+        <h2 className="text-2xl font-bold text-byu-navy mb-4 pt-6">Edit Package</h2>
 
         {/* Tab Switcher */}
         <div className="flex space-x-4 mb-4 border-b pb-2">
           <button
             onClick={() => setActiveTab('details')}
-            className={`px-3 py-1 ${activeTab === 'details' ? 'border-b-2 border-byuNavy text-byuNavy font-semibold' : 'text-gray-500'}`}
+            className={`px-3 py-1 ${activeTab === 'details' ? 'border-b-2 border-byu-navy text-byu-navy font-semibold' : 'text-gray-500'}`}
           >
             Package Details
           </button>
           <button
             onClick={() => setActiveTab('tracking')}
-            className={`px-3 py-1 ${activeTab === 'tracking' ? 'border-b-2 border-byuNavy text-byuNavy font-semibold' : 'text-gray-500'}`}
+            className={`px-3 py-1 ${activeTab === 'tracking' ? 'border-b-2 border-byu-navy text-byu-navy font-semibold' : 'text-gray-500'}`}
           >
             Tracking & History
           </button>
@@ -117,7 +116,7 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
 
             {/* Recipient */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">Recipient</label>
+              <label className="text-sm font-medium text-byu-navy">Recipient</label>
               <select
                 value={pkg.recipientId}
                 disabled
@@ -131,11 +130,11 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
 
             {/* Carrier */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">Carrier</label>
+              <label className="text-sm font-medium text-byu-navy">Carrier</label>
               <select
                 value={formData.carrierId ?? ''}
                 onChange={(e) => handleChange('carrierId', e.target.value || undefined)}
-                className="p-2 border rounded text-sm text-byuNavy w-1/2"
+                className="p-2 border rounded text-sm text-byu-navy w-1/2"
                 disabled={isSubmitting}
               >
                 <option value="">Select carrier</option>
@@ -147,11 +146,11 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
 
             {/* Sender */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">Sender</label>
+              <label className="text-sm font-medium text-byu-navy">Sender</label>
               <select
                 value={formData.senderId ?? ''}
                 onChange={(e) => handleChange('senderId', e.target.value || undefined)}
-                className="p-2 border rounded text-sm text-byuNavy w-1/2"
+                className="p-2 border rounded text-sm text-byu-navy w-1/2"
                 disabled={isSubmitting}
               >
                 <option value="">Select sender</option>
@@ -163,26 +162,26 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
 
             {/* Notification Sent */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">Recipient Notified</label>
+              <label className="text-sm font-medium text-byu-navy">Recipient Notified</label>
               <input
                 type="checkbox"
                 checked={formData.notificationSent ?? false}
                 onChange={(e) => handleChange('notificationSent', e.target.checked)}
-                className="h-5 w-5 text-byuRoyal"
+                className="h-5 w-5 text-byu-royal"
                 disabled={isSubmitting}
               />
             </div>
 
             {/* Notes */}
             <div className="py-2">
-              <label className="text-sm font-medium text-byuNavy block mb-2">
+              <label className="text-sm font-medium text-byu-navy block mb-2">
                 Internal Notes
               </label>
               <textarea
                 value={formData.notes ?? ''}
                 onChange={(e) => handleChange('notes', e.target.value || undefined)}
                 placeholder="Any internal notes about this package..."
-                className="w-full border border-gray-300 rounded p-2 resize-y min-h-[80px] text-sm text-byuNavy"
+                className="w-full border border-gray-300 rounded p-2 resize-y min-h-[80px] text-sm text-byu-navy"
                 disabled={isSubmitting}
               />
             </div>
@@ -195,23 +194,23 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
 
             {/* Date Arrived */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">Date Arrived</label>
+              <label className="text-sm font-medium text-byu-navy">Date Arrived</label>
               <input
                 type="date"
                 value={formData.dateArrived ?? ''}
                 onChange={(e) => handleChange('dateArrived', e.target.value || undefined)}
-                className="p-2 border rounded text-sm text-byuNavy w-1/2"
+                className="p-2 border rounded text-sm text-byu-navy w-1/2"
                 disabled={isSubmitting}
               />
             </div>
 
             {/* Checked In By */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">Logged By</label>
+              <label className="text-sm font-medium text-byu-navy">Logged By</label>
               <select
                 value={formData.checkedInById ?? ''}
                 onChange={(e) => handleChange('checkedInById', e.target.value || undefined)}
-                className="p-2 border rounded text-sm text-byuNavy w-1/2"
+                className="p-2 border rounded text-sm text-byu-navy w-1/2"
                 disabled={isSubmitting}
               >
                 <option value="">Not logged yet</option>
@@ -223,23 +222,23 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
 
             {/* Date Picked Up */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">Date Picked Up</label>
+              <label className="text-sm font-medium text-byu-navy">Date Picked Up</label>
               <input
                 type="date"
                 value={formData.datePickedUp ?? ''}
                 onChange={(e) => handleChange('datePickedUp', e.target.value || undefined)}
-                className="p-2 border rounded text-sm text-byuNavy w-1/2"
+                className="p-2 border rounded text-sm text-byu-navy w-1/2"
                 disabled={isSubmitting}
               />
             </div>
 
             {/* Checked Out By */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">Checked Out By</label>
+              <label className="text-sm font-medium text-byu-navy">Checked Out By</label>
               <select
                 value={formData.checkedOutById ?? ''}
                 onChange={(e) => handleChange('checkedOutById', e.target.value || undefined)}
-                className="p-2 border rounded text-sm text-byuNavy w-1/2"
+                className="p-2 border rounded text-sm text-byu-navy w-1/2"
                 disabled={isSubmitting}
               >
                 <option value="">Not checked out yet</option>
@@ -251,19 +250,19 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
 
             {/* Delivered to Office */}
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <label className="text-sm font-medium text-byuNavy">Delivered to Office</label>
+              <label className="text-sm font-medium text-byu-navy">Delivered to Office</label>
               <input
                 type="checkbox"
                 checked={formData.deliveredToOffice ?? false}
                 onChange={(e) => handleChange('deliveredToOffice', e.target.checked)}
-                className="h-5 w-5 text-byuRoyal"
+                className="h-5 w-5 text-byu-royal"
                 disabled={isSubmitting}
               />
             </div>
 
             {/* Timeline Summary */}
             <div className="mt-6 p-4 bg-gray-50 rounded border">
-              <h3 className="text-sm font-semibold text-byuNavy mb-3">Package Timeline</h3>
+              <h3 className="text-sm font-semibold text-byu-navy mb-3">Package Timeline</h3>
               <div className="space-y-2 text-sm text-gray-700">
                 <div className="flex justify-between">
                   <span>Created:</span>
@@ -290,7 +289,7 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
                 {pkg.deliveredToOffice && (
                   <div className="flex justify-between">
                     <span>Delivered to Office:</span>
-                    <span className="font-medium text-byuGreenBright">Yes</span>
+                    <span className="font-medium text-byu-green-bright">Yes</span>
                   </div>
                 )}
               </div>
@@ -310,7 +309,7 @@ const EditPackageModal: React.FC<EditPackageModalProps> = ({
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="px-4 py-2 bg-byuRoyal text-white rounded hover:bg-[#003a9a] disabled:opacity-50 flex items-center gap-2"
+            className="px-4 py-2 bg-byu-royal text-white rounded hover:bg-[#003a9a] disabled:opacity-50 flex items-center gap-2"
           >
             {isSubmitting ? (
               <>

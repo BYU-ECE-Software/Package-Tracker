@@ -17,7 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <HeaderBar />
-        {children}
+        <main className="px-6 md:px-12">{children}</main>
         <FooterBar />
       </body>
     </html>

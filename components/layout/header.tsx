@@ -61,7 +61,7 @@ const HeaderBar = () => {
   return (
     <div className="w-full sticky top-0 z-50">
       {/* Top navy bar */}
-      <header className="relative w-full md:w-screen bg-byuNavy text-white py-4 shadow-md">
+      <header className="relative w-full md:w-screen bg-byu-navy text-white py-4 shadow-md">
         <div className="px-6 flex items-center justify-between">
           {/* Left: BYU Logo + Title */}
           <div className="flex items-center">
@@ -70,7 +70,7 @@ const HeaderBar = () => {
               href="https://www.byu.edu"
               target="_blank"
               rel="noopener noreferrer"
-              className="mr-4 border-r-[1px] border-byuRoyal"
+              className="mr-4 border-r-[1px] border-byu-royal"
             >
               <Image 
                 src={BYULogo} 
@@ -98,7 +98,7 @@ const HeaderBar = () => {
                hover:text-white hover:decoration-white
                transition-colors duration-150
                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70
-               focus-visible:ring-offset-2 focus-visible:ring-offset-byuNavy
+               focus-visible:ring-offset-2 focus-visible:ring-offset-byu-navy
                active:opacity-80"
             >
               Sign out
@@ -124,7 +124,7 @@ const HeaderBar = () => {
       {mobileOpen && (
         <div
           id="mobile-menu"
-          className="md:hidden w-full bg-white text-byuNavy shadow border-t"
+          className="md:hidden w-full bg-white text-byu-navy shadow border-t"
         >
           {/* Profile row at the top */}
           <div className="flex items-center gap-3 px-6 py-4 border-b">
@@ -164,7 +164,7 @@ const HeaderBar = () => {
       )}
 
       {/* White nav bar – desktop only */}
-      <nav className="hidden md:block w-full bg-white text-byuNavy shadow">
+      <nav className="hidden md:block w-full bg-white text-byu-navy shadow">
         <div
           className="flex text-base font-medium px-6"
           style={{ paddingLeft: navPadLeft }}

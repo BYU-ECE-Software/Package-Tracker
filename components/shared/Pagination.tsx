@@ -36,8 +36,8 @@ const Pagination: React.FC<PaginationProps> = ({
             onClick={() => onPageChange(i)}
             className={`px-3 py-1 rounded-md text-sm border transition ${
               currentPage === i
-                ? 'bg-byuNavy text-white border-byuNavy font-semibold'
-                : 'bg-white border-byuNavy text-byuNavy hover:bg-byuNavy hover:text-white'
+                ? 'bg-byu-navy text-white border-byu-navy font-semibold'
+                : 'bg-white border-byu-navy text-byu-navy hover:bg-byu-navy hover:text-white'
             }`}
           >
             {i}
@@ -60,7 +60,7 @@ const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => handleClick(currentPage - 1)}
           disabled={currentPage === 1}
-          className="px-3 py-1 rounded-md text-sm bg-white border border-byuNavy text-byuNavy hover:bg-byuNavy hover:text-white transition disabled:opacity-40"
+          className="px-3 py-1 rounded-md text-sm bg-white border border-byu-navy text-byu-navy hover:bg-byu-navy hover:text-white transition disabled:opacity-40"
         >
           Previous
         </button>
@@ -70,14 +70,14 @@ const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => handleClick(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="px-3 py-1 rounded-md text-sm bg-white border border-byuNavy text-byuNavy hover:bg-byuNavy hover:text-white transition disabled:opacity-40"
+          className="px-3 py-1 rounded-md text-sm bg-white border border-byu-navy text-byu-navy hover:bg-byu-navy hover:text-white transition disabled:opacity-40"
         >
           Next
         </button>
       </div>
 
       <div className="flex items-center gap-2">
-        <label htmlFor="goToPage" className="text-sm text-byuNavy">
+        <label htmlFor="goToPage" className="text-sm text-byu-navy">
           Go to page:
         </label>
         <input
@@ -95,12 +95,12 @@ const Pagination: React.FC<PaginationProps> = ({
               }
             }
           }}
-          className="w-20 border border-byuNavy text-byuNavy rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-byuNavy"
+          className="w-20 border border-byu-navy text-byu-navy rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-byu-navy"
         />
       </div>
 
       <div className="flex items-center gap-2">
-        <label htmlFor="pageSize" className="text-sm text-byuNavy font-normal">
+        <label htmlFor="pageSize" className="text-sm text-byu-navy font-normal">
           Packages per page:
         </label>
         <select
@@ -110,7 +110,7 @@ const Pagination: React.FC<PaginationProps> = ({
             setPageSize(Number(e.target.value));
             onPageChange(1);
           }}
-          className="border border-byuNavy text-byuNavy bg-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-byuNavy transition"
+          className="border border-byu-navy text-byu-navy bg-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-byu-navy transition"
         >
           {[10, 25, 50, 100].map((size) => (
             <option key={size} value={size}>{size}</option>

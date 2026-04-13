@@ -100,7 +100,7 @@ const AddPackageModal: React.FC<AddPackageModalProps> = ({
           >
             ✕
           </button>
-          <h2 className="text-xl sm:text-2xl font-bold text-byuNavy pr-8">Add New Package</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-byu-navy pr-8">Add New Package</h2>
         </div>
 
         {/* Form */}
@@ -108,13 +108,13 @@ const AddPackageModal: React.FC<AddPackageModalProps> = ({
 
           {/* Recipient */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-byuNavy">
+            <label className="block text-sm font-medium text-byu-navy">
               Recipient <span className="text-red-600">*</span>
             </label>
             <select
               value={formData.recipientId}
               onChange={(e) => handleChange('recipientId', e.target.value)}
-              className="w-full p-2 sm:p-3 border rounded text-sm text-byuNavy focus:ring-2 focus:ring-byuRoyal focus:border-transparent"
+              className="w-full p-2 sm:p-3 border rounded text-sm text-byu-navy focus:ring-2 focus:ring-byu-royal focus:border-transparent"
               disabled={isSubmitting}
             >
               <option value="">Select a recipient</option>
@@ -128,11 +128,11 @@ const AddPackageModal: React.FC<AddPackageModalProps> = ({
 
           {/* Carrier */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-byuNavy">Carrier</label>
+            <label className="block text-sm font-medium text-byu-navy">Carrier</label>
             <select
               value={formData.carrierId ?? ''}
               onChange={(e) => handleChange('carrierId', e.target.value)}
-              className="w-full p-2 sm:p-3 border rounded text-sm text-byuNavy focus:ring-2 focus:ring-byuRoyal focus:border-transparent"
+              className="w-full p-2 sm:p-3 border rounded text-sm text-byu-navy focus:ring-2 focus:ring-byu-royal focus:border-transparent"
               disabled={isSubmitting}
             >
               <option value="">Select a carrier</option>
@@ -146,11 +146,11 @@ const AddPackageModal: React.FC<AddPackageModalProps> = ({
 
           {/* Sender */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-byuNavy">Sender</label>
+            <label className="block text-sm font-medium text-byu-navy">Sender</label>
             <select
               value={formData.senderId ?? ''}
               onChange={(e) => handleChange('senderId', e.target.value)}
-              className="w-full p-2 sm:p-3 border rounded text-sm text-byuNavy focus:ring-2 focus:ring-byuRoyal focus:border-transparent"
+              className="w-full p-2 sm:p-3 border rounded text-sm text-byu-navy focus:ring-2 focus:ring-byu-royal focus:border-transparent"
               disabled={isSubmitting}
             >
               <option value="">Select a sender</option>
@@ -164,18 +164,18 @@ const AddPackageModal: React.FC<AddPackageModalProps> = ({
 
           {/* Date Arrived */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-byuNavy">Date Arrived</label>
+            <label className="block text-sm font-medium text-byu-navy">Date Arrived</label>
             <input
               type="date"
               value={dateArrived}
               onChange={(e) => setDateArrived(e.target.value)}
-              className="w-full p-2 sm:p-3 border rounded text-sm text-byuNavy focus:ring-2 focus:ring-byuRoyal focus:border-transparent"
+              className="w-full p-2 sm:p-3 border rounded text-sm text-byu-navy focus:ring-2 focus:ring-byu-royal focus:border-transparent"
               disabled={isSubmitting}
             />
             <button
               type="button"
               onClick={() => setDateArrived(new Date().toISOString().split('T')[0])}
-              className="mt-1 px-3 py-1 bg-byuRoyal text-white rounded hover:bg-[#003a9a] text-sm"
+              className="mt-1 px-3 py-1 bg-byu-royal text-white rounded hover:bg-[#003a9a] text-sm"
               disabled={isSubmitting}
             >
               Reset to Today
@@ -184,11 +184,11 @@ const AddPackageModal: React.FC<AddPackageModalProps> = ({
 
           {/* Logged By */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-byuNavy">Logged By</label>
+            <label className="block text-sm font-medium text-byu-navy">Logged By</label>
             <select
               value={checkedInById}
               onChange={(e) => setCheckedInById(e.target.value)}
-              className="w-full p-2 sm:p-3 border rounded text-sm text-byuNavy focus:ring-2 focus:ring-byuRoyal focus:border-transparent"
+              className="w-full p-2 sm:p-3 border rounded text-sm text-byu-navy focus:ring-2 focus:ring-byu-royal focus:border-transparent"
               disabled={isSubmitting}
             >
               <option value="">Select a secretary</option>
@@ -207,13 +207,13 @@ const AddPackageModal: React.FC<AddPackageModalProps> = ({
 
           {/* Notes */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-byuNavy">Internal Notes</label>
+            <label className="block text-sm font-medium text-byu-navy">Internal Notes</label>
             <textarea
               value={formData.notes ?? ''}
               onChange={(e) => handleChange('notes', e.target.value)}
               placeholder="Any internal notes about this package..."
               rows={3}
-              className="w-full p-2 sm:p-3 border rounded text-sm text-byuNavy resize-y focus:ring-2 focus:ring-byuRoyal focus:border-transparent"
+              className="w-full p-2 sm:p-3 border rounded text-sm text-byu-navy resize-y focus:ring-2 focus:ring-byu-royal focus:border-transparent"
               disabled={isSubmitting}
             />
           </div>
@@ -231,7 +231,7 @@ const AddPackageModal: React.FC<AddPackageModalProps> = ({
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="w-full sm:w-auto px-4 py-2 bg-byuRoyal text-white rounded hover:bg-[#003a9a] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-4 py-2 bg-byu-royal text-white rounded hover:bg-[#003a9a] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>

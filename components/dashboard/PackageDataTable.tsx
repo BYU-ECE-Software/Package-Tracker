@@ -1,14 +1,67 @@
 'use client';
 
 import React from 'react';
+import { FiEdit2, FiTrash2, FiMoreVertical, FiLogOut } from 'react-icons/fi';
 import type { Package } from '@/types/package';
 import { formatDate } from '@/utils/formatDate';
+import DataTable, { type DataTableColumn } from '@/components/ui/DataTable';
+import RowActionMenu from '@/components/ui/RowActionMenu';
 
 interface PackageDataTableProps {
   packages: Package[];
   onRowClick: (pkg: Package) => void;
   onEdit: (pkg: Package) => void;
   onCheckOut: (pkg: Package) => void;
+  onDelete: (pkg: Package) => void;
+}
+
+function RowActions({
+  pkg,
+  onEdit,
+  onCheckOut,
+  onDelete,
+}: {
+  pkg: Package;
+  onEdit: (pkg: Package) => void;
+  onCheckOut: (pkg: Package) => void;
+  onDelete: (pkg: Package) => void;
+}) {
+  const alreadyCheckedOut = pkg.datePickedUp !== null || pkg.deliveredToOffice;
+
+  return (
+    <div
+      className="flex items-center justify-end gap-1"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        title={alreadyCheckedOut ? 'Already checked out' : 'Checkout'}
+        disabled={alreadyCheckedOut}
+        onClick={() => !alreadyCheckedOut && onCheckOut(pkg)}
+        className="inline-flex items-center gap-2 rounded-lg bg-byu-royal px-2 py-2 text-white text-xs font-medium hover:bg-[#003C9E] transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        <FiLogOut className="h-4 w-4" />
+        <span>Checkout</span>
+      </button>
+
+      <RowActionMenu
+        trigger={<FiMoreVertical className="h-4 w-4" />}
+        items={[
+          {
+            label: 'Edit',
+            icon: <FiEdit2 className="h-4 w-4" />,
+            onClick: () => onEdit(pkg),
+          },
+          {
+            label: 'Delete',
+            icon: <FiTrash2 className="h-4 w-4" />,
+            variant: 'danger',
+            onClick: () => onDelete(pkg),
+          },
+        ]}
+      />
+    </div>
+  );
 }
 
 const PackageDataTable: React.FC<PackageDataTableProps> = ({
@@ -16,91 +69,68 @@ const PackageDataTable: React.FC<PackageDataTableProps> = ({
   onRowClick,
   onEdit,
   onCheckOut,
+  onDelete,
 }) => {
-  const isCheckedOut = (pkg: Package) =>
-    pkg.datePickedUp !== null || pkg.deliveredToOffice;
-
-  if (packages.length === 0) {
-    return (
-      <div className="text-center text-gray-500 py-12">
-        No packages found.
-      </div>
-    );
-  }
+  const columns: DataTableColumn<Package>[] = [
+    {
+      key: 'dateArrived',
+      header: 'Arrived',
+      render: (row) => formatDate(row.dateArrived),
+    },
+    {
+      key: 'recipient',
+      header: 'Recipient',
+      render: (row) => row.recipient?.fullName ?? 'N/A',
+    },
+    {
+      key: 'carrier',
+      header: 'Carrier',
+      render: (row) => row.carrier?.name ?? '—',
+    },
+    {
+      key: 'sender',
+      header: 'Sender',
+      render: (row) => row.sender?.name ?? '—',
+    },
+    {
+      key: 'datePickedUp',
+      header: 'Checked Out',
+      render: (row) => (row.datePickedUp ? formatDate(row.datePickedUp) : '—'),
+    },
+    {
+      key: 'pickedUpBy',
+      header: 'Picked Up By',
+      render: (row) =>
+        row.deliveredToOffice
+          ? 'Delivered to Office'
+          : row.datePickedUp
+            ? row.recipient?.fullName ?? '—'
+            : '—',
+    },
+    {
+      key: 'actions',
+      header: '',
+      headerClassName: 'w-[1%]',
+      cellClassName: 'text-right',
+      render: (row) => (
+        <RowActions
+          pkg={row}
+          onEdit={onEdit}
+          onCheckOut={onCheckOut}
+          onDelete={onDelete}
+        />
+      ),
+    },
+  ];
 
   return (
-    <table className="w-full border-collapse border text-byuNavy text-sm">
-      <thead className="bg-gray-100">
-        <tr>
-          <th className="border px-3 py-2 text-left">Recipient</th>
-          <th className="border px-3 py-2 text-left">Arrived</th>
-          <th className="border px-3 py-2 text-left">Carrier</th>
-          <th className="border px-3 py-2 text-left">Sender</th>
-          <th className="border px-3 py-2 text-left">Checked Out</th>
-          <th className="border px-3 py-2 text-left">Picked Up By</th>
-          <th className="border px-3 py-2 text-center">Edit</th>
-        </tr>
-      </thead>
-      <tbody>
-        {packages.map((pkg) => {
-          const checkedOut = isCheckedOut(pkg);
-          return (
-            <tr
-              key={pkg.id}
-              onClick={() => onRowClick(pkg)}
-              className={`cursor-pointer hover:bg-gray-50 ${checkedOut ? 'opacity-50' : 'bg-white'}`}
-            >
-              <td className="border px-3 py-2">
-                {pkg.recipient?.fullName ?? 'N/A'}
-              </td>
-              <td className="border px-3 py-2 whitespace-nowrap">
-                {formatDate(pkg.dateArrived)}
-              </td>
-              <td className="border px-3 py-2">
-                {pkg.carrier?.name ?? '—'}
-              </td>
-              <td className="border px-3 py-2">
-                {pkg.sender?.name ?? '—'}
-              </td>
-              <td className="border px-3 py-2 whitespace-nowrap">
-                {pkg.datePickedUp ? formatDate(pkg.datePickedUp) : '—'}
-              </td>
-              <td className="border px-3 py-2">
-                {pkg.deliveredToOffice
-                  ? 'Delivered to Office'
-                  : pkg.datePickedUp
-                    ? pkg.recipient?.fullName ?? '—'
-                    : '—'}
-              </td>
-              <td
-                className="border px-3 py-2 text-center"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex justify-center gap-2">
-                  <button
-                    onClick={() => onEdit(pkg)}
-                    className="px-2 py-1 border border-byuRoyal text-byuRoyal rounded hover:bg-byuRoyal hover:text-white transition-colors duration-150 text-xs font-medium"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => !checkedOut && onCheckOut(pkg)}
-                    disabled={checkedOut}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-colors duration-150 ${
-                      checkedOut
-                        ? 'border border-gray-300 text-gray-400 cursor-not-allowed'
-                        : 'border border-byuNavy text-byuNavy hover:bg-byuNavy hover:text-white'
-                    }`}
-                  >
-                    {checkedOut ? 'Checked Out' : 'Check Out'}
-                  </button>
-                </div>
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+    <DataTable<Package>
+      data={packages}
+      columns={columns}
+      emptyMessage="No packages found."
+      onRowClick={onRowClick}
+      getRowKey={(row) => row.id}
+    />
   );
 };
 
