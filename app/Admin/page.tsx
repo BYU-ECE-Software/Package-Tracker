@@ -7,14 +7,14 @@ import AdminCrudPanel from '@/components/admin/AdminCrudPanel';
 import DropdownEditor from '@/components/admin/DropdownEditor';
 import { adminConfigs } from '@/lib/adminConfigs';
 
-// Get all the keys (tab names) from the adminConfigs object
 const tabNames = Object.keys(adminConfigs) as (keyof typeof adminConfigs)[];
 
 export default function AdminPage() {
-  // Set up state to track which tab is currently selected
   const [activeTab, setActiveTab] = useState<(typeof tabNames)[number]>(
     tabNames[0]
   );
+
+  const config = adminConfigs[activeTab];
 
   return (
     <>
@@ -26,11 +26,13 @@ export default function AdminPage() {
           setActiveTab={setActiveTab}
         />
         <div className="flex-1">
-          {adminConfigs[activeTab].component === 'dropdown'
-            ? <DropdownEditor key={activeTab} {...adminConfigs[activeTab].dropdown} />
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            : <AdminCrudPanel title={activeTab} config={adminConfigs[activeTab] as any} />
-          }
+          {config.component === 'dropdown' ? (
+            <DropdownEditor key={activeTab} {...config.dropdown} />
+          ) : (
+            // TODO: AdminCrudPanel's config type doesn't fully align with all
+            // tab configs — revisit when AdminCrudPanel is refactored
+            <AdminCrudPanel title={activeTab} config={config as never} />
+          )}
         </div>
       </div>
     </>

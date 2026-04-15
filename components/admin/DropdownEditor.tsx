@@ -1,9 +1,18 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import type { RefObject } from 'react';
 import type { ToastProps } from '@/types/toast';
 import Toast from '@/components/shared/Toast';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import Button from '@/components/ui/Button';
+import {
+  EyeIcon,
+  EyeSlashIcon,
+  PencilIcon,
+  TrashIcon,
+  Bars3Icon,
+} from '@heroicons/react/24/outline';
 import {
   DndContext,
   closestCenter,
@@ -22,12 +31,17 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 interface DropdownItem {
   id: string;
   name: string;
   isActive: boolean;
   order: number;
 }
+
+// Editing state follows the same null = closed, object = open pattern as modals
+type EditingState = { id: string; name: string } | null;
 
 interface DropdownEditorProps {
   noun: string;
@@ -37,6 +51,8 @@ interface DropdownEditorProps {
   deleteItem: (id: string) => Promise<void>;
   reorderItems: (orderedIds: string[]) => Promise<void>;
 }
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function DropdownEditor({
   noun,
@@ -49,13 +65,14 @@ export default function DropdownEditor({
   const [items, setItems] = useState<DropdownItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState('');
-  const [toast, setToast] = useState<ToastProps | null>(null);
+  const [editing, setEditing] = useState<EditingState>(null);
   const [confirmDelete, setConfirmDelete] = useState<DropdownItem | null>(null);
+  const [toast, setToast] = useState<ToastProps | null>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
 
-  const load = async () => {
+  // useCallback keeps `load` stable across renders so it can be safely listed
+  // as a useEffect dependency without causing an infinite loop
+  const load = useCallback(async () => {
     try {
       setLoading(true);
       const data = await fetchItems();
@@ -65,19 +82,18 @@ export default function DropdownEditor({
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchItems, noun]);
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [load]);
 
-  // Focus edit input when editing starts
+  // Focus the inline edit input as soon as editing starts
   useEffect(() => {
-    if (editingId) {
-      setTimeout(() => editInputRef.current?.focus(), 0);
-    }
-  }, [editingId]);
+    if (editing) setTimeout(() => editInputRef.current?.focus(), 0);
+  }, [editing]);
+
+  // ── Handlers ───────────────────────────────────────────────────────────────
 
   const handleAdd = async () => {
     if (!newName.trim()) {
@@ -103,35 +119,21 @@ export default function DropdownEditor({
     }
   };
 
-  const handleEditStart = (item: DropdownItem) => {
-    setEditingId(item.id);
-    setEditingName(item.name);
-  };
-
-  const handleEditSave = async (id: string) => {
-    if (!editingName.trim()) {
+  const handleEditSave = async () => {
+    if (!editing) return;
+    if (!editing.name.trim()) {
       setToast({ type: 'error', title: 'Missing Name', message: 'Name cannot be empty.' });
       return;
     }
     try {
-      await updateItem(id, { name: editingName.trim() });
-      setEditingId(null);
+      await updateItem(editing.id, { name: editing.name.trim() });
+      setEditing(null);
       await load();
       setToast({ type: 'success', title: 'Updated', message: `${noun} updated successfully.` });
     } catch {
       setToast({ type: 'error', title: 'Error', message: `Failed to update ${noun}.` });
     }
   };
-
-  const handleEditCancel = () => {
-    setEditingId(null);
-    setEditingName('');
-  };
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -141,21 +143,18 @@ export default function DropdownEditor({
     const newIndex = items.findIndex((i) => i.id === over.id);
     if (oldIndex < 0 || newIndex < 0) return;
 
-    const prev = items;
-    const next = arrayMove(items, oldIndex, newIndex);
-    setItems(next);
+    // Optimistic update: reorder locally first, then persist
+    // If the API call fails, roll back to the previous order
+    const previous = items;
+    const reordered = arrayMove(items, oldIndex, newIndex);
+    setItems(reordered);
 
     try {
-      await reorderItems(next.map((i) => i.id));
+      await reorderItems(reordered.map((i) => i.id));
     } catch {
-      setItems(prev);
+      setItems(previous);
       setToast({ type: 'error', title: 'Error', message: `Failed to reorder ${noun}s.` });
-      await load();
     }
-  };
-
-  const handleDeleteAttempt = async (item: DropdownItem) => {
-    setConfirmDelete(item);
   };
 
   const handleDeleteConfirm = async () => {
@@ -166,16 +165,23 @@ export default function DropdownEditor({
       await load();
       setToast({ type: 'success', title: 'Deleted', message: `${noun} deleted successfully.` });
     } catch (err: unknown) {
-      // Server returns 409 with message if packages depend on this item
+      // 409 means this item is still referenced by existing packages
       const message = err instanceof Error ? err.message : `Failed to delete ${noun}.`;
       setConfirmDelete(null);
       setToast({ type: 'error', title: 'Cannot Delete', message });
     }
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+
   return (
     <div className="p-4 bg-white border rounded-lg shadow text-byu-navy">
-      <h2 className="text-xl font-semibold text-byu-navy mb-4">{noun}s</h2>
+      <h2 className="text-xl font-semibold mb-4">{noun}s</h2>
 
       {/* Add new item */}
       <div className="flex gap-2 mb-6">
@@ -184,43 +190,40 @@ export default function DropdownEditor({
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-          placeholder={`New ${noun} name...`}
-          className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-byu-royal focus:border-transparent"
+          placeholder={`New ${noun} name…`}
+          className={inputClass}
         />
-        <button
-          onClick={handleAdd}
-          className="bg-byu-navy text-white px-4 py-2 rounded hover:bg-[#001F40] transition-colors text-sm"
-        >
-          Add
-        </button>
+        <Button onClick={handleAdd}>Add</Button>
       </div>
 
       {/* List */}
       {loading ? (
-        <div className="flex items-center justify-center py-8 text-gray-500 text-sm">
-          Loading...
-        </div>
+        <p className="py-8 text-center text-sm text-gray-500">Loading…</p>
       ) : items.length === 0 ? (
-        <div className="text-center text-gray-500 py-8 text-sm">
+        <p className="py-8 text-center text-sm text-gray-500">
           No {noun}s yet. Add one above!
-        </div>
+        </p>
       ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-            <div className="divide-y divide-gray-200 border rounded">
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={items.map((i) => i.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="divide-y divide-gray-200 border rounded-lg overflow-hidden">
               {items.map((item) => (
                 <SortableRow
                   key={item.id}
                   item={item}
-                  editingId={editingId}
-                  editingName={editingName}
-                  setEditingName={setEditingName}
+                  editing={editing}
                   editInputRef={editInputRef}
-                  onToggleActive={handleToggleActive}
-                  onEditStart={handleEditStart}
+                  onSetEditing={setEditing}
                   onEditSave={handleEditSave}
-                  onEditCancel={handleEditCancel}
-                  onDelete={handleDeleteAttempt}
+                  onToggleActive={handleToggleActive}
+                  onDeleteRequest={setConfirmDelete}
                 />
               ))}
             </div>
@@ -228,13 +231,11 @@ export default function DropdownEditor({
         </DndContext>
       )}
 
-      {/* Confirm Delete Modal */}
       <ConfirmModal
         open={!!confirmDelete}
         title={`Delete ${noun}?`}
         message={`This will permanently remove "${confirmDelete?.name}".`}
         confirmLabel="Delete"
-        cancelLabel="Cancel"
         onConfirm={handleDeleteConfirm}
         onCancel={() => setConfirmDelete(null)}
       />
@@ -251,33 +252,37 @@ export default function DropdownEditor({
   );
 }
 
+// ─── SortableRow ──────────────────────────────────────────────────────────────
+
 interface SortableRowProps {
   item: DropdownItem;
-  editingId: string | null;
-  editingName: string;
-  setEditingName: (v: string) => void;
-  editInputRef: React.RefObject<HTMLInputElement | null>;
+  editing: EditingState;
+  editInputRef: RefObject<HTMLInputElement | null>;
+  onSetEditing: (state: EditingState) => void;
+  onEditSave: () => void;
   onToggleActive: (item: DropdownItem) => void;
-  onEditStart: (item: DropdownItem) => void;
-  onEditSave: (id: string) => void;
-  onEditCancel: () => void;
-  onDelete: (item: DropdownItem) => void;
+  onDeleteRequest: (item: DropdownItem) => void;
 }
 
 function SortableRow({
   item,
-  editingId,
-  editingName,
-  setEditingName,
+  editing,
   editInputRef,
-  onToggleActive,
-  onEditStart,
+  onSetEditing,
   onEditSave,
-  onEditCancel,
-  onDelete,
+  onToggleActive,
+  onDeleteRequest,
 }: SortableRowProps) {
-  const isEditing = editingId === item.id;
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const isEditing = editing?.id === item.id;
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: item.id,
     disabled: isEditing,
   });
@@ -293,9 +298,15 @@ function SortableRow({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 px-4 py-3 ${!item.isActive ? 'bg-gray-50' : 'bg-white'} ${isDragging ? 'shadow-lg' : ''}`}
+      className={[
+        'flex items-center gap-3 px-4 py-3',
+        item.isActive ? 'bg-white' : 'bg-gray-50',
+        isDragging ? 'shadow-lg' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
-      {/* Drag handle */}
+      {/* Drag handle — disabled while a row is being edited */}
       <button
         type="button"
         {...attributes}
@@ -303,97 +314,85 @@ function SortableRow({
         title="Drag to reorder"
         aria-label="Drag to reorder"
         disabled={isEditing}
-        className={`touch-none text-gray-300 hover:text-gray-500 ${isEditing ? 'cursor-not-allowed opacity-40' : 'cursor-grab active:cursor-grabbing'}`}
+        className={`touch-none text-gray-300 hover:text-gray-500 ${
+          isEditing ? 'cursor-not-allowed opacity-40' : 'cursor-grab active:cursor-grabbing'
+        }`}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <circle cx="7" cy="4" r="1.5" />
-          <circle cx="13" cy="4" r="1.5" />
-          <circle cx="7" cy="10" r="1.5" />
-          <circle cx="13" cy="10" r="1.5" />
-          <circle cx="7" cy="16" r="1.5" />
-          <circle cx="13" cy="16" r="1.5" />
-        </svg>
+        <Bars3Icon className="h-5 w-5" />
       </button>
 
-      {/* Name — inline edit or display */}
+      {/* Name — switches between display and inline edit */}
       <div className="flex-1">
         {isEditing ? (
           <div className="flex items-center gap-2">
             <input
               ref={editInputRef}
               type="text"
-              value={editingName}
-              onChange={(e) => setEditingName(e.target.value)}
+              value={editing.name}
+              onChange={(e) =>
+                onSetEditing({ id: item.id, name: e.target.value })
+              }
               onKeyDown={(e) => {
-                if (e.key === 'Enter') onEditSave(item.id);
-                if (e.key === 'Escape') onEditCancel();
+                if (e.key === 'Enter') onEditSave();
+                if (e.key === 'Escape') onSetEditing(null);
               }}
-              className="border border-byu-royal rounded px-2 py-1 text-sm flex-1 focus:ring-2 focus:ring-byu-royal focus:border-transparent"
+              className="flex-1 rounded border border-byu-royal px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-byu-royal"
             />
-            <button
-              onClick={() => onEditSave(item.id)}
-              className="text-xs text-white bg-byu-royal px-2 py-1 rounded hover:bg-[#003a9a]"
-            >
-              Save
-            </button>
-            <button
-              onClick={onEditCancel}
-              className="text-xs text-gray-500 hover:text-gray-700"
-            >
+            <Button size="sm" onClick={onEditSave}>Save</Button>
+            <Button size="sm" variant="secondary" onClick={() => onSetEditing(null)}>
               Cancel
-            </button>
+            </Button>
           </div>
         ) : (
-          <span className={`text-sm ${!item.isActive ? 'text-gray-400 line-through' : 'text-byu-navy'}`}>
+          <span
+            className={`text-sm ${
+              item.isActive ? 'text-byu-navy' : 'text-gray-400 line-through'
+            }`}
+          >
             {item.name}
           </span>
         )}
       </div>
 
-      {/* Action icons */}
+      {/* Action icons — hidden while editing */}
       {!isEditing && (
         <div className="flex items-center gap-3">
-          {/* Eye toggle */}
           <button
+            type="button"
             onClick={() => onToggleActive(item)}
             title={item.isActive ? 'Hide from dropdown' : 'Show in dropdown'}
             className="text-gray-400 hover:text-byu-navy transition-colors"
           >
-            {item.isActive ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21" />
-              </svg>
-            )}
+            {item.isActive
+              ? <EyeIcon className="h-5 w-5" />
+              : <EyeSlashIcon className="h-5 w-5" />
+            }
           </button>
 
-          {/* Pencil edit */}
           <button
-            onClick={() => onEditStart(item)}
+            type="button"
+            onClick={() => onSetEditing({ id: item.id, name: item.name })}
             title="Edit name"
             className="text-gray-400 hover:text-byu-royal transition-colors"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
+            <PencilIcon className="h-5 w-5" />
           </button>
 
-          {/* Trash delete */}
           <button
-            onClick={() => onDelete(item)}
+            type="button"
+            onClick={() => onDeleteRequest(item)}
             title="Delete"
-            className="text-gray-400 hover:text-byu-red-bright transition-colors"
+            className="text-gray-400 hover:text-red-600 transition-colors"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
+            <TrashIcon className="h-5 w-5" />
           </button>
         </div>
       )}
     </div>
   );
 }
+
+// ─── Shared within file ───────────────────────────────────────────────────────
+
+const inputClass =
+  'flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-byu-navy focus:outline-none focus:ring-2 focus:ring-byu-royal focus:border-transparent';

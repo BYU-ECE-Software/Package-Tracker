@@ -4,7 +4,7 @@ import React from 'react';
 import { FiPlus } from 'react-icons/fi';
 import SearchBar from '@/components/shared/SearchBar';
 import Pagination from '@/components/shared/Pagination';
-import PrimaryButton from '@/components/ui/PrimaryButton';
+import Button from '@/components/ui/Button';
 import type { PaginationState } from '@/types/pagination';
 
 interface PackageTableControlsProps {
@@ -41,12 +41,13 @@ const PackageTableControls: React.FC<PackageTableControlsProps> = ({
           placeholder="Search packages…"
         />
 
-        <PrimaryButton
-          label="Create New Package"
-          icon={<FiPlus className="h-4 w-4" />}
+        <Button
           onClick={onAddPackage}
-          className="py-2 whitespace-nowrap"
-        />
+          className="whitespace-nowrap"
+        >
+          <FiPlus className="h-4 w-4" />
+          Create New Package
+        </Button>
       </div>
 
       <Pagination
