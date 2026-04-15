@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from 'react';
 import type { ConfigPanel, FieldConfig } from '@/types/configPanel';
 import type { ToastProps } from '@/types/toast';
 import Toast from '@/components/shared/Toast';
-import ConfirmDeleteAdminPage from '../shared/ConfirmDeleteModal';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 // Generic props: title to display and a CRUD config for a specific model
 interface Props<T extends { id: string }, CreatePayload> {
@@ -367,12 +367,12 @@ export default function AdminCrudPanel<
       </div>
       
       {/* Confirmation Dialog */}
-      <ConfirmDeleteAdminPage
-        isOpen={confirmOpen}
+      <ConfirmModal
+        open={confirmOpen}
         title={`Delete ${config.noun}?`}
         message={`This will permanently remove the selected ${config.noun}.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
       />

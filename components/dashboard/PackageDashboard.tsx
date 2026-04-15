@@ -12,7 +12,7 @@ import EditPackageModal from './EditPackageModal';
 import ViewPackageModal from './ViewPackageModal';
 import CheckOutModal from './CheckOutModal';
 import Toast from '@/components/shared/Toast';
-import ConfirmDeleteModal from '@/components/shared/ConfirmDeleteModal';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import PackageTableControls from './PackageTableControls';
 import PackageDataTable from './PackageDataTable';
 
@@ -184,15 +184,15 @@ const PackageDashboard = () => {
         />
       )}
 
-      <ConfirmDeleteModal
-        isOpen={!!deleteTarget}
+      <ConfirmModal
+        open={!!deleteTarget}
         title="Delete package?"
         message={
           deleteTarget?.recipient?.fullName
             ? `Delete package for "${deleteTarget.recipient.fullName}"? This cannot be undone.`
             : 'Delete this package? This cannot be undone.'
         }
-        confirmText={deleting ? 'Deleting…' : 'Delete'}
+        confirmLabel={deleting ? 'Deleting…' : 'Delete'}
         onCancel={() => !deleting && setDeleteTarget(null)}
         onConfirm={async () => {
           if (!deleteTarget) return;

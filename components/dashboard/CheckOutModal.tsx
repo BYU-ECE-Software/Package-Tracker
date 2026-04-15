@@ -1,11 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { Package } from '@/types/package';
 import type { User } from '@/types/user';
-import type { ToastProps } from '@/types/toast';
 import { checkOutPackage, updatePackage } from '@/lib/api/packages';
-import Toast from '@/components/shared/Toast';
+import BaseModal from '@/components/ui/BaseModal';
+import type { StepConfig } from '@/components/ui/BaseModal';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type CheckoutMethod = 'pickup' | 'office' | null;
 
 interface CheckOutModalProps {
   isOpen: boolean;
@@ -13,238 +17,267 @@ interface CheckOutModalProps {
   pkg: Package;
   secretaries: User[];
   onSuccess: () => Promise<void>;
+  // TODO: replace checkedOutById dropdown with auth session once auth is wired up
 }
 
-const CheckOutModal: React.FC<CheckOutModalProps> = ({
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function CheckOutModal({
   isOpen,
   onClose,
   pkg,
   secretaries,
   onSuccess,
-}) => {
+}: CheckOutModalProps) {
+  const [method, setMethod] = useState<CheckoutMethod>(null);
+  const [pickedUpById, setPickedUpById] = useState(pkg.recipient?.id ?? '');
+  const [datePickedUp, setDatePickedUp] = useState(
+    new Date().toISOString().split('T')[0]
+  );
   const [checkedOutById, setCheckedOutById] = useState('');
-  const [pickedUpById, setPickedUpById] = useState('');
-  const [deliveredToOffice, setDeliveredToOffice] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [toast, setToast] = useState<ToastProps | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleDeliveredToOfficeChange = (checked: boolean) => {
-    setDeliveredToOffice(checked);
-    if (checked) setPickedUpById(''); // clear pickup if delivered to office
+  const handleClose = () => {
+    setMethod(null);
+    setPickedUpById(pkg.recipient?.id ?? '');
+    setDatePickedUp(new Date().toISOString().split('T')[0]);
+    setCheckedOutById('');
+    setError(null);
+    onClose();
   };
 
-  const handlePickedUpByChange = (id: string) => {
-    setPickedUpById(id);
-    if (id) setDeliveredToOffice(false); // uncheck delivered to office if pickup selected
-  };
-
-  const handleSubmit = async () => {
-    if (!checkedOutById) {
-      setToast({
-        type: 'error',
-        title: 'Missing Required Field',
-        message: 'Please select who is checking out this package.',
-      });
-      return;
-    }
-
-    if (!deliveredToOffice && !pickedUpById) {
-      setToast({
-        type: 'error',
-        title: 'Missing Required Field',
-        message: 'Please select a pickup recipient or mark as delivered to office.',
-      });
-      return;
-    }
-
+  const handleComplete = async () => {
     setIsSubmitting(true);
+    setError(null);
     try {
-        if (deliveredToOffice) {
+      if (method === 'office') {
         await updatePackage(pkg.id, {
-            deliveredToOffice: true,
-            checkedOutById,
-            datePickedUp: new Date().toISOString().split('T')[0],
+          deliveredToOffice: true,
+          checkedOutById,
+          datePickedUp,
         });
-        } else {
+      } else {
         await checkOutPackage(pkg.id, checkedOutById);
-        }
-        await onSuccess();
+      }
+      await onSuccess();
+      handleClose();
     } catch {
-      setToast({
-        type: 'error',
-        title: 'Check Out Failed',
-        message: 'Something went wrong while checking out the package.',
-      });
+      setError('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleClose = () => {
-    setCheckedOutById('');
-    setPickedUpById('');
-    setDeliveredToOffice(false);
-    onClose();
-  };
+  const step2CanAdvance =
+    !!checkedOutById && (method === 'office' || !!pickedUpById);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const original = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = original; };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
+  const steps: StepConfig[] = [
+    {
+      title: 'How is this package leaving?',
+      canAdvance: method !== null,
+      content: (
+        <Step1MethodSelect method={method} onSelect={setMethod} pkg={pkg} />
+      ),
+    },
+    {
+      title:
+        method === 'office' ? 'Confirm office delivery' : 'Confirm pickup details',
+      canAdvance: step2CanAdvance,
+      content: (
+        <Step2Details
+          method={method}
+          pkg={pkg}
+          secretaries={secretaries}
+          pickedUpById={pickedUpById}
+          setPickedUpById={setPickedUpById}
+          datePickedUp={datePickedUp}
+          setDatePickedUp={setDatePickedUp}
+          checkedOutById={checkedOutById}
+          setCheckedOutById={setCheckedOutById}
+          error={error}
+        />
+      ),
+    },
+  ];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-lg rounded-lg shadow-lg relative overflow-y-auto max-h-[90vh]">
+    <BaseModal
+      open={isOpen}
+      title="Check Out Package"
+      size="sm"
+      onClose={handleClose}
+      steps={steps}
+      onComplete={handleComplete}
+      completingLabel="Check Out"
+      completing={isSubmitting}
+    />
+  );
+}
 
-        {/* Header */}
-        <div className="sticky top-0 bg-white border-b p-4 sm:p-6 z-10">
-          <button
-            onClick={handleClose}
-            className="absolute top-4 right-4 text-gray-500 hover:text-black text-lg"
-            disabled={isSubmitting}
-          >
-            ✕
-          </button>
-          <h2 className="text-xl sm:text-2xl font-bold text-byu-navy pr-8">Check Out Package</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            For: {pkg.recipient?.fullName ?? 'Unknown'} ({pkg.recipient?.netId ?? '—'})
-          </p>
+// ─── Step 1 — method selection ────────────────────────────────────────────────
+
+function Step1MethodSelect({
+  method,
+  onSelect,
+  pkg,
+}: {
+  method: CheckoutMethod;
+  onSelect: (m: CheckoutMethod) => void;
+  pkg: Package;
+}) {
+  return (
+    <div className="space-y-3 py-2">
+      <p className="text-sm text-gray-500">
+        Package for{' '}
+        <span className="font-medium text-byu-navy">
+          {pkg.recipient?.fullName ?? 'Unknown'}
+        </span>{' '}
+        ({pkg.recipient?.netId ?? '—'})
+      </p>
+
+      <button
+        type="button"
+        onClick={() => onSelect('pickup')}
+        className={methodButtonClass(method === 'pickup')}
+      >
+        <span className="text-2xl">🧍</span>
+        <div className="text-left">
+          <p className="font-medium text-sm">Picked Up</p>
+          <p className="text-xs text-gray-500">Recipient or someone else collected it</p>
         </div>
+      </button>
 
-        {/* Form */}
-        <div className="p-4 sm:p-6 space-y-6">
-
-          {/* Picked Up By */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-byu-navy">
-              Picked Up By
-            </label>
-            <select
-              value={pickedUpById}
-              onChange={(e) => handlePickedUpByChange(e.target.value)}
-              disabled={deliveredToOffice || isSubmitting}
-              className={`w-full p-2 sm:p-3 border rounded text-sm focus:ring-2 focus:ring-byu-royal focus:border-transparent ${
-                deliveredToOffice
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'text-byu-navy'
-              }`}
-            >
-              <option value="">Select recipient</option>
-              {/* Put the package recipient at the top */}
-              {pkg.recipient && (
-                <option value={pkg.recipient.id}>
-                  {pkg.recipient.fullName} ({pkg.recipient.netId}) — Expected Recipient
-                </option>
-              )}
-              <option disabled>──────────</option>
-              {/* Other users */}
-              <option value="other">Someone else picked it up</option>
-            </select>
-            {deliveredToOffice && (
-              <p className="text-xs text-gray-400">Disabled — package is being delivered to office</p>
-            )}
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 border-t border-gray-200" />
-            <span className="text-xs text-gray-400 uppercase tracking-wide">or</span>
-            <div className="flex-1 border-t border-gray-200" />
-          </div>
-
-          {/* Delivered to Office */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-byu-navy">
-              Delivered to Office
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="deliveredToOffice"
-                checked={deliveredToOffice}
-                onChange={(e) => handleDeliveredToOfficeChange(e.target.checked)}
-                disabled={!!pickedUpById || isSubmitting}
-                className={`h-5 w-5 ${
-                  pickedUpById ? 'cursor-not-allowed opacity-50' : 'text-byu-royal cursor-pointer'
-                }`}
-              />
-              <label
-                htmlFor="deliveredToOffice"
-                className={`text-sm ${pickedUpById ? 'text-gray-400' : 'text-byu-navy cursor-pointer'}`}
-              >
-                Package was delivered directly to a professor&apos;s office
-              </label>
-            </div>
-            {pickedUpById && (
-              <p className="text-xs text-gray-400">Disabled — a recipient has been selected</p>
-            )}
-          </div>
-
-          {/* Checked Out By (secretary) */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-byu-navy">
-              Checked Out By <span className="text-red-600">*</span>
-            </label>
-            <select
-              value={checkedOutById}
-              onChange={(e) => setCheckedOutById(e.target.value)}
-              disabled={isSubmitting}
-              className="w-full p-2 sm:p-3 border rounded text-sm text-byu-navy focus:ring-2 focus:ring-byu-royal focus:border-transparent"
-            >
-              <option value="">Select a secretary</option>
-              {secretaries.map((s) => (
-                <option key={s.id} value={s.id}>{s.fullName}</option>
-              ))}
-            </select>
-            {checkedOutById && (
-              <p className="text-xs text-gray-500">
-                Checking out as {secretaries.find(s => s.id === checkedOutById)?.fullName}
-              </p>
-            )}
-          </div>
+      <button
+        type="button"
+        onClick={() => onSelect('office')}
+        className={methodButtonClass(method === 'office')}
+      >
+        <span className="text-2xl">🚪</span>
+        <div className="text-left">
+          <p className="font-medium text-sm">Delivered to Office</p>
+          <p className="text-xs text-gray-500">Package was brought to a professor's office</p>
         </div>
-
-        {/* Footer */}
-        <div className="sticky bottom-0 bg-white border-t p-4 sm:p-6 flex flex-col-reverse sm:flex-row justify-end gap-3">
-          <button
-            onClick={handleClose}
-            disabled={isSubmitting}
-            className="w-full sm:w-auto px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="w-full sm:w-auto px-4 py-2 bg-byu-navy text-white rounded hover:bg-[#001F40] disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? (
-              <>
-                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Checking Out...
-              </>
-            ) : 'Check Out Package'}
-          </button>
-        </div>
-      </div>
-
-      {toast && (
-        <Toast
-          type={toast.type}
-          title={toast.title}
-          message={toast.message}
-          onClose={() => setToast(null)}
-        />
-      )}
+      </button>
     </div>
   );
-};
+}
 
-export default CheckOutModal;
+function methodButtonClass(active: boolean) {
+  return [
+    'flex w-full items-center gap-4 rounded-xl border-2 px-4 py-3 text-byu-navy transition',
+    active
+      ? 'border-byu-royal bg-byu-royal/5'
+      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+  ].join(' ');
+}
+
+// ─── Step 2 — details ─────────────────────────────────────────────────────────
+
+function Step2Details({
+  method,
+  pkg,
+  secretaries,
+  pickedUpById,
+  setPickedUpById,
+  datePickedUp,
+  setDatePickedUp,
+  checkedOutById,
+  setCheckedOutById,
+  error,
+}: {
+  method: CheckoutMethod;
+  pkg: Package;
+  secretaries: User[];
+  pickedUpById: string;
+  setPickedUpById: (v: string) => void;
+  datePickedUp: string;
+  setDatePickedUp: (v: string) => void;
+  checkedOutById: string;
+  setCheckedOutById: (v: string) => void;
+  error: string | null;
+}) {
+  const inputClass =
+    'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-byu-navy focus:outline-none focus:ring-2 focus:ring-byu-royal focus:border-transparent';
+
+  return (
+    <div className="space-y-4 py-2">
+      {/* Package summary */}
+      <div className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm space-y-1">
+        <p className="text-gray-500">
+          Recipient:{' '}
+          <span className="font-medium text-byu-navy">
+            {pkg.recipient?.fullName ?? '—'}
+          </span>
+        </p>
+        {pkg.carrier && (
+          <p className="text-gray-500">
+            Carrier: <span className="font-medium text-byu-navy">{pkg.carrier.name}</span>
+          </p>
+        )}
+      </div>
+
+      {/* Pickup-specific: who collected it */}
+      {method === 'pickup' && (
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-byu-navy">
+            Picked Up By <span className="text-red-500">*</span>
+          </label>
+          <select
+            value={pickedUpById}
+            onChange={(e) => setPickedUpById(e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Select recipient</option>
+            {pkg.recipient && (
+              <option value={pkg.recipient.id}>
+                {pkg.recipient.fullName} — Expected Recipient
+              </option>
+            )}
+            <option disabled>──────────</option>
+            <option value="other">Someone else</option>
+          </select>
+        </div>
+      )}
+
+      {/* Office delivery confirmation */}
+      {method === 'office' && (
+        <p className="text-sm text-gray-600 rounded-lg bg-blue-50 border border-blue-100 px-4 py-3">
+          This package will be marked as delivered to office.
+        </p>
+      )}
+
+      {/* Date */}
+      <div className="space-y-1.5">
+        <label className="block text-sm font-medium text-byu-navy">
+          Date <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="date"
+          value={datePickedUp}
+          onChange={(e) => setDatePickedUp(e.target.value)}
+          className={inputClass}
+        />
+      </div>
+
+      {/* Secretary — TODO: replace with auth session in production */}
+      <div className="space-y-1.5">
+        <label className="block text-sm font-medium text-byu-navy">
+          Checked Out By <span className="text-red-500">*</span>
+        </label>
+        <select
+          value={checkedOutById}
+          onChange={(e) => setCheckedOutById(e.target.value)}
+          className={inputClass}
+        >
+          <option value="">Select a secretary</option>
+          {secretaries.map((s) => (
+            <option key={s.id} value={s.id}>{s.fullName}</option>
+          ))}
+        </select>
+      </div>
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
+    </div>
+  );
+}

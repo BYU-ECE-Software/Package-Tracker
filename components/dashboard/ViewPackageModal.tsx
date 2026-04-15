@@ -1,8 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
+import type React from 'react';
 import type { Package } from '@/types/package';
 import { formatDate } from '@/utils/formatDate';
+import BaseModal from '@/components/ui/BaseModal';
+import type { TabConfig } from '@/components/ui/BaseModal';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ViewPackageModalProps {
   isOpen: boolean;
@@ -10,238 +15,200 @@ interface ViewPackageModalProps {
   pkg: Package | null;
 }
 
-const ViewPackageModal: React.FC<ViewPackageModalProps> = ({
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function daysAgo(dateStr: Date | string | null | undefined): string | null {
+  if (!dateStr) return null;
+  const diff = Math.floor(
+    (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24)
+  );
+  if (diff === 0) return 'today';
+  if (diff === 1) return '1 day ago';
+  return `${diff} days ago`;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function ViewPackageModal({
   isOpen,
   onClose,
   pkg,
-}) => {
-  const [activeTab, setActiveTab] = useState<'details' | 'tracking' | 'recipient'>('details');
+}: ViewPackageModalProps) {
+  const [activeTab, setActiveTab] = useState('details');
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const original = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = original; };
-  }, [isOpen]);
-
-  if (!isOpen || !pkg) return null;
+  if (!pkg) return null;
 
   const isCheckedOut = pkg.datePickedUp !== null || pkg.deliveredToOffice;
+  const arrivedAgo = !isCheckedOut ? daysAgo(pkg.dateArrived) : null;
+
+  const tabs: TabConfig[] = [
+    {
+      key: 'details',
+      label: 'Details',
+      content: (
+        <DetailsTab pkg={pkg} isCheckedOut={isCheckedOut} arrivedAgo={arrivedAgo} />
+      ),
+    },
+    {
+      key: 'history',
+      label: 'Tracking & History',
+      content: <HistoryTab pkg={pkg} />,
+    },
+    {
+      key: 'recipient',
+      label: 'Recipient',
+      content: <RecipientTab pkg={pkg} />,
+    },
+  ];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
-      <div className="bg-white w-full max-w-3xl rounded-lg shadow-lg p-6 relative overflow-y-auto max-h-[90vh]">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-black text-lg"
-        >
-          ✕
-        </button>
-        <h2 className="text-2xl font-bold text-byu-navy mb-4">Package Details</h2>
-
-        {/* Status badge */}
-        <div className="mb-4">
-          <span className={`px-3 py-1 rounded text-xs font-medium ${
-            isCheckedOut
-              ? 'bg-byu-green-bright text-white'
-              : 'bg-byu-yellow-bright text-byu-dark-gray'
-          }`}>
-            {isCheckedOut ? 'Checked Out' : 'Active'}
-          </span>
-        </div>
-
-        {/* Tab Switcher */}
-        <div className="flex space-x-4 mb-4 border-b pb-2">
+    <BaseModal
+      open={isOpen}
+      title="Package Details"
+      size="lg"
+      onClose={onClose}
+      tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      // View-only modal — no submit, just a Close button in the footer
+      footer={
+        <div className="flex justify-end">
           <button
-            onClick={() => setActiveTab('details')}
-            className={`px-3 py-1 ${activeTab === 'details' ? 'border-b-2 border-byu-navy text-byu-navy font-semibold' : 'text-gray-500'}`}
-          >
-            Package Details
-          </button>
-          <button
-            onClick={() => setActiveTab('tracking')}
-            className={`px-3 py-1 ${activeTab === 'tracking' ? 'border-b-2 border-byu-navy text-byu-navy font-semibold' : 'text-gray-500'}`}
-          >
-            Tracking & History
-          </button>
-          <button
-            onClick={() => setActiveTab('recipient')}
-            className={`px-3 py-1 ${activeTab === 'recipient' ? 'border-b-2 border-byu-navy text-byu-navy font-semibold' : 'text-gray-500'}`}
-          >
-            Recipient Info
-          </button>
-        </div>
-
-        {/* Details Tab */}
-        {activeTab === 'details' && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <span className="text-sm font-medium text-byu-navy">Carrier</span>
-              <span className="text-sm text-gray-700">{pkg.carrier?.name ?? '—'}</span>
-            </div>
-
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <span className="text-sm font-medium text-byu-navy">Sender</span>
-              <span className="text-sm text-gray-700">{pkg.sender?.name ?? '—'}</span>
-            </div>
-
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <span className="text-sm font-medium text-byu-navy">Recipient Notified</span>
-              <span className="text-sm text-gray-700">{pkg.notificationSent ? '✓ Yes' : '✗ No'}</span>
-            </div>
-
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <span className="text-sm font-medium text-byu-navy">Delivered to Office</span>
-              <span className="text-sm text-gray-700">{pkg.deliveredToOffice ? '✓ Yes' : '✗ No'}</span>
-            </div>
-
-            {pkg.notes && (
-              <div className="py-2 border-b border-gray-200">
-                <span className="block text-sm font-medium text-byu-navy mb-1">Internal Notes</span>
-                <span className="block text-sm text-gray-700 whitespace-pre-wrap">{pkg.notes}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Tracking Tab */}
-        {activeTab === 'tracking' && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <span className="text-sm font-medium text-byu-navy">Created</span>
-              <span className="text-sm text-gray-700">{formatDate(pkg.createdAt)}</span>
-            </div>
-
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <span className="text-sm font-medium text-byu-navy">Date Arrived</span>
-              <span className="text-sm text-gray-700">{formatDate(pkg.dateArrived)}</span>
-            </div>
-
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <span className="text-sm font-medium text-byu-navy">Logged By</span>
-              <span className="text-sm text-gray-700">{pkg.checkedInBy?.fullName ?? '—'}</span>
-            </div>
-
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <span className="text-sm font-medium text-byu-navy">Date Picked Up</span>
-              <span className="text-sm text-gray-700">{pkg.datePickedUp ? formatDate(pkg.datePickedUp) : '—'}</span>
-            </div>
-
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <span className="text-sm font-medium text-byu-navy">Checked Out By</span>
-              <span className="text-sm text-gray-700">{pkg.checkedOutBy?.fullName ?? '—'}</span>
-            </div>
-
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <span className="text-sm font-medium text-byu-navy">Last Updated</span>
-              <span className="text-sm text-gray-700">{formatDate(pkg.updatedAt)}</span>
-            </div>
-
-            {/* Visual Timeline */}
-            <div className="mt-6 p-4 bg-gray-50 rounded border">
-              <h3 className="text-sm font-semibold text-byu-navy mb-4">Package Timeline</h3>
-              <div className="relative">
-                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-300" />
-                <div className="space-y-4">
-                  <div className="relative flex items-start">
-                    <div className="absolute left-4 transform -translate-x-1/2 w-3 h-3 rounded-full bg-byu-navy" />
-                    <div className="ml-10">
-                      <div className="text-sm font-medium text-byu-navy">Package Logged</div>
-                      <div className="text-xs text-gray-600">{formatDate(pkg.createdAt)}</div>
-                    </div>
-                  </div>
-
-                  {pkg.dateArrived && (
-                    <div className="relative flex items-start">
-                      <div className="absolute left-4 transform -translate-x-1/2 w-3 h-3 rounded-full bg-byu-yellow-bright" />
-                      <div className="ml-10">
-                        <div className="text-sm font-medium text-byu-navy">Package Arrived</div>
-                        <div className="text-xs text-gray-600">{formatDate(pkg.dateArrived)}</div>
-                        {pkg.checkedInBy && (
-                          <div className="text-xs text-gray-500">logged by {pkg.checkedInBy.fullName}</div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {pkg.deliveredToOffice && (
-                    <div className="relative flex items-start">
-                      <div className="absolute left-4 transform -translate-x-1/2 w-3 h-3 rounded-full bg-byu-green-bright" />
-                      <div className="ml-10">
-                        <div className="text-sm font-medium text-byu-navy">Delivered to Office</div>
-                        {pkg.checkedOutBy && (
-                          <div className="text-xs text-gray-500">by {pkg.checkedOutBy.fullName}</div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {pkg.datePickedUp && (
-                    <div className="relative flex items-start">
-                      <div className="absolute left-4 transform -translate-x-1/2 w-3 h-3 rounded-full bg-byu-green-bright" />
-                      <div className="ml-10">
-                        <div className="text-sm font-medium text-byu-navy">Picked Up</div>
-                        <div className="text-xs text-gray-600">{formatDate(pkg.datePickedUp)}</div>
-                        {pkg.checkedOutBy && (
-                          <div className="text-xs text-gray-500">by {pkg.checkedOutBy.fullName}</div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Recipient Tab */}
-        {activeTab === 'recipient' && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <span className="text-sm font-medium text-byu-navy">Name</span>
-              <span className="text-sm text-gray-700">{pkg.recipient?.fullName ?? '—'}</span>
-            </div>
-
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <span className="text-sm font-medium text-byu-navy">Email</span>
-              <span className="text-sm text-gray-700">{pkg.recipient?.email ?? '—'}</span>
-            </div>
-
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <span className="text-sm font-medium text-byu-navy">BYU Net ID</span>
-              <span className="text-sm text-gray-700">{pkg.recipient?.netId ?? '—'}</span>
-            </div>
-
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
-              <span className="text-sm font-medium text-byu-navy">Role</span>
-              <span className="text-sm text-gray-700">{pkg.recipient?.role ?? '—'}</span>
-            </div>
-
-            {pkg.recipient?.email && (
-              <div className="mt-6 p-4 bg-gray-50 rounded border">
-                <h3 className="text-sm font-semibold text-byu-navy mb-3">Contact Recipient</h3>
-                  <a
-                    href={`mailto:${pkg.recipient.email}?subject=Package Notification`}
-                    className="px-4 py-2 bg-byu-royal text-white rounded hover:bg-[#003a9a] text-sm inline-block"
-                  >
-                    Send Email
-                  </a>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="mt-6 flex justify-end">
-          <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+            className="px-3 py-1.5 rounded-lg border border-gray-300 text-byu-navy hover:bg-gray-50 transition cursor-pointer text-sm"
           >
             Close
           </button>
         </div>
+      }
+    />
+  );
+}
+
+// ─── Tab: Details ─────────────────────────────────────────────────────────────
+
+function DetailsTab({
+  pkg,
+  isCheckedOut,
+  arrivedAgo,
+}: {
+  pkg: Package;
+  isCheckedOut: boolean;
+  arrivedAgo: string | null;
+}) {
+  return (
+    <div className="space-y-1">
+      {/* Status badge */}
+      <div className="mb-3">
+        <span
+          className={`inline-block rounded px-2.5 py-0.5 text-xs font-medium ${
+            isCheckedOut
+              ? 'bg-byu-green-bright text-white'
+              : 'bg-byu-yellow-bright text-byu-dark-gray'
+          }`}
+        >
+          {isCheckedOut ? 'Checked Out' : 'Active'}
+        </span>
       </div>
+
+      <Row label="Recipient" value={`${pkg.recipient?.fullName ?? '—'} (${pkg.recipient?.netId ?? '—'})`} />
+      <Row label="Carrier" value={pkg.carrier?.name ?? '—'} />
+      <Row label="Sender" value={pkg.sender?.name ?? '—'} />
+      <Row
+        label="Date Arrived"
+        value={
+          <>
+            {formatDate(pkg.dateArrived)}
+            {arrivedAgo && (
+              <span className="ml-2 text-xs text-gray-400">{arrivedAgo}</span>
+            )}
+          </>
+        }
+      />
+      <Row label="Recipient Notified" value={pkg.notificationSent ? '✓ Yes' : '✗ No'} />
+
+      {isCheckedOut && (
+        <>
+          <Row
+            label="Checked Out"
+            value={pkg.deliveredToOffice ? 'Delivered to Office' : formatDate(pkg.datePickedUp!)}
+          />
+          {pkg.checkedOutBy && (
+            <Row label="Checked Out By" value={pkg.checkedOutBy.fullName} />
+          )}
+        </>
+      )}
+
+      {pkg.notes && (
+        <div className="pt-1 border-t border-gray-100">
+          <p className="text-xs font-medium text-gray-500 mb-1">Internal Notes</p>
+          <p className="text-sm text-gray-700 whitespace-pre-wrap">{pkg.notes}</p>
+        </div>
+      )}
     </div>
   );
-};
+}
 
-export default ViewPackageModal;
+// ─── Tab: Tracking & History ──────────────────────────────────────────────────
+
+function HistoryTab({ pkg }: { pkg: Package }) {
+  return (
+    <div className="space-y-1">
+      <Row label="Date Arrived" value={formatDate(pkg.dateArrived)} />
+      <Row label="Logged By" value={pkg.checkedInBy?.fullName ?? '—'} />
+      <Row
+        label="Date Picked Up"
+        value={pkg.datePickedUp ? formatDate(pkg.datePickedUp) : '—'}
+      />
+      <Row label="Checked Out By" value={pkg.checkedOutBy?.fullName ?? '—'} />
+      <Row
+        label="Delivered to Office"
+        value={pkg.deliveredToOffice ? '✓ Yes' : '✗ No'}
+      />
+      <Row label="Last Updated" value={formatDate(pkg.updatedAt)} />
+    </div>
+  );
+}
+
+// ─── Tab: Recipient ───────────────────────────────────────────────────────────
+
+function RecipientTab({ pkg }: { pkg: Package }) {
+  // TODO: this tab will be expanded once the department database is connected
+  return (
+    <div className="space-y-1">
+      <Row label="Name" value={pkg.recipient?.fullName ?? '—'} />
+      <Row label="Net ID" value={pkg.recipient?.netId ?? '—'} />
+      <Row label="Email" value={pkg.recipient?.email ?? '—'} />
+      <Row label="Role" value={pkg.recipient?.role ?? '—'} />
+
+      {pkg.recipient?.email && (
+        <div className="pt-3">
+          <a
+            href={`mailto:${pkg.recipient.email}?subject=Package Notification`}
+            className="inline-block rounded-lg bg-byu-royal px-4 py-2 text-sm text-white hover:bg-[#003a9a] transition"
+          >
+            Send Email
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Shared within file ───────────────────────────────────────────────────────
+
+function Row({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start justify-between border-b border-gray-100 py-2 gap-4">
+      <span className="text-sm font-medium text-byu-navy shrink-0">{label}</span>
+      <span className="text-sm text-gray-700 text-right">{value}</span>
+    </div>
+  );
+}

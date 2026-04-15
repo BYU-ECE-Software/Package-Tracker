@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import type { ToastProps } from '@/types/toast';
 import Toast from '@/components/shared/Toast';
-import ConfirmDeleteModal from '@/components/shared/ConfirmDeleteModal';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import {
   DndContext,
   closestCenter,
@@ -229,12 +229,12 @@ export default function DropdownEditor({
       )}
 
       {/* Confirm Delete Modal */}
-      <ConfirmDeleteModal
-        isOpen={!!confirmDelete}
+      <ConfirmModal
+        open={!!confirmDelete}
         title={`Delete ${noun}?`}
         message={`This will permanently remove "${confirmDelete?.name}".`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
         onConfirm={handleDeleteConfirm}
         onCancel={() => setConfirmDelete(null)}
       />
