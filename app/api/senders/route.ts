@@ -22,10 +22,14 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
+    const maxOrder = await prisma.sender.aggregate({ _max: { order: true } });
+    const nextOrder = (maxOrder._max.order ?? -1) + 1;
+
     const sender = await prisma.sender.create({
       data: {
         name: body.name,
         isActive: body.isActive ?? true,
+        order: nextOrder,
       },
     });
 

@@ -22,10 +22,14 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
+    const maxOrder = await prisma.carrier.aggregate({ _max: { order: true } });
+    const nextOrder = (maxOrder._max.order ?? -1) + 1;
+
     const carrier = await prisma.carrier.create({
       data: {
         name: body.name,
         isActive: body.isActive ?? true,
+        order: nextOrder,
       },
     });
 

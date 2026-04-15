@@ -10,6 +10,7 @@ import {
   createCarrier,
   updateCarrier,
   deleteCarrier,
+  reorderCarriers,
 } from './api/carriers';
 
 import {
@@ -17,6 +18,7 @@ import {
   createSender,
   updateSender,
   deleteSender,
+  reorderSenders,
 } from './api/senders';
 
 import type { ConfigPanel } from '../types/configPanel';
@@ -34,6 +36,7 @@ export interface DropdownConfig {
   createItem: (data: { name: string }) => Promise<DropdownItem>;
   updateItem: (id: string, data: { name?: string; isActive?: boolean }) => Promise<DropdownItem>;
   deleteItem: (id: string) => Promise<void>;
+  reorderItems: (orderedIds: string[]) => Promise<void>;
 }
 
 export const adminConfigs = {
@@ -75,6 +78,7 @@ export const adminConfigs = {
       createItem: (data: { name: string }) => createCarrier(data),
       updateItem: (id: string, data: { name?: string; isActive?: boolean }) => updateCarrier(id, data),
       deleteItem: deleteCarrier,
+      reorderItems: reorderCarriers,
     } satisfies DropdownConfig,
   },
 
@@ -98,6 +102,7 @@ export const adminConfigs = {
       createItem: (data: { name: string }) => createSender(data),
       updateItem: (id: string, data: { name?: string; isActive?: boolean }) => updateSender(id, data),
       deleteItem: deleteSender,
+      reorderItems: reorderSenders,
     } satisfies DropdownConfig,
   },
 };

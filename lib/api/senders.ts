@@ -52,6 +52,19 @@ export async function updateSender(id: string, data: UpdateSenderRequest): Promi
   return res.json();
 }
 
+export async function reorderSenders(orderedIds: string[]): Promise<void> {
+  const res = await fetch('/api/senders/reorder', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderedIds }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: 'Failed to reorder senders' }));
+    throw new Error(error.error || 'Failed to reorder senders');
+  }
+}
+
 export async function deleteSender(id: string): Promise<void> {
   const res = await fetch(`/api/senders/${id}`, {
     method: 'DELETE',

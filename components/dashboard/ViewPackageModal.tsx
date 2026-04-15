@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Package } from '@/types/package';
 import { formatDate } from '@/utils/formatDate';
 
@@ -16,6 +16,13 @@ const ViewPackageModal: React.FC<ViewPackageModalProps> = ({
   pkg,
 }) => {
   const [activeTab, setActiveTab] = useState<'details' | 'tracking' | 'recipient'>('details');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = original; };
+  }, [isOpen]);
 
   if (!isOpen || !pkg) return null;
 

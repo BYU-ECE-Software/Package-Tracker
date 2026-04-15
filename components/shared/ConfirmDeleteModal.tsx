@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 type Props = {
   isOpen: boolean;
   title?: string;
@@ -17,6 +19,13 @@ export default function ConfirmDeleteAdminPage({
   onConfirm,
   onCancel,
 }: Props) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = original; };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (

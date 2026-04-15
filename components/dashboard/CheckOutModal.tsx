@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Package } from '@/types/package';
 import type { User } from '@/types/user';
 import type { ToastProps } from '@/types/toast';
@@ -86,6 +86,13 @@ const CheckOutModal: React.FC<CheckOutModalProps> = ({
     setDeliveredToOffice(false);
     onClose();
   };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = original; };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
