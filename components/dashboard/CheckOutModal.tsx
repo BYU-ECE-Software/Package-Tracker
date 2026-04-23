@@ -103,6 +103,7 @@ export default function CheckOutModal({
 
   return (
     <BaseModal
+      key={isOpen ? pkg.id : 'closed'}
       open={isOpen}
       title="Check Out Package"
       size="sm"

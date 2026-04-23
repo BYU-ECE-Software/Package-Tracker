@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import type { Dispatch, SetStateAction, ReactNode, KeyboardEvent, FormEvent } from "react";
+import type { ReactNode, KeyboardEvent, FormEvent } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -78,7 +78,7 @@ export default function BaseModal({
   // Stepper state lives here so the parent doesn't have to manage it
   // The parent controls canAdvance per step, but step index is internal
   // TODO: expose currentStep via a callback if parent needs to react to step changes
-  const [currentStep, setCurrentStep] = useStepState(steps?.length ?? 0, open);
+  const [currentStep, setCurrentStep] = useState(0);
 
   const sizeClass =
     size === "sm" ? "max-w-md" : size === "lg" ? "max-w-2xl" : "max-w-lg";
@@ -372,18 +372,3 @@ function WorkflowFooter({
   );
 }
 
-// ─── Internal hook ────────────────────────────────────────────────────────────
-
-// Resets to step 0 whenever the modal opens
-function useStepState(
-  _totalSteps: number,
-  open: boolean
-): [number, Dispatch<SetStateAction<number>>] {
-  const [step, setStep] = useState(0);
-
-  useEffect(() => {
-    if (open) setStep(0);
-  }, [open]);
-
-  return [step, setStep];
-}
