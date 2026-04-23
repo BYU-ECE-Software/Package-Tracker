@@ -156,7 +156,7 @@ function Step1MethodSelect({
         <span className="text-2xl">🚪</span>
         <div className="text-left">
           <p className="font-medium text-sm">Delivered to Office</p>
-          <p className="text-xs text-gray-500">Package was brought to a professor's office</p>
+          <p className="text-xs text-gray-500">Package was brought to a professor&apos;s office</p>
         </div>
       </button>
     </div>

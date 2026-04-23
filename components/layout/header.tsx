@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { AiOutlineMenu, AiOutlineClose } from 'react-icons/ai';
-import BYULogo from '@/assets/BYU_monogram_white.svg';
+import BYULogo from '@/public/BYU_monogram_white.svg';
 // import { adminLogout } from '@/api/auth';
 import '@/css/header.css';
 
