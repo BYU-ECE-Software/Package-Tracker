@@ -13,7 +13,6 @@ import BaseModal from '@/components/ui/BaseModal';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface AddPackageModalProps {
-  isOpen: boolean;
   onClose: () => void;
   recipients: User[];
   secretaries: User[];
@@ -30,7 +29,6 @@ function todayString() {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AddPackageModal({
-  isOpen,
   onClose,
   recipients,
   secretaries,
@@ -117,7 +115,7 @@ export default function AddPackageModal({
 
   return (
     <BaseModal
-      open={isOpen}
+      open={true}
       title="Add New Package"
       size="md"
       onClose={handleClose}

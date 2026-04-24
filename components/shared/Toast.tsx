@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react';
+'use client';
+
+import { useEffect } from 'react';
 import {
   FaCheckCircle,
   FaTimesCircle,
@@ -8,14 +10,11 @@ import {
 import type { IconType } from 'react-icons';
 import type { ToastProps } from '@/types/toast';
 
-// Define style settings for each toast type (success, error, info, warning)
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 const typeStyles: Record<
   'success' | 'error' | 'info' | 'warning',
-  {
-    borderColor: string;
-    iconColor: string;
-    Icon: IconType;
-  }
+  { borderColor: string; iconColor: string; Icon: IconType }
 > = {
   success: {
     borderColor: 'border-byu-green-bright',
@@ -39,56 +38,45 @@ const typeStyles: Record<
   },
 };
 
-// Define the Toast component
-const Toast: React.FC<ToastProps> = ({
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function Toast({
   type,
   title,
   message,
   onClose,
   duration = 4000,
-}) => {
-  // Get the styles and icon for this toast type
+}: ToastProps) {
   const { borderColor, iconColor, Icon } = typeStyles[type];
 
-  // Automatically close the toast after a set time
   useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose?.();
-    }, duration);
-
-    return () => clearTimeout(timer); // Cleanup if component unmounts early
+    const timer = setTimeout(() => onClose?.(), duration);
+    return () => clearTimeout(timer);
   }, [onClose, duration]);
 
   return (
     <div className="fixed top-6 right-6 z-50 animate-fade-in-out">
-    <div
-      className={`flex items-start p-4 bg-white rounded shadow-md border-l-4 ${borderColor}`}
-    >
-      {/* Icon on the left */}
-      <div className="mr-3 mt-1">
-        {React.createElement(Icon as React.FC<{ className?: string }>, {
-          className: `text-xl ${iconColor}`,
-        })}
-      </div>
+      <div
+        className={`flex items-start gap-3 p-4 bg-white rounded-lg shadow-md border-l-4 ${borderColor}`}
+      >
+        <Icon className={`text-xl mt-0.5 shrink-0 ${iconColor}`} />
 
-      {/* Title and message */}
-      <div className="flex-1">
-        <h4 className="font-semibold">{title}</h4>
-        <p className="text-sm text-gray-600">{message}</p>
-      </div>
+        <div className="flex-1">
+          <h4 className="font-semibold text-byu-navy">{title}</h4>
+          {message && <p className="text-sm text-gray-600">{message}</p>}
+        </div>
 
-      {/* Close button (optional) */}
-      {onClose && (
-        <button
-          onClick={onClose}
-          className="ml-4 text-gray-500 hover:text-gray-700 text-lg font-bold"
-        >
-          ×
-        </button>
-      )}
-    </div>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-lg font-bold leading-none"
+            aria-label="Dismiss"
+          >
+            &times;
+          </button>
+        )}
+      </div>
     </div>
   );
-};
-
-export default Toast;
+}

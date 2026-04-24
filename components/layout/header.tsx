@@ -6,32 +6,26 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { AiOutlineMenu, AiOutlineClose } from 'react-icons/ai';
 import BYULogo from '@/public/BYU_monogram_white.svg';
+
+// TODO: import auth utilities once auth is wired up
 // import { adminLogout } from '@/api/auth';
-import '@/css/header.css';
 
 const HeaderBar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  // const user = { name: 'Demo User' };
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // refs + measured left padding for desktop white nav
+  // Measures the logo width so the white nav bar aligns with it on desktop
   const logoRef = useRef<HTMLAnchorElement>(null);
-  const [navPadLeft, setNavPadLeft] = useState<number>(128); // fallback ~ px-32
+  const [navPadLeft, setNavPadLeft] = useState<number>(128);
 
   useLayoutEffect(() => {
     const update = () => {
       const el = logoRef.current;
       if (!el) return;
-
-      // Tailwind mr-4 = 1rem; compute in case root font-size changes
       const rem =
         parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-      const mr4 = 1 * rem;
-
-      // offsetWidth includes border/padding (good); margin-right is not included (we add mr4)
-      const pad = el.offsetWidth + mr4;
-      setNavPadLeft(pad);
+      setNavPadLeft(el.offsetWidth + rem);
     };
 
     update();
@@ -42,17 +36,13 @@ const HeaderBar = () => {
   const navLinks = [
     { href: '/', label: 'Dashboard' },
     { href: '/Admin', label: 'Admin' },
-    // { href: '/orderHistory', label: 'Student Order History' },
-    // { href: '/orderDashboard', label: 'Order Dashboard' },
-    // { href: '/admin', label: 'Site Admin' },
   ];
 
+  // TODO: replace with real auth logout once auth is wired up
   const handleSignOut = async () => {
     try {
-      // await adminLogout(); // clears httpOnly cookie on backend
-      router.push('/login'); // navigate to public page
-      // optional: force reload
-      // router.refresh();
+      // await adminLogout();
+      router.push('/login');
     } catch (error) {
       console.error('Sign out failed:', error);
     }
@@ -60,10 +50,9 @@ const HeaderBar = () => {
 
   return (
     <div className="w-full sticky top-0 z-50">
-      {/* Top navy bar */}
+      {/* Navy bar */}
       <header className="relative w-full md:w-screen bg-byu-navy text-white py-4 shadow-md">
         <div className="px-6 flex items-center justify-between">
-          {/* Left: BYU Logo + Title */}
           <div className="flex items-center">
             <a
               ref={logoRef}
@@ -72,9 +61,9 @@ const HeaderBar = () => {
               rel="noopener noreferrer"
               className="mr-4 border-r-[1px] border-byu-royal"
             >
-              <Image 
-                src={BYULogo} 
-                alt="BYU Logo" 
+              <Image
+                src={BYULogo}
+                alt="BYU Logo"
                 className="h-10 w-auto"
                 priority
               />
@@ -82,24 +71,12 @@ const HeaderBar = () => {
             <h1 className="text-2xl">ECE Mail</h1>
           </div>
 
-          {/* Right: user + mobile hamburger */}
           <div className="flex items-center gap-3 pr-6 text-base">
-            {/* Uncomment when ready to add user info
-            <span className="hidden sm:inline">{user.name}</span>
-            <span className="hidden sm:inline">
-              <FaUserCircle size={25} color="white" />
-            </span>
-            */}
+            {/* TODO: show user name and avatar here once auth is wired up */}
             <button
               type="button"
               onClick={handleSignOut}
-              className="hidden sm:inline
-               text-white/90 underline underline-offset-4 decoration-white/50
-               hover:text-white hover:decoration-white
-               transition-colors duration-150
-               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70
-               focus-visible:ring-offset-2 focus-visible:ring-offset-byu-navy
-               active:opacity-80"
+              className="hidden sm:inline text-white/90 underline underline-offset-4 decoration-white/50 hover:text-white hover:decoration-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-byu-navy active:opacity-80"
             >
               Sign out
             </button>
@@ -120,32 +97,21 @@ const HeaderBar = () => {
         </div>
       </header>
 
-      {/* Mobile dropdown menu */}
+      {/* Mobile menu */}
       {mobileOpen && (
         <div
           id="mobile-menu"
           className="md:hidden w-full bg-white text-byu-navy shadow border-t"
         >
-          {/* Profile row at the top */}
           <div className="flex items-center gap-3 px-6 py-4 border-b">
-            {/* Uncomment when ready to add user info
-            <span>
-              <FaUserCircle size={24} color="#0b2a5b" />
-            </span>
-            <div className="flex-1">
-              <div className="font-medium">{user.name}</div>
-              <div className="text-sm text-gray-500">user@email.com</div>
-            </div>
-            */}
-            <button 
-              className="underline ml-auto" 
+            {/* TODO: show user name and avatar here once auth is wired up */}
+            <button
+              className="underline ml-auto"
               onClick={handleSignOut}
             >
               Sign out
             </button>
           </div>
-
-          {/* Nav links */}
           <nav className="flex flex-col py-2">
             {navLinks.map((link) => (
               <Link
@@ -163,7 +129,7 @@ const HeaderBar = () => {
         </div>
       )}
 
-      {/* White nav bar – desktop only */}
+      {/* White nav bar - desktop only */}
       <nav className="hidden md:block w-full bg-white text-byu-navy shadow">
         <div
           className="flex text-base font-medium px-6"
@@ -173,7 +139,7 @@ const HeaderBar = () => {
             <Link
               key={link.href}
               href={link.href}
-              className={`px-8 py-4 hover:bg-[#FAFAFA] rounded-md block nav-link-hover ${
+              className={`px-8 py-4 hover:bg-[#FAFAFA] rounded-md block ${
                 pathname === link.href ? 'bg-gray-100 font-semibold' : ''
               }`}
             >

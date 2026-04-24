@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { HiOutlineMagnifyingGlass } from 'react-icons/hi2';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
@@ -13,14 +13,14 @@ interface SearchBarProps {
   widthClass?: string;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({
+export default function SearchBar({
   searchTerm,
   setSearchTerm,
   date,
   setDate,
   placeholder = 'Search…',
   widthClass = 'w-full sm:w-80',
-}) => {
+}: SearchBarProps) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const activeFilterCount = date ? 1 : 0;
 
@@ -86,5 +86,3 @@ const SearchBar: React.FC<SearchBarProps> = ({
     </div>
   );
 };
-
-export default SearchBar;

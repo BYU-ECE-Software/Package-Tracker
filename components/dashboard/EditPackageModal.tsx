@@ -13,7 +13,6 @@ import BaseModal from '@/components/ui/BaseModal';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface EditPackageModalProps {
-  isOpen: boolean;
   onClose: () => void;
   pkg: Package;
   recipients: User[];
@@ -24,7 +23,6 @@ interface EditPackageModalProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function EditPackageModal({
-  isOpen,
   onClose,
   pkg,
   onSuccess,
@@ -76,7 +74,7 @@ export default function EditPackageModal({
 
   return (
     <BaseModal
-      open={isOpen}
+      open={true}
       title="Edit Package"
       size="md"
       onClose={handleClose}

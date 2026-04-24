@@ -10,7 +10,6 @@ import type { TabConfig } from '@/components/ui/BaseModal';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ViewPackageModalProps {
-  isOpen: boolean;
   onClose: () => void;
   pkg: Package | null;
 }
@@ -30,7 +29,6 @@ function daysAgo(dateStr: Date | string | null | undefined): string | null {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ViewPackageModal({
-  isOpen,
   onClose,
   pkg,
 }: ViewPackageModalProps) {
@@ -63,7 +61,7 @@ export default function ViewPackageModal({
 
   return (
     <BaseModal
-      open={isOpen}
+      open={true}
       title="Package Details"
       size="lg"
       onClose={onClose}

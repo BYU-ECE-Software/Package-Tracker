@@ -1,18 +1,20 @@
 'use client';
 
-import React from 'react';
+import { useState } from 'react';
 import type { PaginationProps } from '@/types/pagination';
 
-const Pagination: React.FC<PaginationProps> = ({
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function Pagination({
   totalItems,
   pagination,
   onPageChange,
   setPageSize,
-}) => {
-  const totalPages = Math.ceil(totalItems / pagination.pageSize);
+  itemLabel = 'Items',
+}: PaginationProps & { itemLabel?: string }) {
   const { currentPage, pageSize } = pagination;
-
-  const [inputPage, setInputPage] = React.useState('');
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const [inputPage, setInputPage] = useState('');
 
   const handleClick = (page: number) => {
     if (page >= 1 && page <= totalPages && page !== currentPage) {
@@ -21,18 +23,22 @@ const Pagination: React.FC<PaginationProps> = ({
   };
 
   const renderPageNumbers = () => {
-    const pageNumbers = [];
+    const pages: React.ReactNode[] = [];
     const delta = 1;
+    let lastWasEllipsis = false;
 
     for (let i = 1; i <= totalPages; i++) {
-      if (
+      const inRange =
         i === 1 ||
         i === totalPages ||
-        (i >= currentPage - delta && i <= currentPage + delta)
-      ) {
-        pageNumbers.push(
+        (i >= currentPage - delta && i <= currentPage + delta);
+
+      if (inRange) {
+        lastWasEllipsis = false;
+        pages.push(
           <button
             key={i}
+            type="button"
             onClick={() => onPageChange(i)}
             className={`px-3 py-1 rounded-md text-sm border transition ${
               currentPage === i
@@ -43,24 +49,27 @@ const Pagination: React.FC<PaginationProps> = ({
             {i}
           </button>
         );
-      } else if (pageNumbers[pageNumbers.length - 1] !== 'ellipsis') {
-        pageNumbers.push(
-          <span key={`ellipsis-${i}`} className="px-2 text-gray-400">...</span>
+      } else if (!lastWasEllipsis) {
+        lastWasEllipsis = true;
+        pages.push(
+          <span key={`ellipsis-${i}`} className="px-2 text-gray-400">
+            ...
+          </span>
         );
-        pageNumbers.push('ellipsis');
       }
     }
 
-    return pageNumbers.filter((el) => el !== 'ellipsis');
+    return pages;
   };
 
   return (
     <div className="flex flex-col md:flex-row justify-center items-center mt-6 gap-4 flex-wrap">
       <div className="flex items-center gap-2">
         <button
+          type="button"
           onClick={() => handleClick(currentPage - 1)}
           disabled={currentPage === 1}
-          className="px-3 py-1 rounded-md text-sm bg-white border border-byu-navy text-byu-navy hover:bg-byu-navy hover:text-white transition disabled:opacity-40"
+          className={buttonClass}
         >
           Previous
         </button>
@@ -68,9 +77,10 @@ const Pagination: React.FC<PaginationProps> = ({
         {renderPageNumbers()}
 
         <button
+          type="button"
           onClick={() => handleClick(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="px-3 py-1 rounded-md text-sm bg-white border border-byu-navy text-byu-navy hover:bg-byu-navy hover:text-white transition disabled:opacity-40"
+          className={buttonClass}
         >
           Next
         </button>
@@ -92,16 +102,17 @@ const Pagination: React.FC<PaginationProps> = ({
               const page = Number(inputPage);
               if (page >= 1 && page <= totalPages) {
                 onPageChange(page);
+                setInputPage('');
               }
             }
           }}
-          className="w-20 border border-byu-navy text-byu-navy rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-byu-navy"
+          className="w-20 rounded border border-byu-navy px-2 py-1 text-sm text-byu-navy focus:outline-none focus:ring-2 focus:ring-byu-navy"
         />
       </div>
 
       <div className="flex items-center gap-2">
-        <label htmlFor="pageSize" className="text-sm text-byu-navy font-normal">
-          Packages per page:
+        <label htmlFor="pageSize" className="text-sm text-byu-navy">
+          {itemLabel} per page:
         </label>
         <select
           id="pageSize"
@@ -110,7 +121,7 @@ const Pagination: React.FC<PaginationProps> = ({
             setPageSize(Number(e.target.value));
             onPageChange(1);
           }}
-          className="border border-byu-navy text-byu-navy bg-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-byu-navy transition"
+          className="rounded border border-byu-navy bg-white px-3 py-1 text-sm text-byu-navy focus:outline-none focus:ring-2 focus:ring-byu-navy transition"
         >
           {[10, 25, 50, 100].map((size) => (
             <option key={size} value={size}>{size}</option>
@@ -119,6 +130,9 @@ const Pagination: React.FC<PaginationProps> = ({
       </div>
     </div>
   );
-};
+}
 
-export default Pagination;
+// ─── Shared within file ───────────────────────────────────────────────────────
+
+const buttonClass =
+  'px-3 py-1 rounded-md text-sm bg-white border border-byu-navy text-byu-navy hover:bg-byu-navy hover:text-white transition disabled:opacity-40';

@@ -12,7 +12,6 @@ import type { StepConfig } from '@/components/ui/BaseModal';
 type CheckoutMethod = 'pickup' | 'office' | null;
 
 interface CheckOutModalProps {
-  isOpen: boolean;
   onClose: () => void;
   pkg: Package;
   secretaries: User[];
@@ -23,7 +22,6 @@ interface CheckOutModalProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function CheckOutModal({
-  isOpen,
   onClose,
   pkg,
   secretaries,
@@ -103,8 +101,8 @@ export default function CheckOutModal({
 
   return (
     <BaseModal
-      key={isOpen ? pkg.id : 'closed'}
-      open={isOpen}
+      key={pkg.id}
+      open={true}
       title="Check Out Package"
       size="sm"
       onClose={handleClose}

@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { FiPlus } from 'react-icons/fi';
 import SearchBar from '@/components/shared/SearchBar';
 import Pagination from '@/components/shared/Pagination';
@@ -19,7 +18,7 @@ interface PackageTableControlsProps {
   setPageSize: (size: number) => void;
 }
 
-const PackageTableControls: React.FC<PackageTableControlsProps> = ({
+export default function PackageTableControls({
   searchTerm,
   setSearchTerm,
   date,
@@ -29,7 +28,7 @@ const PackageTableControls: React.FC<PackageTableControlsProps> = ({
   totalItems,
   onPageChange,
   setPageSize,
-}) => {
+}: PackageTableControlsProps) {
   return (
     <div className="space-y-4 mb-4">
       <div className="flex flex-col items-start gap-4 w-full">
@@ -58,6 +57,4 @@ const PackageTableControls: React.FC<PackageTableControlsProps> = ({
       />
     </div>
   );
-};
-
-export default PackageTableControls;
+}

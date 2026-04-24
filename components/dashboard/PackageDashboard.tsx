@@ -123,7 +123,6 @@ const PackageDashboard = () => {
 
       {isAddModalOpen && (
         <AddPackageModal
-          isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           recipients={recipients}
           secretaries={secretaries}
@@ -141,7 +140,6 @@ const PackageDashboard = () => {
 
       {editPackage && (
         <EditPackageModal
-          isOpen={!!editPackage}
           pkg={editPackage}
           recipients={recipients}
           secretaries={secretaries}
@@ -160,7 +158,6 @@ const PackageDashboard = () => {
 
       {detailsPackage && (
         <ViewPackageModal
-          isOpen={!!detailsPackage}
           pkg={detailsPackage}
           onClose={() => setDetailsPackage(null)}
         />
@@ -168,7 +165,6 @@ const PackageDashboard = () => {
 
       {checkOutPackage && (
         <CheckOutModal
-          isOpen={!!checkOutPackage}
           pkg={checkOutPackage}
           secretaries={secretaries}
           onClose={() => setCheckOutPackage(null)}
@@ -219,12 +215,12 @@ const PackageDashboard = () => {
       />
 
       {toast && (
-          <Toast
-              type={toast.type}
-              title={toast.title}
-              message={toast.message}
-              onClose={() => setToast(null)}
-          />
+        <Toast
+          type={toast.type}
+          title={toast.title}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
       )}
     </div>
   );
