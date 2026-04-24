@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import type { ConfigPanel, FieldConfig } from '@/types/configPanel';
 import type { ToastProps } from '@/types/toast';
-import Toast from '@/components/shared/Toast';
+import Toast from '@/components/general/Toast';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import Button, { Spinner } from '@/components/ui/Button';
 

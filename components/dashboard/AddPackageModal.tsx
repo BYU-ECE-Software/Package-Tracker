@@ -16,6 +16,7 @@ interface AddPackageModalProps {
   onClose: () => void;
   recipients: User[];
   secretaries: User[];
+  defaultSecretaryId?: string;
   onSuccess: () => Promise<void>;
   // TODO: replace secretaries dropdown with auth session once auth is wired up
 }
@@ -32,6 +33,7 @@ export default function AddPackageModal({
   onClose,
   recipients,
   secretaries,
+  defaultSecretaryId,
   onSuccess,
 }: AddPackageModalProps) {
   const [recipientSearch, setRecipientSearch] = useState('');
@@ -42,7 +44,7 @@ export default function AddPackageModal({
     notes: undefined,
   });
   const [dateArrived, setDateArrived] = useState(todayString());
-  const [checkedInById, setCheckedInById] = useState('');
+  const [checkedInById, setCheckedInById] = useState(defaultSecretaryId ?? '');
   const [carriers, setCarriers] = useState<Carrier[]>([]);
   const [senders, setSenders] = useState<Sender[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);

@@ -1,24 +1,32 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import HeaderBar from "@/components/layout/header";
-import FooterBar from "@/components/layout/footer";
+import './globals.css';
+import type { ReactNode } from 'react';
+import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
+import HeaderBar from '@/components/layout/header';
+import FooterBar from '@/components/layout/footer';
+import Providers from './providers';
 
 export const metadata: Metadata = {
-  title: "BYU ECE Mail",
-  description: "Package tracking for the BYU ECE department",
+  title: 'ECE Package Tracker',
+  description: 'Package management for the BYU ECE department',
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const cookieStore = await cookies();
+
+  const initialRole =
+    cookieStore.get('appRole')?.value === 'student' ? 'student' : 'admin';
+  const initialAuth =
+    cookieStore.get('testing-auth')?.value === 'true';
+
   return (
     <html lang="en">
-      <body>
-        <HeaderBar />
-        <main className="px-6 md:px-12">{children}</main>
-        <FooterBar />
+      <body className="flex min-h-screen flex-col">
+        <Providers initialRole={initialRole} initialAuth={initialAuth}>
+          <HeaderBar />
+          <main className="flex-1">{children}</main>
+          <FooterBar />
+        </Providers>
       </body>
     </html>
   );

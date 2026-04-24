@@ -3,16 +3,16 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { AiOutlineMenu, AiOutlineClose } from 'react-icons/ai';
 import BYULogo from '@/public/BYU_monogram_white.svg';
-
-// TODO: import auth utilities once auth is wired up
-// import { adminLogout } from '@/api/auth';
+import RoleToggle from '@/components/auth/RoleToggle';
+import SignInSignOut from '@/components/auth/SignInSignOut';
+import { useRole } from '@/app/providers/TestingRoleProvider';
 
 const HeaderBar = () => {
   const pathname = usePathname();
-  const router = useRouter();
+  const { isAdmin } = useRole();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Measures the logo width so the white nav bar aligns with it on desktop
@@ -27,31 +27,23 @@ const HeaderBar = () => {
         parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       setNavPadLeft(el.offsetWidth + rem);
     };
-
     update();
     window.addEventListener('resize', update);
     return () => window.removeEventListener('resize', update);
   }, []);
 
-  const navLinks = [
-    { href: '/', label: 'Dashboard' },
-    { href: '/Admin', label: 'Admin' },
+  const allNavLinks = [
+    { href: '/', label: 'Dashboard', adminOnly: false },
+    { href: '/Admin', label: 'Admin', adminOnly: true },
   ];
 
-  // TODO: replace with real auth logout once auth is wired up
-  const handleSignOut = async () => {
-    try {
-      // await adminLogout();
-      router.push('/login');
-    } catch (error) {
-      console.error('Sign out failed:', error);
-    }
-  };
+  // Hide admin nav link from students
+  const navLinks = allNavLinks.filter((l) => !l.adminOnly || isAdmin);
 
   return (
     <div className="w-full sticky top-0 z-50">
       {/* Navy bar */}
-      <header className="relative w-full md:w-screen bg-byu-navy text-white py-4 shadow-md">
+      <header className="relative w-full bg-byu-navy text-white py-4 shadow-md">
         <div className="px-6 flex items-center justify-between">
           <div className="flex items-center">
             <a
@@ -71,15 +63,9 @@ const HeaderBar = () => {
             <h1 className="text-2xl">ECE Mail</h1>
           </div>
 
-          <div className="flex items-center gap-3 pr-6 text-base">
-            {/* TODO: show user name and avatar here once auth is wired up */}
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="hidden sm:inline text-white/90 underline underline-offset-4 decoration-white/50 hover:text-white hover:decoration-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-byu-navy active:opacity-80"
-            >
-              Sign out
-            </button>
+          <div className="flex items-center gap-4 pr-6">
+            <RoleToggle />
+            <SignInSignOut variant="desktop" />
             <button
               className="inline-flex items-center justify-center p-2 rounded md:hidden hover:bg-white/10 focus:outline-none"
               aria-label="Toggle navigation menu"
@@ -103,15 +89,10 @@ const HeaderBar = () => {
           id="mobile-menu"
           className="md:hidden w-full bg-white text-byu-navy shadow border-t"
         >
-          <div className="flex items-center gap-3 px-6 py-4 border-b">
-            {/* TODO: show user name and avatar here once auth is wired up */}
-            <button
-              className="underline ml-auto"
-              onClick={handleSignOut}
-            >
-              Sign out
-            </button>
-          </div>
+          <SignInSignOut
+            variant="mobile"
+            onAction={() => setMobileOpen(false)}
+          />
           <nav className="flex flex-col py-2">
             {navLinks.map((link) => (
               <Link

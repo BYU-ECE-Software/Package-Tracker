@@ -7,32 +7,34 @@ import type { ToastProps } from '@/types/toast';
 import type { PaginationState } from '@/types/pagination';
 import { fetchPackages, deletePackage } from '@/lib/api/packages';
 import { fetchUsers } from '@/lib/api/users';
+import { useAuth } from '@/app/providers/TestingAuthProvider';
 import AddPackageModal from './AddPackageModal';
 import EditPackageModal from './EditPackageModal';
 import ViewPackageModal from './ViewPackageModal';
 import CheckOutModal from './CheckOutModal';
-import Toast from '@/components/shared/Toast';
+import Toast from '@/components/general/Toast';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import PackageTableControls from './PackageTableControls';
 import PackageDataTable from './PackageDataTable';
 
-const PackageDashboard = () => {
-  // Packages
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function PackageDashboard() {
+  const { user } = useAuth();
+
   const [packages, setPackages] = useState<Package[]>([]);
   const [totalItems, setTotalItems] = useState(0);
 
-  // Search
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [date, setDate] = useState('');
 
-  // Pagination
   const [pagination, setPagination] = useState<PaginationState>({
     currentPage: 1,
     pageSize: 25,
   });
 
-  // Modals — null means closed, package means open
+  // Modals — null means closed, object means open
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [detailsPackage, setDetailsPackage] = useState<Package | null>(null);
   const [editPackage, setEditPackage] = useState<Package | null>(null);
@@ -40,14 +42,10 @@ const PackageDashboard = () => {
   const [deleteTarget, setDeleteTarget] = useState<Package | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // Users for dropdowns
   const [recipients, setRecipients] = useState<User[]>([]);
   const [secretaries, setSecretaries] = useState<User[]>([]);
-
-  // Toast
   const [toast, setToast] = useState<ToastProps | null>(null);
 
-  // Load recipients and secretaries on mount
   useEffect(() => {
     const loadUsers = async () => {
       try {
@@ -64,18 +62,17 @@ const PackageDashboard = () => {
     loadUsers();
   }, []);
 
-  // Debounce the search input
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  // Reset to page 1 whenever filters change
   useEffect(() => {
-    setPagination(prev => (prev.currentPage === 1 ? prev : { ...prev, currentPage: 1 }));
+    setPagination((prev) =>
+      prev.currentPage === 1 ? prev : { ...prev, currentPage: 1 }
+    );
   }, [debouncedSearch, date]);
 
-  // Load packages
   const loadPackages = useCallback(async () => {
     try {
       const res = await fetchPackages({
@@ -87,17 +84,16 @@ const PackageDashboard = () => {
       setPackages(res.data);
       setTotalItems(res.total);
     } catch {
-      setToast({
-        type: 'error',
-        title: 'Load Failed',
-        message: 'Failed to load packages.',
-      });
+      setToast({ type: 'error', title: 'Load Failed', message: 'Failed to load packages.' });
     }
   }, [pagination.currentPage, pagination.pageSize, debouncedSearch, date]);
 
   useEffect(() => {
     loadPackages();
   }, [loadPackages]);
+
+  // Pre-fill the logged-in secretary as the default "logged by" user
+  const loggedInSecretary = secretaries.find((s) => s.netId === user?.netId);
 
   return (
     <div className="px-4 sm:px-6 py-6 space-y-4">
@@ -109,7 +105,7 @@ const PackageDashboard = () => {
         onAddPackage={() => setIsAddModalOpen(true)}
         pagination={pagination}
         totalItems={totalItems}
-        onPageChange={(page) => setPagination(prev => ({ ...prev, currentPage: page }))}
+        onPageChange={(page) => setPagination((prev) => ({ ...prev, currentPage: page }))}
         setPageSize={(size) => setPagination({ currentPage: 1, pageSize: size })}
       />
 
@@ -126,14 +122,11 @@ const PackageDashboard = () => {
           onClose={() => setIsAddModalOpen(false)}
           recipients={recipients}
           secretaries={secretaries}
+          defaultSecretaryId={loggedInSecretary?.id}
           onSuccess={async () => {
             setIsAddModalOpen(false);
             await loadPackages();
-            setToast({
-              type: 'success',
-              title: 'Package Added',
-              message: 'Package has been added successfully.',
-            });
+            setToast({ type: 'success', title: 'Package Added', message: 'Package has been added successfully.' });
           }}
         />
       )}
@@ -147,11 +140,7 @@ const PackageDashboard = () => {
           onSuccess={async () => {
             setEditPackage(null);
             await loadPackages();
-            setToast({
-              type: 'success',
-              title: 'Package Updated',
-              message: 'Package has been updated successfully.',
-            });
+            setToast({ type: 'success', title: 'Package Updated', message: 'Package has been updated successfully.' });
           }}
         />
       )}
@@ -167,15 +156,12 @@ const PackageDashboard = () => {
         <CheckOutModal
           pkg={checkOutPackage}
           secretaries={secretaries}
+          defaultSecretaryId={loggedInSecretary?.id}
           onClose={() => setCheckOutPackage(null)}
           onSuccess={async () => {
             setCheckOutPackage(null);
             await loadPackages();
-            setToast({
-              type: 'success',
-              title: 'Package Checked Out',
-              message: 'Package has been checked out successfully.',
-            });
+            setToast({ type: 'success', title: 'Package Checked Out', message: 'Package has been checked out successfully.' });
           }}
         />
       )}
@@ -197,17 +183,9 @@ const PackageDashboard = () => {
             await deletePackage(deleteTarget.id);
             setDeleteTarget(null);
             await loadPackages();
-            setToast({
-              type: 'success',
-              title: 'Package Deleted',
-              message: 'Package has been removed.',
-            });
+            setToast({ type: 'success', title: 'Package Deleted', message: 'Package has been removed.' });
           } catch {
-            setToast({
-              type: 'error',
-              title: 'Delete Failed',
-              message: 'Could not delete the package. Try again.',
-            });
+            setToast({ type: 'error', title: 'Delete Failed', message: 'Could not delete the package. Try again.' });
           } finally {
             setDeleting(false);
           }
@@ -224,6 +202,4 @@ const PackageDashboard = () => {
       )}
     </div>
   );
-};
-
-export default PackageDashboard;
+}

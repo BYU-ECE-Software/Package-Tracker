@@ -13,6 +13,7 @@ interface PackageDataTableProps {
   onEdit: (pkg: Package) => void;
   onCheckOut: (pkg: Package) => void;
   onDelete: (pkg: Package) => void;
+  readOnly?: boolean;
 }
 
 function RowActions({
@@ -70,6 +71,7 @@ const PackageDataTable: React.FC<PackageDataTableProps> = ({
   onEdit,
   onCheckOut,
   onDelete,
+  readOnly = false,
 }) => {
   const columns: DataTableColumn<Package>[] = [
     {
@@ -107,20 +109,24 @@ const PackageDataTable: React.FC<PackageDataTableProps> = ({
             ? row.recipient?.fullName ?? '—'
             : '—',
     },
-    {
-      key: 'actions',
-      header: '',
-      headerClassName: 'w-[1%]',
-      cellClassName: 'text-right',
-      render: (row) => (
-        <RowActions
-          pkg={row}
-          onEdit={onEdit}
-          onCheckOut={onCheckOut}
-          onDelete={onDelete}
-        />
-      ),
-    },
+    ...(readOnly
+      ? []
+      : [
+          {
+            key: 'actions',
+            header: '',
+            headerClassName: 'w-[1%]',
+            cellClassName: 'text-right',
+            render: (row: Package) => (
+              <RowActions
+                pkg={row}
+                onEdit={onEdit}
+                onCheckOut={onCheckOut}
+                onDelete={onDelete}
+              />
+            ),
+          } satisfies DataTableColumn<Package>,
+        ]),
   ];
 
   return (

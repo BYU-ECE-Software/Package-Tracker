@@ -15,6 +15,7 @@ interface CheckOutModalProps {
   onClose: () => void;
   pkg: Package;
   secretaries: User[];
+  defaultSecretaryId?: string;
   onSuccess: () => Promise<void>;
   // TODO: replace checkedOutById dropdown with auth session once auth is wired up
 }
@@ -25,6 +26,7 @@ export default function CheckOutModal({
   onClose,
   pkg,
   secretaries,
+  defaultSecretaryId,
   onSuccess,
 }: CheckOutModalProps) {
   const [method, setMethod] = useState<CheckoutMethod>(null);
@@ -32,7 +34,7 @@ export default function CheckOutModal({
   const [datePickedUp, setDatePickedUp] = useState(
     new Date().toISOString().split('T')[0]
   );
-  const [checkedOutById, setCheckedOutById] = useState('');
+  const [checkedOutById, setCheckedOutById] = useState(defaultSecretaryId ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

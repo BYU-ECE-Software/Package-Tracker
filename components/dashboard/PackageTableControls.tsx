@@ -1,8 +1,8 @@
 'use client';
 
 import { FiPlus } from 'react-icons/fi';
-import SearchBar from '@/components/shared/SearchBar';
-import Pagination from '@/components/shared/Pagination';
+import SearchBar from '@/components/general/SearchBar';
+import Pagination from '@/components/general/Pagination';
 import Button from '@/components/ui/Button';
 import type { PaginationState } from '@/types/pagination';
 

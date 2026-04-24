@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import type { RefObject } from 'react';
 import type { ToastProps } from '@/types/toast';
-import Toast from '@/components/shared/Toast';
+import Toast from '@/components/general/Toast';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import Button from '@/components/ui/Button';
 import {
