@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import PageTitle from '@/components/layout/pageTitle';
-import AdminTabs from '@/components/admin/SiteAdminTabs';
-import AdminCrudPanel from '@/components/admin/AdminCrudPanel';
-import DropdownEditor from '@/components/admin/DropdownEditor';
+import AdminTabs from '@/components/ui/admin/AdminTabs';
+import AdminCrudPanel from '@/components/ui/admin/AdminCrudPanel';
+import DropdownEditor from '@/components/ui/admin/DropdownEditor';
 import { adminConfigs } from '@/lib/adminConfigs';
 
 const tabNames = Object.keys(adminConfigs) as (keyof typeof adminConfigs)[];
@@ -29,9 +29,7 @@ export default function AdminPage() {
           {config.component === 'dropdown' ? (
             <DropdownEditor key={activeTab} {...config.dropdown} />
           ) : (
-            // TODO: AdminCrudPanel's config type doesn't fully align with all
-            // tab configs — revisit when AdminCrudPanel is refactored
-            <AdminCrudPanel title={activeTab} config={config as never} />
+            <AdminCrudPanel title={activeTab} config={config} />
           )}
         </div>
       </div>

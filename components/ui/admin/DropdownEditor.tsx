@@ -3,8 +3,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import type { RefObject } from 'react';
 import type { ToastProps } from '@/types/toast';
-import Toast from '@/components/general/Toast';
-import ConfirmModal from '@/components/ui/ConfirmModal';
+import Toast from '@/components/ui/Toast';
+import ConfirmModal from '@/components/ui/modals/ConfirmModal';
 import Button from '@/components/ui/Button';
 import {
   EyeIcon,
@@ -33,22 +33,107 @@ import { CSS } from '@dnd-kit/utilities';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface DropdownItem {
+/** 
+ * Standard shape for any ordered dropdown entity (carriers, senders, categories, etc.)
+ */
+export interface DropdownEntity {
   id: string;
   name: string;
   isActive: boolean;
   order: number;
 }
 
-// Editing state follows the same null = closed, object = open pattern as modals
 type EditingState = { id: string; name: string } | null;
 
-interface DropdownEditorProps {
+/**
+ * Reusable admin interface for managing ordered dropdown lists (carriers, senders, categories, etc.).
+ * 
+ * ## Features
+ * - Drag-and-drop reordering
+ * - Inline editing with keyboard shortcuts (Enter to save, Escape to cancel)
+ * - Active/inactive toggle (eye icon)
+ * - Delete with confirmation modal
+ * - Toast notifications for all actions
+ * 
+ * ## Setup Requirements
+ * 
+ * ### 1. Database Schema
+ * Your entity must have these fields:
+ * ```prisma
+ * model YourEntity {
+ *   id       String  @id @default(cuid())
+ *   name     String
+ *   isActive Boolean @default(true)
+ *   order    Int     @default(0)
+ * }
+ * ```
+ * 
+ * ### 2. API Functions
+ * Implement these in `lib/api/yourEntities.ts`:
+ * ```typescript
+ * import type { DropdownEntity } from '@/components/ui/admin/DropdownEditor';
+ * 
+ * export async function fetchYourEntities(): Promise<DropdownEntity[]>
+ * export async function createYourEntity(data: { name: string }): Promise<DropdownEntity>
+ * export async function updateYourEntity(id: string, data: { name?: string; isActive?: boolean }): Promise<DropdownEntity>
+ * export async function deleteYourEntity(id: string): Promise<void>
+ * export async function reorderYourEntities(orderedIds: string[]): Promise<void>
+ * ```
+ * 
+ * ### 3. API Routes
+ * Create these endpoints:
+ * - `GET /api/your-entities` - fetch all
+ * - `POST /api/your-entities` - create
+ * - `PATCH /api/your-entities/[id]` - update
+ * - `DELETE /api/your-entities/[id]` - delete
+ * - `POST /api/your-entities/reorder` - reorder
+ * 
+ * ### 4. Admin Config
+ * Add to `lib/adminConfigs.ts`:
+ * ```typescript
+ * YourEntities: {
+ *   noun: 'Your Entity',
+ *   component: 'dropdown' as const,
+ *   dropdown: {
+ *     noun: 'Your Entity',
+ *     fetchItems: fetchYourEntities,
+ *     createItem: createYourEntity,
+ *     updateItem: updateYourEntity,
+ *     deleteItem: deleteYourEntity,
+ *     reorderItems: reorderYourEntities,
+ *   }
+ * }
+ * ```
+ * 
+ * @example
+ * ```tsx
+ * <DropdownEditor
+ *   noun="Carrier"
+ *   fetchItems={fetchCarriers}
+ *   createItem={createCarrier}
+ *   updateItem={updateCarrier}
+ *   deleteItem={deleteCarrier}
+ *   reorderItems={reorderCarriers}
+ * />
+ * ```
+ */
+export interface DropdownEditorProps {
+  /** Human-readable singular noun (e.g., "Carrier", "Sender") used in UI messages */
   noun: string;
-  fetchItems: () => Promise<DropdownItem[]>;
-  createItem: (data: { name: string }) => Promise<DropdownItem>;
-  updateItem: (id: string, data: { name?: string; isActive?: boolean }) => Promise<DropdownItem>;
+  
+  /** Fetch all items (active and inactive) */
+  fetchItems: () => Promise<DropdownEntity[]>;
+  
+  /** Create a new item with just a name */
+  createItem: (data: { name: string }) => Promise<DropdownEntity>;
+  
+  /** Update an item's name and/or active status */
+  updateItem: (id: string, data: { name?: string; isActive?: boolean }) => Promise<DropdownEntity>;
+  
+  /** Permanently delete an item */
   deleteItem: (id: string) => Promise<void>;
+  
+  /** Persist new order after drag-and-drop */
   reorderItems: (orderedIds: string[]) => Promise<void>;
 }
 
@@ -62,11 +147,11 @@ export default function DropdownEditor({
   deleteItem,
   reorderItems,
 }: DropdownEditorProps) {
-  const [items, setItems] = useState<DropdownItem[]>([]);
+  const [items, setItems] = useState<DropdownEntity[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
   const [editing, setEditing] = useState<EditingState>(null);
-  const [confirmDelete, setConfirmDelete] = useState<DropdownItem | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<DropdownEntity | null>(null);
   const [toast, setToast] = useState<ToastProps | null>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
 
@@ -110,7 +195,7 @@ export default function DropdownEditor({
     }
   };
 
-  const handleToggleActive = async (item: DropdownItem) => {
+  const handleToggleActive = async (item: DropdownEntity) => {
     try {
       await updateItem(item.id, { isActive: !item.isActive });
       await load();
@@ -255,13 +340,13 @@ export default function DropdownEditor({
 // ─── SortableRow ──────────────────────────────────────────────────────────────
 
 interface SortableRowProps {
-  item: DropdownItem;
+  item: DropdownEntity;
   editing: EditingState;
   editInputRef: RefObject<HTMLInputElement | null>;
   onSetEditing: (state: EditingState) => void;
   onEditSave: () => void;
-  onToggleActive: (item: DropdownItem) => void;
-  onDeleteRequest: (item: DropdownItem) => void;
+  onToggleActive: (item: DropdownEntity) => void;
+  onDeleteRequest: (item: DropdownEntity) => void;
 }
 
 function SortableRow({

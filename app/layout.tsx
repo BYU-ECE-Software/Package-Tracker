@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import HeaderBar from '@/components/layout/header';
 import FooterBar from '@/components/layout/footer';
-import Providers from './providers';
+import Providers from '../components/dev/providers';
 
 export const metadata: Metadata = {
   title: 'ECE Package Tracker',

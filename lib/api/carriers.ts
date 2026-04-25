@@ -2,9 +2,9 @@
 // Carrier API Functions
 // ============================================
 
-import type { Carrier, CreateCarrierRequest, UpdateCarrierRequest } from '@/types/carrier';
+import type { DropdownEntity } from '@/components/ui/admin/DropdownEditor';
 
-export async function fetchCarriers(activeOnly?: boolean): Promise<Carrier[]> {
+export async function fetchCarriers(activeOnly?: boolean): Promise<DropdownEntity[]> {
   const searchParams = new URLSearchParams();
   if (activeOnly) searchParams.append('activeOnly', 'true');
 
@@ -21,7 +21,7 @@ export async function fetchCarriers(activeOnly?: boolean): Promise<Carrier[]> {
   return res.json();
 }
 
-export async function createCarrier(data: CreateCarrierRequest): Promise<Carrier> {
+export async function createCarrier(data: { name: string }): Promise<DropdownEntity> {
   const res = await fetch('/api/carriers', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -36,7 +36,10 @@ export async function createCarrier(data: CreateCarrierRequest): Promise<Carrier
   return res.json();
 }
 
-export async function updateCarrier(id: string, data: UpdateCarrierRequest): Promise<Carrier> {
+export async function updateCarrier(
+  id: string,
+  data: { name?: string; isActive?: boolean }
+): Promise<DropdownEntity> {
   const res = await fetch(`/api/carriers/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },

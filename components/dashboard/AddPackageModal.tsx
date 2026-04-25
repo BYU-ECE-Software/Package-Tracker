@@ -8,7 +8,7 @@ import type { Sender } from '@/types/sender';
 import { createPackage } from '@/lib/api/packages';
 import { fetchCarriers } from '@/lib/api/carriers';
 import { fetchSenders } from '@/lib/api/senders';
-import BaseModal from '@/components/ui/BaseModal';
+import BaseModal from '@/components/ui/modals/BaseModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

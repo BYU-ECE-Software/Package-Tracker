@@ -21,23 +21,9 @@ import {
   reorderSenders,
 } from './api/senders';
 
-import type { ConfigPanel } from '../types/configPanel';
-import type { User, CreateUserRequest } from '../types/user';
-
-export interface DropdownItem {
-  id: string;
-  name: string;
-  isActive?: boolean;
-}
-
-export interface DropdownConfig {
-  noun: string;
-  fetchItems: () => Promise<DropdownItem[]>;
-  createItem: (data: { name: string }) => Promise<DropdownItem>;
-  updateItem: (id: string, data: { name?: string; isActive?: boolean }) => Promise<DropdownItem>;
-  deleteItem: (id: string) => Promise<void>;
-  reorderItems: (orderedIds: string[]) => Promise<void>;
-}
+import type { ConfigPanel } from '@/components/ui/admin/AdminCrudPanel';
+import type { DropdownEditorProps } from '@/components/ui/admin/DropdownEditor';
+import type { User, CreateUserRequest } from '@/types/user';
 
 export const adminConfigs = {
 
@@ -62,47 +48,27 @@ export const adminConfigs = {
   Carriers: {
     noun: 'Carrier',
     component: 'dropdown' as const,
-    fields: {
-      name:     { label: 'Name',   type: 'text',     required: true  },
-      isActive: { label: 'Active', type: 'checkbox', required: false },
-    },
-    api: {
-      getAll: fetchCarriers,
-      create: createCarrier,
-      update: updateCarrier,
-      remove: (id: string) => updateCarrier(id, { isActive: false }).then(() => {}),
-    },
     dropdown: {
       noun: 'Carrier',
       fetchItems: fetchCarriers,
-      createItem: (data: { name: string }) => createCarrier(data),
-      updateItem: (id: string, data: { name?: string; isActive?: boolean }) => updateCarrier(id, data),
+      createItem: createCarrier,
+      updateItem: updateCarrier,
       deleteItem: deleteCarrier,
       reorderItems: reorderCarriers,
-    } satisfies DropdownConfig,
+    } satisfies DropdownEditorProps,
   },
 
   // Senders
   Senders: {
     noun: 'Sender',
     component: 'dropdown' as const,
-    fields: {
-      name:     { label: 'Name',   type: 'text',     required: true  },
-      isActive: { label: 'Active', type: 'checkbox', required: false },
-    },
-    api: {
-      getAll: fetchSenders,
-      create: createSender,
-      update: updateSender,
-      remove: (id: string) => updateSender(id, { isActive: false }).then(() => {}),
-    },
     dropdown: {
       noun: 'Sender',
       fetchItems: fetchSenders,
-      createItem: (data: { name: string }) => createSender(data),
-      updateItem: (id: string, data: { name?: string; isActive?: boolean }) => updateSender(id, data),
+      createItem: createSender,
+      updateItem: updateSender,
       deleteItem: deleteSender,
       reorderItems: reorderSenders,
-    } satisfies DropdownConfig,
+    } satisfies DropdownEditorProps,
   },
 };

@@ -3,8 +3,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { TestAuthProvider } from './providers/TestingAuthProvider';
-import { TestRoleProvider, type AppRole } from './providers/TestingRoleProvider';
+import { TestAuthProvider } from './TestingAuthProvider';
+import { TestRoleProvider, type AppRole } from './TestingRoleProvider';
 
 type ProvidersProps = {
   children: ReactNode;

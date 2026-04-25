@@ -6,12 +6,12 @@ import type { PaginationState } from '@/types/pagination';
 import type { ToastProps } from '@/types/toast';
 import { fetchPackages } from '@/lib/api/packages';
 import { fetchUsers } from '@/lib/api/users';
-import { useAuth } from '@/app/providers/TestingAuthProvider';
+import { useAuth } from '@/components/dev/TestingAuthProvider';
 import ViewPackageModal from './ViewPackageModal';
 import PackageDataTable from './PackageDataTable';
-import SearchBar from '@/components/general/SearchBar';
-import Pagination from '@/components/general/Pagination';
-import Toast from '@/components/general/Toast';
+import SearchBar from '@/components/ui/SearchBar';
+import Pagination from '@/components/ui/tables/Pagination';
+import Toast from '@/components/ui/Toast';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 

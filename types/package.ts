@@ -1,6 +1,5 @@
-import { User } from './user';
-import { Carrier } from './carrier';
-import { Sender } from './sender';
+import type { User } from './user';
+import type { DropdownEntity } from '@/components/ui/admin/DropdownEditor';
 import type { PaginatedResponse } from './pagination';
 
 export type PackageListResponse = PaginatedResponse<Package>;
@@ -10,9 +9,9 @@ export interface Package {
   createdAt: Date;
   updatedAt: Date;
   carrierId: string | null;
-  carrier?: Carrier | null;
+  carrier?: DropdownEntity | null;
   senderId: string | null;
-  sender?: Sender | null;
+  sender?: DropdownEntity | null;
   dateArrived: Date;
   datePickedUp: Date | null;
   recipientId: string;

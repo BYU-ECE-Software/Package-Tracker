@@ -4,8 +4,8 @@ import { useState } from 'react';
 import type { Package } from '@/types/package';
 import type { User } from '@/types/user';
 import { checkOutPackage, updatePackage } from '@/lib/api/packages';
-import BaseModal from '@/components/ui/BaseModal';
-import type { StepConfig } from '@/components/ui/BaseModal';
+import BaseModal from '@/components/ui/modals/BaseModal';
+import type { StepConfig } from '@/components/ui/modals/BaseModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

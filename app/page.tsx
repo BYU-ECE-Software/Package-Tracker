@@ -1,7 +1,7 @@
 'use client';
 
-import { useRole } from '@/app/providers/TestingRoleProvider';
-import { useAuth } from '@/app/providers/TestingAuthProvider';
+import { useRole } from '@/components/dev/TestingRoleProvider';
+import { useAuth } from '@/components/dev/TestingAuthProvider';
 import PageTitle from '@/components/layout/pageTitle';
 import PackageDashboard from '@/components/dashboard/PackageDashboard';
 import StudentDashboard from '@/components/dashboard/StudentDashboard';

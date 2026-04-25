@@ -4,8 +4,8 @@ import React from 'react';
 import { FiEdit2, FiTrash2, FiMoreVertical, FiLogOut } from 'react-icons/fi';
 import type { Package } from '@/types/package';
 import { formatDate } from '@/utils/formatDate';
-import DataTable, { type DataTableColumn } from '@/components/ui/DataTable';
-import RowActionMenu from '@/components/ui/RowActionMenu';
+import DataTable, { type DataTableColumn } from '@/components/ui/tables/DataTable';
+import RowActionMenu from '@/components/ui/tables/RowActionMenu';
 
 interface PackageDataTableProps {
   packages: Package[];

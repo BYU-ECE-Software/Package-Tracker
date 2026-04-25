@@ -1,13 +1,50 @@
 "use client";
 
 import { useEffect, useState, useRef } from 'react';
-import type { ConfigPanel, FieldConfig } from '@/types/configPanel';
 import type { ToastProps } from '@/types/toast';
-import Toast from '@/components/general/Toast';
-import ConfirmModal from '@/components/ui/ConfirmModal';
+import Toast from '@/components/ui/Toast';
+import ConfirmModal from '@/components/ui/modals/ConfirmModal';
 import Button, { Spinner } from '@/components/ui/Button';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+/** Supported form input types */
+export type FieldType = 'text' | 'number' | 'checkbox' | 'radio';
+
+/** Per-field UI metadata for form rendering */
+export interface FieldConfig {
+  label: string;
+  type: FieldType;
+  required: boolean;
+}
+
+/** Generic CRUD configuration for any entity */
+export interface ConfigPanel<T extends { id: string }, CreatePayload = Partial<T>> {
+  /** Human-readable noun used in UI messages (e.g., "Student", "Package") */
+  noun: string;
+  
+  /** Which component to render: 'crud' for this panel, 'dropdown' for DropdownEditor */
+  component: 'crud' | 'dropdown';
+  
+  /** Field configuration defining form inputs */
+  fields: {
+    [K in keyof CreatePayload]: FieldConfig;
+  };
+  
+  /** API operations for CRUD functionality */
+  api: {
+    getAll: () => Promise<T[]>;
+    create: (data: CreatePayload) => Promise<T>;
+    update: (id: string, data: Partial<T>) => Promise<T>;
+    remove: (id: string) => Promise<void>;
+  };
+  
+  /** Optional per-row permission check for edit button visibility */
+  canEdit?: (item: T) => boolean;
+  
+  /** Optional per-row permission check for delete button visibility */
+  canDelete?: (item: T) => boolean;
+}
 
 interface Props<T extends { id: string }, CreatePayload> {
   title: string;
@@ -86,9 +123,9 @@ export default function AdminCrudPanel<
   const handleEdit = (item: T) => {
     const editable: Partial<CreatePayload> = {};
     for (const key in config.fields) {
-      // TODO: tighten this type once ConfigPanel generics are revisited
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      editable[key as keyof CreatePayload] = item[key as keyof T] as any;
+      const fieldKey = key as keyof CreatePayload;
+      const itemKey = key as keyof T;
+      editable[fieldKey] = item[itemKey] as unknown as CreatePayload[typeof fieldKey];
     }
     setFormData(editable);
     setEditingId(item.id);

@@ -4,8 +4,8 @@ import { useState } from 'react';
 import type React from 'react';
 import type { Package } from '@/types/package';
 import { formatDate } from '@/utils/formatDate';
-import BaseModal from '@/components/ui/BaseModal';
-import type { TabConfig } from '@/components/ui/BaseModal';
+import BaseModal from '@/components/ui/modals/BaseModal';
+import type { TabConfig } from '@/components/ui/modals/BaseModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

@@ -2,9 +2,9 @@
 // Sender API Functions
 // ============================================
 
-import type { Sender, CreateSenderRequest, UpdateSenderRequest } from '@/types/sender';
+import type { DropdownEntity } from '@/components/ui/admin/DropdownEditor';
 
-export async function fetchSenders(activeOnly?: boolean): Promise<Sender[]> {
+export async function fetchSenders(activeOnly?: boolean): Promise<DropdownEntity[]> {
   const searchParams = new URLSearchParams();
   if (activeOnly) searchParams.append('activeOnly', 'true');
 
@@ -21,7 +21,7 @@ export async function fetchSenders(activeOnly?: boolean): Promise<Sender[]> {
   return res.json();
 }
 
-export async function createSender(data: CreateSenderRequest): Promise<Sender> {
+export async function createSender(data: { name: string }): Promise<DropdownEntity> {
   const res = await fetch('/api/senders', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -36,7 +36,10 @@ export async function createSender(data: CreateSenderRequest): Promise<Sender> {
   return res.json();
 }
 
-export async function updateSender(id: string, data: UpdateSenderRequest): Promise<Sender> {
+export async function updateSender(
+  id: string,
+  data: { name?: string; isActive?: boolean }
+): Promise<DropdownEntity> {
   const res = await fetch(`/api/senders/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },

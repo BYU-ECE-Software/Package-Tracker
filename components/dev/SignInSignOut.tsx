@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { FaUserCircle } from 'react-icons/fa';
-import { useAuth } from '@/app/providers/TestingAuthProvider';
-import { useRole } from '@/app/providers/TestingRoleProvider';
+import { useAuth } from '@/components/dev/TestingAuthProvider';
+import { useRole } from '@/components/dev/TestingRoleProvider';
 import { DEV_SECRETARIES, DEV_STUDENTS } from '@/lib/devAccounts';
 import type { DevAccount } from '@/lib/devAccounts';
 

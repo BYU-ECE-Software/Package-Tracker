@@ -6,9 +6,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AiOutlineMenu, AiOutlineClose } from 'react-icons/ai';
 import BYULogo from '@/public/BYU_monogram_white.svg';
-import RoleToggle from '@/components/auth/RoleToggle';
-import SignInSignOut from '@/components/auth/SignInSignOut';
-import { useRole } from '@/app/providers/TestingRoleProvider';
+import RoleToggle from '@/components/dev/RoleToggle';
+import SignInSignOut from '@/components/dev/SignInSignOut';
+import { useRole } from '@/components/dev/TestingRoleProvider';
 
 const HeaderBar = () => {
   const pathname = usePathname();

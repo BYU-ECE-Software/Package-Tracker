@@ -2,93 +2,87 @@
 
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'navy' | 'subtle';
+export type ButtonSize = 'sm' | 'md' | 'lg';
 
-type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
-type ButtonSize = 'sm' | 'md';
-
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+type ButtonProps = {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  label?: string;
+  icon?: ReactNode;
+  iconPosition?: 'left' | 'right';
   loading?: boolean;
-  children: ReactNode;
-}
+  loadingLabel?: string;
+  fullWidth?: boolean;
+} & ButtonHTMLAttributes<HTMLButtonElement>;
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
-const variantStyles: Record<ButtonVariant, string> = {
-  primary:
-    'bg-byu-royal text-white hover:bg-[#003C9E] disabled:opacity-50',
-  secondary:
-    'border border-gray-300 text-byu-navy bg-white hover:bg-gray-50 disabled:opacity-50',
-  danger:
-    'bg-red-600 text-white hover:brightness-95 disabled:opacity-50',
-  ghost:
-    'text-gray-500 hover:text-byu-navy hover:bg-gray-100 disabled:opacity-50',
+const VARIANT_CLASSES: Record<ButtonVariant, string> = {
+  primary: 'bg-byu-royal text-white hover:bg-[#003C9E] border border-transparent',
+  secondary: 'bg-transparent text-gray-700 border border-gray-300 hover:bg-gray-50',
+  danger: 'bg-red-600 text-white hover:bg-red-700 border border-transparent',
+  ghost: 'bg-transparent text-gray-600 border border-transparent hover:bg-gray-100',
+  navy: 'bg-byu-navy text-white hover:bg-[#001f3d] border border-transparent',
+  subtle: 'bg-blue-50 text-byu-royal hover:bg-blue-100 border border-transparent',
 };
 
-const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'px-3 py-1.5 text-xs',
-  md: 'px-4 py-2 text-sm',
+const SIZE_CLASSES: Record<ButtonSize, string> = {
+  sm: 'px-2.5 py-1 text-xs rounded-md gap-1.5',
+  md: 'px-4 py-1.5 text-sm rounded-lg gap-2',
+  lg: 'px-5 py-2 text-base rounded-lg gap-2.5',
 };
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function Button({
   variant = 'primary',
   size = 'md',
+  label,
+  icon,
+  iconPosition = 'left',
   loading = false,
+  loadingLabel = 'Loading…',
+  fullWidth = false,
   disabled,
+  type = 'button',
   children,
   className = '',
   ...rest
 }: ButtonProps) {
+  const isDisabled = disabled || loading;
+
   return (
     <button
-      type="button"
-      disabled={disabled || loading}
-      className={[
-        'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition',
-        'cursor-pointer disabled:cursor-not-allowed',
-        variantStyles[variant],
-        sizeStyles[size],
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      type={type}
+      disabled={isDisabled}
+      className={`inline-flex cursor-pointer items-center justify-center font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${fullWidth ? 'w-full' : ''} ${className} `}
       {...rest}
     >
-      {loading ? <Spinner /> : null}
-      {children}
+      {loading ? (
+        <>
+          {/* Spinner */}
+          <svg
+            className="h-4 w-4 shrink-0 animate-spin"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+          </svg>
+          <span>{loadingLabel}</span>
+        </>
+      ) : (
+        <>
+          {icon && iconPosition === 'left' && <span className="shrink-0">{icon}</span>}
+          {label ? <span>{label}</span> : children}
+          {icon && iconPosition === 'right' && <span className="shrink-0">{icon}</span>}
+        </>
+      )}
     </button>
-  );
-}
-
-// ─── Spinner ──────────────────────────────────────────────────────────────────
-
-// Reusable inline spinner — also exported so modals can use it directly
-export function Spinner({ className = 'h-4 w-4' }: { className?: string }) {
-  return (
-    <svg
-      className={`animate-spin ${className}`}
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-      />
-    </svg>
   );
 }

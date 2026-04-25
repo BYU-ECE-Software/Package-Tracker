@@ -7,13 +7,13 @@ import type { ToastProps } from '@/types/toast';
 import type { PaginationState } from '@/types/pagination';
 import { fetchPackages, deletePackage } from '@/lib/api/packages';
 import { fetchUsers } from '@/lib/api/users';
-import { useAuth } from '@/app/providers/TestingAuthProvider';
+import { useAuth } from '@/components/dev/TestingAuthProvider';
 import AddPackageModal from './AddPackageModal';
 import EditPackageModal from './EditPackageModal';
 import ViewPackageModal from './ViewPackageModal';
 import CheckOutModal from './CheckOutModal';
-import Toast from '@/components/general/Toast';
-import ConfirmModal from '@/components/ui/ConfirmModal';
+import Toast from '@/components/ui/Toast';
+import ConfirmModal from '@/components/ui/modals/ConfirmModal';
 import PackageTableControls from './PackageTableControls';
 import PackageDataTable from './PackageDataTable';
 
