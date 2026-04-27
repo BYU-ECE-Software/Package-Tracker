@@ -21,12 +21,18 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
+    const activeOnly = searchParams.get('activeOnly') === 'true';
+    const carrierId = searchParams.get('carrierId');
+    const senderId = searchParams.get('senderId');
 
     // Build where clause
     const where: Prisma.PackageWhereInput = {};
     const dateArrived: Prisma.DateTimeFilter = {};
 
     if (recipientId) where.recipientId = recipientId;
+    if (activeOnly) where.datePickedUp = null;
+    if (carrierId) where.carrierId = carrierId;
+    if (senderId) where.senderId = senderId;
 
     if (search) {
       where.OR = [
