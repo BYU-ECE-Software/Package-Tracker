@@ -5,6 +5,7 @@
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 import type { User } from '@/types/user';
+import { fetchUsers } from '@/lib/api/users';
 
 type AuthContextType = {
   isAuthenticated: boolean;
@@ -28,6 +29,19 @@ export function TestAuthProvider({ children, initialAuth }: TestAuthProviderProp
     setIsAuthenticated(true);
     setUser(account);
     document.cookie = 'testing-auth=true; path=/; max-age=31536000';
+
+    // Dev accounts have hardcoded ids that don't exist in the database.
+    // Resolve to the real seeded user by netId so foreign-key writes
+    // (checkedInById, checkedOutById, …) succeed.
+    fetchUsers({ search: account.netId, pageSize: 5 })
+      .then((res) => {
+        const real = res.data.find((u) => u.netId === account.netId);
+        if (real) setUser(real);
+        else console.warn(
+          `Dev account ${account.netId} has no matching DB user — run \`npx prisma db seed\`.`,
+        );
+      })
+      .catch((err) => console.warn('Failed to resolve dev account:', err));
   };
 
   const signOut = () => {
