@@ -1,8 +1,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import BaseModal from '@/components/general/overlays/BaseModal';
-import Button from '../actions/Button';
+import BaseModal from '@/components/ui/modals/BaseModal';
+import Button from '@/components/ui/Button';
 
 // Visual intent of the confirm button
 type Variant = 'danger' | 'primary';

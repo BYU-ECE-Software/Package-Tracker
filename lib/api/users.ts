@@ -4,13 +4,13 @@
 
 import { type
   User,
-  UserRole,
   UserListResponse,
   UserQueryParams,
   UserWithPackages,
   CreateUserRequest,
   UpdateUserRequest,
 } from '@/types/user';
+import { UserRole } from '@prisma/client';
 
 /**
  * Fetch all users with optional filtering and pagination

@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState, useRef } from 'react';
-import type { ToastProps } from '@/types/toast';
-import Toast from '@/components/ui/Toast';
+import Toast, { type ToastProps } from '@/components/ui/Toast';
 import ConfirmModal from '@/components/ui/modals/ConfirmModal';
-import Button, { Spinner } from '@/components/ui/Button';
+import Button from '@/components/ui/Button';
+import Spinner from '@/components/ui/Spinner';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

@@ -3,22 +3,23 @@
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
 import type { CreatePackageRequest } from '@/types/package';
-import type { Carrier } from '@/types/carrier';
-import type { Sender } from '@/types/sender';
+import type { DropdownEntity } from '@/types/dropdown';
 import { createPackage } from '@/lib/api/packages';
+import { fetchUsers } from '@/lib/api/users';
 import { fetchCarriers } from '@/lib/api/carriers';
 import { fetchSenders } from '@/lib/api/senders';
+import { useAuth } from '@/components/dev/TestingAuthProvider';
 import BaseModal from '@/components/ui/modals/BaseModal';
+import FieldWrapper from '@/components/ui/forms/FieldWrapper';
+import SelectField from '@/components/ui/forms/SelectField';
+import TextLikeField from '@/components/ui/forms/TextLikeField';
+import Typeahead from '@/components/ui/forms/Typeahead';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface AddPackageModalProps {
   onClose: () => void;
-  recipients: User[];
-  secretaries: User[];
-  defaultSecretaryId?: string;
   onSuccess: () => Promise<void>;
-  // TODO: replace secretaries dropdown with auth session once auth is wired up
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -31,53 +32,44 @@ function todayString() {
 
 export default function AddPackageModal({
   onClose,
-  recipients,
-  secretaries,
-  defaultSecretaryId,
   onSuccess,
 }: AddPackageModalProps) {
-  const [recipientSearch, setRecipientSearch] = useState('');
-  const [formData, setFormData] = useState<CreatePackageRequest>({
-    recipientId: '',
-    carrierId: undefined,
-    senderId: undefined,
-    notes: undefined,
-  });
+  const { user } = useAuth();
+
+  const [recipient, setRecipient] = useState<User | null>(null);
+  const [carrierId, setCarrierId] = useState('');
+  const [senderId, setSenderId] = useState('');
+  const [notes, setNotes] = useState('');
   const [dateArrived, setDateArrived] = useState(todayString());
-  const [checkedInById, setCheckedInById] = useState(defaultSecretaryId ?? '');
-  const [carriers, setCarriers] = useState<Carrier[]>([]);
-  const [senders, setSenders] = useState<Sender[]>([]);
+
+  const [carriers, setCarriers] = useState<DropdownEntity[]>([]);
+  const [senders, setSenders] = useState<DropdownEntity[]>([]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchCarriers(true).then(setCarriers).catch(console.error);
-    fetchSenders(true).then(setSenders).catch(console.error);
+    const loadDropdowns = async () => {
+      try {
+        const [carriersData, sendersData] = await Promise.all([
+          fetchCarriers(true),
+          fetchSenders(true),
+        ]);
+        setCarriers(carriersData);
+        setSenders(sendersData);
+      } catch {
+        console.error('Failed to load carriers/senders');
+      }
+    };
+    loadDropdowns();
   }, []);
 
-  // Filter recipients by name or netId as the secretary types
-  const filteredRecipients = recipientSearch.trim()
-    ? recipients.filter(
-        (r) =>
-          r.fullName.toLowerCase().includes(recipientSearch.toLowerCase()) ||
-          r.netId.toLowerCase().includes(recipientSearch.toLowerCase())
-      )
-    : recipients;
-
-  const selectedRecipient = recipients.find((r) => r.id === formData.recipientId);
-
-  const handleChange = (
-    field: keyof CreatePackageRequest,
-    value: string | undefined
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value || undefined }));
-  };
-
   const resetForm = () => {
-    setRecipientSearch('');
-    setFormData({ recipientId: '', carrierId: undefined, senderId: undefined, notes: undefined });
+    setRecipient(null);
+    setCarrierId('');
+    setSenderId('');
+    setNotes('');
     setDateArrived(todayString());
-    setCheckedInById('');
     setError(null);
   };
 
@@ -86,25 +78,30 @@ export default function AddPackageModal({
     onClose();
   };
 
-  const isValid =
-    !!formData.recipientId &&
-    !!formData.carrierId &&
-    !!formData.senderId &&
-    !!checkedInById;
+  const isValid = !!recipient && !!carrierId && !!senderId && !!user?.id;
 
   const handleSubmit = async () => {
-    // Belt-and-suspenders check; the button should already be disabled if invalid
     if (!isValid) {
       setError('Please fill in all required fields.');
       return;
     }
+
+    if (!user?.id) {
+      setError('You must be signed in to add a package.');
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
+
     try {
       await createPackage({
-        ...formData,
+        recipientId: recipient!.id,
+        carrierId,
+        senderId,
+        notes: notes || undefined,
         dateArrived,
-        checkedInById,
+        checkedInById: user.id,
       });
       resetForm();
       await onSuccess();
@@ -126,157 +123,78 @@ export default function AddPackageModal({
       saveLabel="Add Package"
       submitDisabled={!isValid}
     >
-      {/* Recipient — typeahead filter */}
-      <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-byu-navy">
-          Recipient <Required />
-        </label>
-        {selectedRecipient ? (
-          <div className="flex items-center justify-between rounded-lg border border-byu-royal bg-byu-royal/5 px-3 py-2 text-sm text-byu-navy">
-            <span>
-              {selectedRecipient.fullName}{' '}
-              <span className="text-gray-400">({selectedRecipient.netId})</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                handleChange('recipientId', undefined);
-                setRecipientSearch('');
-              }}
-              className="text-gray-400 hover:text-gray-600 text-xs ml-2"
-            >
-              Change
-            </button>
-          </div>
-        ) : (
-          <>
-            <input
-              type="text"
-              placeholder="Search by name or Net ID…"
-              value={recipientSearch}
-              onChange={(e) => setRecipientSearch(e.target.value)}
-              className={inputClass}
-              disabled={isSubmitting}
-            />
-            {recipientSearch && (
-              <div className="max-h-40 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-sm">
-                {filteredRecipients.length === 0 ? (
-                  <p className="px-3 py-2 text-sm text-gray-400">No results</p>
-                ) : (
-                  filteredRecipients.map((r) => (
-                    <button
-                      key={r.id}
-                      type="button"
-                      className="flex w-full items-center gap-2 px-3 py-2 text-sm text-byu-navy hover:bg-byu-royal/10 text-left"
-                      onClick={() => {
-                        handleChange('recipientId', r.id);
-                        setRecipientSearch('');
-                      }}
-                    >
-                      <span className="font-medium">{r.fullName}</span>
-                      <span className="text-gray-400 text-xs">{r.netId}</span>
-                    </button>
-                  ))
-                )}
-              </div>
-            )}
-          </>
-        )}
-      </div>
+      <fieldset disabled={isSubmitting} className="space-y-4 border-0 p-0 m-0 min-w-0">
+      {/* Recipient */}
+      <FieldWrapper label="Recipient" required>
+        <Typeahead
+          value={recipient}
+          onChange={setRecipient}
+          fetchItems={async (query) => {
+            const res = await fetchUsers({ search: query, pageSize: 10 });
+            return res.data;
+          }}
+          getLabel={(user) => `${user.fullName} (${user.netId})`}
+          getKey={(user) => user.id}
+          placeholder="Search by name or Net ID..."
+        />
+      </FieldWrapper>
 
       {/* Carrier */}
-      <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-byu-navy">
-          Carrier <Required />
-        </label>
-        <select
-          value={formData.carrierId ?? ''}
-          onChange={(e) => handleChange('carrierId', e.target.value)}
-          className={inputClass}
-          disabled={isSubmitting}
-        >
-          <option value="">Select a carrier</option>
-          {carriers.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
-      </div>
+      <FieldWrapper label="Carrier" required>
+        <SelectField
+          value={carrierId}
+          onChange={setCarrierId}
+          options={carriers
+            .filter((c) => c.isActive)
+            .map((c) => ({ label: c.name, value: c.id }))}
+          placeholder="Select a carrier"
+        />
+      </FieldWrapper>
 
       {/* Sender */}
-      <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-byu-navy">
-          Sender <Required />
-        </label>
-        <select
-          value={formData.senderId ?? ''}
-          onChange={(e) => handleChange('senderId', e.target.value)}
-          className={inputClass}
-          disabled={isSubmitting}
-        >
-          <option value="">Select a sender</option>
-          {senders.map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </select>
-      </div>
+      <FieldWrapper label="Sender" required>
+        <SelectField
+          value={senderId}
+          onChange={setSenderId}
+          options={senders
+            .filter((s) => s.isActive)
+            .map((s) => ({ label: s.name, value: s.id }))}
+          placeholder="Select a sender"
+        />
+      </FieldWrapper>
 
       {/* Date Arrived */}
-      <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-byu-navy">
-          Date Arrived <Required />
-        </label>
+      <FieldWrapper label="Date Arrived" required>
         <input
           type="date"
           value={dateArrived}
           onChange={(e) => setDateArrived(e.target.value)}
-          className={inputClass}
-          disabled={isSubmitting}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-byu-navy focus:outline-none focus:ring-1 focus:ring-byu-royal focus:border-byu-royal"
         />
-      </div>
+      </FieldWrapper>
 
-      {/* Logged By — TODO: replace with auth session in production */}
-      <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-byu-navy">
-          Logged By <Required />
-        </label>
-        <select
-          value={checkedInById}
-          onChange={(e) => setCheckedInById(e.target.value)}
-          className={inputClass}
-          disabled={isSubmitting}
-        >
-          <option value="">Select a secretary</option>
-          {secretaries.map((s) => (
-            <option key={s.id} value={s.id}>{s.fullName}</option>
-          ))}
-        </select>
+      {/* Checked in by (logged-in user) */}
+      <div className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm">
+        <p className="text-gray-500">
+          Checking in package as{' '}
+          <span className="font-medium text-byu-navy">
+            {user?.fullName ?? 'Unknown'}
+          </span>
+        </p>
       </div>
 
       {/* Notes */}
-      <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-byu-navy">
-          Internal Notes
-        </label>
-        <textarea
-          value={formData.notes ?? ''}
-          onChange={(e) => handleChange('notes', e.target.value)}
+      <FieldWrapper label="Internal Notes">
+        <TextLikeField
+          value={notes}
+          onChange={setNotes}
           placeholder="Any internal notes about this package…"
           rows={3}
-          className={`${inputClass} resize-y`}
-          disabled={isSubmitting}
         />
-      </div>
+      </FieldWrapper>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
+      </fieldset>
     </BaseModal>
   );
-}
-
-// ─── Shared within file ───────────────────────────────────────────────────────
-
-const inputClass =
-  'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-byu-navy focus:outline-none focus:ring-2 focus:ring-byu-royal focus:border-transparent disabled:opacity-50 disabled:bg-gray-50';
-
-function Required() {
-  return <span className="text-red-500 ml-0.5">*</span>;
 }

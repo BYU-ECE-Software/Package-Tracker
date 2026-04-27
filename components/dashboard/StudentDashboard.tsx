@@ -3,126 +3,81 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Package } from '@/types/package';
 import type { PaginationState } from '@/types/pagination';
-import type { ToastProps } from '@/types/toast';
 import { fetchPackages } from '@/lib/api/packages';
-import { fetchUsers } from '@/lib/api/users';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
+import { useToast } from '@/hooks/useToast';
 import ViewPackageModal from './ViewPackageModal';
 import PackageDataTable from './PackageDataTable';
-import SearchBar from '@/components/ui/SearchBar';
 import Pagination from '@/components/ui/tables/Pagination';
-import Toast from '@/components/ui/Toast';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-// TODO: when real auth is wired up, recipientId should come from the session
-// rather than looking up the user by netId
-
 export default function StudentDashboard() {
   const { user } = useAuth();
+  const { showToast, ToastContainer } = useToast();
 
   const [packages, setPackages] = useState<Package[]>([]);
   const [totalItems, setTotalItems] = useState(0);
-  const [recipientId, setRecipientId] = useState<string | null>(null);
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [date, setDate] = useState('');
+  const [detailsPackage, setDetailsPackage] = useState<Package | null>(null);
 
   const [pagination, setPagination] = useState<PaginationState>({
     currentPage: 1,
     pageSize: 25,
   });
 
-  const [detailsPackage, setDetailsPackage] = useState<Package | null>(null);
-  const [toast, setToast] = useState<ToastProps | null>(null);
-
-  // Resolve the logged-in student's DB id from their netId
-  useEffect(() => {
-    if (!user?.netId) return;
-    fetchUsers({ search: user.netId, pageSize: 10 })
-      .then((res) => {
-        const match = res.data.find((u) => u.netId === user.netId);
-        if (match) setRecipientId(match.id);
-      })
-      .catch(() => console.error('Failed to resolve student id'));
-  }, [user?.netId]);
-
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
-    return () => clearTimeout(t);
-  }, [searchTerm]);
-
-  useEffect(() => {
-    setPagination((prev) =>
-      prev.currentPage === 1 ? prev : { ...prev, currentPage: 1 }
-    );
-  }, [debouncedSearch, date]);
-
   const loadPackages = useCallback(async () => {
-    if (!recipientId) return;
+    if (!user?.id) return;
+
     try {
       const res = await fetchPackages({
         page: pagination.currentPage,
         pageSize: pagination.pageSize,
-        search: debouncedSearch || undefined,
-        startDate: date || undefined,
-        recipientId,
-        // TODO: add recipientId filter support to /api/packages if not already present
+        recipientId: user.id,
       });
       setPackages(res.data);
       setTotalItems(res.total);
     } catch {
-      setToast({ type: 'error', title: 'Load Failed', message: 'Failed to load packages.' });
+      showToast({
+        type: 'error',
+        title: 'Load Failed',
+        message: 'Failed to load your packages.',
+      });
     }
-  }, [recipientId, pagination.currentPage, pagination.pageSize, debouncedSearch, date]);
+  }, [pagination.currentPage, pagination.pageSize, user?.id, showToast]);
 
   useEffect(() => {
     loadPackages();
   }, [loadPackages]);
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center py-24 text-gray-500 text-sm">
-        Please sign in to view your packages.
-      </div>
-    );
-  }
-
   return (
     <div className="px-4 sm:px-6 py-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-byu-navy">
-          My Packages
-        </h2>
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold text-byu-navy">My Packages</h2>
+        <p className="text-sm text-gray-600 mt-1">
+          View packages addressed to you
+        </p>
       </div>
 
-      <SearchBar
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        date={date}
-        setDate={setDate}
-        placeholder="Search your packages…"
-      />
-
-      {/* Student view is read-only — no edit, checkout, or delete actions */}
+      {/* Table */}
       <PackageDataTable
         packages={packages}
         onRowClick={setDetailsPackage}
-        onEdit={() => {}}
-        onCheckOut={() => {}}
-        onDelete={() => {}}
-        readOnly
+        onEdit={() => {}} // Students can't edit
+        onCheckOut={() => {}} // Students can't checkout
+        onDelete={() => {}} // Students can't delete
+        readOnly={true}
       />
 
+      {/* Pagination */}
       <Pagination
         totalItems={totalItems}
         pagination={pagination}
-        onPageChange={(page) => setPagination((prev) => ({ ...prev, currentPage: page }))}
-        setPageSize={(size) => setPagination({ currentPage: 1, pageSize: size })}
+        onPageChange={(page: number) => setPagination((prev) => ({ ...prev, currentPage: page }))}
+        setPageSize={(size: number) => setPagination({ currentPage: 1, pageSize: size })}
         itemLabel="Packages"
       />
 
+      {/* View Modal */}
       {detailsPackage && (
         <ViewPackageModal
           pkg={detailsPackage}
@@ -130,14 +85,7 @@ export default function StudentDashboard() {
         />
       )}
 
-      {toast && (
-        <Toast
-          type={toast.type}
-          title={toast.title}
-          message={toast.message}
-          onClose={() => setToast(null)}
-        />
-      )}
+      <ToastContainer />
     </div>
   );
 }

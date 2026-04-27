@@ -1,14 +1,8 @@
 import type { Package } from './package';
 import type { PaginatedResponse } from './pagination';
-
+import type { UserRole } from '@prisma/client';
 
 export type UserListResponse = PaginatedResponse<User>;
-
-export enum UserRole {
-  STUDENT = 'STUDENT',
-  SECRETARY = 'SECRETARY',
-  ADMIN = 'ADMIN',
-}
 
 export interface User {
   id: string;

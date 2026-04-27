@@ -1,9 +1,8 @@
 // ===== USERS API (app/api/users/route.ts) =====
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { UserRole } from '@/types/user';
 
 export async function GET(request: NextRequest) {
   try {

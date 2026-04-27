@@ -4,12 +4,12 @@
 // This provider simulates authentication using dev accounts from lib/devAccounts.ts
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
-import type { DevAccount } from '@/lib/devAccounts';
+import type { User } from '@/types/user';
 
 type AuthContextType = {
   isAuthenticated: boolean;
-  user: DevAccount | null;
-  signIn: (account: DevAccount) => void;
+  user: User | null;
+  signIn: (account: User) => void;
   signOut: () => void;
 };
 
@@ -22,9 +22,9 @@ type TestAuthProviderProps = {
 
 export function TestAuthProvider({ children, initialAuth }: TestAuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(initialAuth);
-  const [user, setUser] = useState<DevAccount | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
-  const signIn = (account: DevAccount) => {
+  const signIn = (account: User) => {
     setIsAuthenticated(true);
     setUser(account);
     document.cookie = 'testing-auth=true; path=/; max-age=31536000';

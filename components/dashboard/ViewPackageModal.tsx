@@ -4,8 +4,7 @@ import { useState } from 'react';
 import type React from 'react';
 import type { Package } from '@/types/package';
 import { formatDate } from '@/utils/formatDate';
-import BaseModal from '@/components/ui/modals/BaseModal';
-import type { TabConfig } from '@/components/ui/modals/BaseModal';
+import TabModal, { type TabConfig } from '@/components/ui/modals/TabModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -60,7 +59,7 @@ export default function ViewPackageModal({
   ];
 
   return (
-    <BaseModal
+    <TabModal
       open={true}
       title="Package Details"
       size="lg"
@@ -68,7 +67,6 @@ export default function ViewPackageModal({
       tabs={tabs}
       activeTab={activeTab}
       onTabChange={setActiveTab}
-      // View-only modal — no submit, just a Close button in the footer
       footer={
         <div className="flex justify-end">
           <button
@@ -172,7 +170,6 @@ function HistoryTab({ pkg }: { pkg: Package }) {
 // ─── Tab: Recipient ───────────────────────────────────────────────────────────
 
 function RecipientTab({ pkg }: { pkg: Package }) {
-  // TODO: this tab will be expanded once the department database is connected
   return (
     <div className="space-y-1">
       <Row label="Name" value={pkg.recipient?.fullName ?? '—'} />

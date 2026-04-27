@@ -1,5 +1,5 @@
 import type { User } from './user';
-import type { DropdownEntity } from '@/components/ui/admin/DropdownEditor';
+import type { DropdownEntity } from '@/types/dropdown';
 import type { PaginatedResponse } from './pagination';
 
 export type PackageListResponse = PaginatedResponse<Package>;
@@ -53,4 +53,7 @@ export interface PackageQueryParams {
   startDate?: string;
   endDate?: string;
   recipientId?: string;
+  activeOnly?: boolean;
+  carrierId?: string;
+  senderId?: string;
 }

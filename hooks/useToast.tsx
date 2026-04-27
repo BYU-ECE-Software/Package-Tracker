@@ -2,8 +2,8 @@
 
 import { useState, useCallback, useRef } from 'react';
 import type { ReactElement } from 'react';
-import Toast from '@/components/general/feedback/Toast';
-import type { ToastProps, ToastType } from '@/components/general/feedback/Toast';
+import Toast from '@/components/ui/Toast';
+import type { ToastProps, ToastType } from '@/components/ui/Toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

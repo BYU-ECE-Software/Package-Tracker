@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
 import type { Package, UpdatePackageRequest } from '@/types/package';
-import type { Carrier } from '@/types/carrier';
-import type { Sender } from '@/types/sender';
+import type { DropdownEntity } from '@/types/dropdown';
 import { updatePackage } from '@/lib/api/packages';
 import { fetchCarriers } from '@/lib/api/carriers';
 import { fetchSenders } from '@/lib/api/senders';
 import BaseModal from '@/components/ui/modals/BaseModal';
+import FieldWrapper from '@/components/ui/forms/FieldWrapper';
+import SelectField from '@/components/ui/forms/SelectField';
+import TextLikeField from '@/components/ui/forms/TextLikeField';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -28,8 +30,8 @@ export default function EditPackageModal({
   onSuccess,
 }: EditPackageModalProps) {
   const [formData, setFormData] = useState<UpdatePackageRequest>({});
-  const [carriers, setCarriers] = useState<Carrier[]>([]);
-  const [senders, setSenders] = useState<Sender[]>([]);
+  const [carriers, setCarriers] = useState<DropdownEntity[]>([]);
+  const [senders, setSenders] = useState<DropdownEntity[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -83,49 +85,32 @@ export default function EditPackageModal({
       saveLabel="Save Changes"
     >
       {/* Recipient — read-only, shown for context */}
-      <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-byu-navy">Recipient</label>
+      <FieldWrapper label="Recipient">
         <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500">
           {pkg.recipient?.fullName ?? '—'}{' '}
           <span className="text-gray-400">({pkg.recipient?.netId ?? '—'})</span>
         </div>
-      </div>
+      </FieldWrapper>
 
       {/* Carrier */}
-      <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-byu-navy">Carrier</label>
-        <select
+      <FieldWrapper label="Carrier">
+        <SelectField
           value={formData.carrierId ?? ''}
-          onChange={(e) =>
-            handleChange('carrierId', e.target.value || undefined)
-          }
-          className={inputClass}
-          disabled={isSubmitting}
-        >
-          <option value="">Select carrier</option>
-          {carriers.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
-      </div>
+          onChange={(val) => handleChange('carrierId', val || undefined)}
+          options={carriers.map((c) => ({ label: c.name, value: c.id }))}
+          placeholder="Select carrier"
+        />
+      </FieldWrapper>
 
       {/* Sender */}
-      <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-byu-navy">Sender</label>
-        <select
+      <FieldWrapper label="Sender">
+        <SelectField
           value={formData.senderId ?? ''}
-          onChange={(e) =>
-            handleChange('senderId', e.target.value || undefined)
-          }
-          className={inputClass}
-          disabled={isSubmitting}
-        >
-          <option value="">Select sender</option>
-          {senders.map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </select>
-      </div>
+          onChange={(val) => handleChange('senderId', val || undefined)}
+          options={senders.map((s) => ({ label: s.name, value: s.id }))}
+          placeholder="Select sender"
+        />
+      </FieldWrapper>
 
       {/* Recipient Notified */}
       <div className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2">
@@ -142,28 +127,17 @@ export default function EditPackageModal({
       </div>
 
       {/* Notes */}
-      <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-byu-navy">
-          Internal Notes
-        </label>
-        <textarea
+      <FieldWrapper label="Internal Notes">
+        <TextLikeField
+          as="textarea"
           value={formData.notes ?? ''}
-          onChange={(e) =>
-            handleChange('notes', e.target.value || undefined)
-          }
+          onChange={(val) => handleChange('notes', val || undefined)}
           placeholder="Any internal notes about this package…"
           rows={3}
-          className={`${inputClass} resize-y`}
-          disabled={isSubmitting}
         />
-      </div>
+      </FieldWrapper>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
     </BaseModal>
   );
 }
-
-// ─── Shared within file ───────────────────────────────────────────────────────
-
-const inputClass =
-  'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-byu-navy focus:outline-none focus:ring-2 focus:ring-byu-royal focus:border-transparent disabled:opacity-50 disabled:bg-gray-50';

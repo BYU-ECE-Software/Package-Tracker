@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode, KeyboardEvent } from 'react';
-import Button from '../actions/Button';
+import Button from '@/components/ui/Button';
 
 type ModalSize = 'sm' | 'md' | 'lg';
 

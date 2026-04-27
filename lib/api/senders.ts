@@ -2,7 +2,7 @@
 // Sender API Functions
 // ============================================
 
-import type { DropdownEntity } from '@/components/ui/admin/DropdownEditor';
+import type { DropdownEntity } from '@/types/dropdown';
 
 export async function fetchSenders(activeOnly?: boolean): Promise<DropdownEntity[]> {
   const searchParams = new URLSearchParams();

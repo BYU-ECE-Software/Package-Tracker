@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import type { RefObject } from 'react';
-import type { ToastProps } from '@/types/toast';
-import Toast from '@/components/ui/Toast';
+import type { DropdownEntity } from '@/types/dropdown';
+import Toast, { type ToastProps } from '@/components/ui/Toast';
 import ConfirmModal from '@/components/ui/modals/ConfirmModal';
 import Button from '@/components/ui/Button';
 import {
@@ -33,16 +33,6 @@ import { CSS } from '@dnd-kit/utilities';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-/** 
- * Standard shape for any ordered dropdown entity (carriers, senders, categories, etc.)
- */
-export interface DropdownEntity {
-  id: string;
-  name: string;
-  isActive: boolean;
-  order: number;
-}
-
 type EditingState = { id: string; name: string } | null;
 
 /**
@@ -71,7 +61,7 @@ type EditingState = { id: string; name: string } | null;
  * ### 2. API Functions
  * Implement these in `lib/api/yourEntities.ts`:
  * ```typescript
- * import type { DropdownEntity } from '@/components/ui/admin/DropdownEditor';
+ * import type { DropdownEntity } from '@/types/dropdown';
  * 
  * export async function fetchYourEntities(): Promise<DropdownEntity[]>
  * export async function createYourEntity(data: { name: string }): Promise<DropdownEntity>
