@@ -3,15 +3,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import type { Package } from '@/types/package';
-import type { User } from '@/types/user';
-import { UserRole } from '@prisma/client';
 import type { PaginationState } from '@/types/pagination';
 import type { DropdownEntity } from '@/types/dropdown';
 import { fetchPackages, deletePackage } from '@/lib/api/packages';
-import { fetchUsers } from '@/lib/api/users';
 import { fetchCarriers } from '@/lib/api/carriers';
 import { fetchSenders } from '@/lib/api/senders';
-import { useAuth } from '@/components/dev/TestingAuthProvider';
 import { useToast } from '@/hooks/useToast';
 import AddPackageModal from './AddPackageModal';
 import EditPackageModal from './EditPackageModal';
@@ -26,7 +22,6 @@ import Button from '@/components/ui/Button';
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function PackageDashboard() {
-  const { user } = useAuth();
   const { showToast, ToastContainer } = useToast();
 
   const [packages, setPackages] = useState<Package[]>([]);
@@ -53,26 +48,8 @@ export default function PackageDashboard() {
   const [deleteTarget, setDeleteTarget] = useState<Package | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const [recipients, setRecipients] = useState<User[]>([]);
-  const [secretaries, setSecretaries] = useState<User[]>([]);
   const [carriers, setCarriers] = useState<DropdownEntity[]>([]);
   const [senders, setSenders] = useState<DropdownEntity[]>([]);
-
-  useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        const [recipientRes, secretaryRes] = await Promise.all([
-          fetchUsers({ pageSize: 1000 }),
-          fetchUsers({ role: UserRole.SECRETARY, pageSize: 100 }),
-        ]);
-        setRecipients(recipientRes.data);
-        setSecretaries(secretaryRes.data);
-      } catch {
-        console.error('Failed to load users');
-      }
-    };
-    loadUsers();
-  }, []);
 
   useEffect(() => {
     const loadDropdowns = async () => {
@@ -132,23 +109,22 @@ export default function PackageDashboard() {
     loadPackages();
   }, [loadPackages]);
 
-  const loggedInSecretary = secretaries.find((s) => s.netId === user?.netId);
-
   return (
-    <div className="px-4 sm:px-6 py-6 space-y-4">
+    <div className="px-6 py-10">
+      <div className="mx-auto max-w-7xl space-y-8">
       {/* Search & Filters */}
-      <div className="flex flex-col items-start gap-4 w-full">
+      <div className="flex flex-wrap items-center justify-between gap-4 w-full">
+        <Button
+          onClick={() => setIsAddModalOpen(true)}
+          icon={<FiPlus className="h-4 w-4" />}
+          label="Create New Package"
+        />
+
         <SearchFilters
           carriers={carriers}
           senders={senders}
           onSearchChange={setSearchTerm}
           onFiltersChange={setFilters}
-        />
-
-        <Button
-          onClick={() => setIsAddModalOpen(true)}
-          icon={<FiPlus className="h-4 w-4" />}
-          label="Create New Package"
         />
       </div>
 
@@ -189,8 +165,6 @@ export default function PackageDashboard() {
       {editPackage && (
         <EditPackageModal
           pkg={editPackage}
-          recipients={recipients}
-          secretaries={secretaries}
           onClose={() => setEditPackage(null)}
           onSuccess={async () => {
             setEditPackage(null);
@@ -263,6 +237,7 @@ export default function PackageDashboard() {
       />
 
       <ToastContainer />
+      </div>
     </div>
   );
 }

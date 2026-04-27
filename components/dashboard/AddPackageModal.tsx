@@ -2,17 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
-import type { CreatePackageRequest } from '@/types/package';
 import type { DropdownEntity } from '@/types/dropdown';
 import { createPackage } from '@/lib/api/packages';
 import { fetchUsers } from '@/lib/api/users';
 import { fetchCarriers } from '@/lib/api/carriers';
 import { fetchSenders } from '@/lib/api/senders';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
-import BaseModal from '@/components/ui/modals/BaseModal';
+import FormModal, { type FormModalField } from '@/components/ui/modals/FormModal';
 import FieldWrapper from '@/components/ui/forms/FieldWrapper';
-import SelectField from '@/components/ui/forms/SelectField';
-import TextLikeField from '@/components/ui/forms/TextLikeField';
 import Typeahead from '@/components/ui/forms/Typeahead';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -22,25 +19,35 @@ interface AddPackageModalProps {
   onSuccess: () => Promise<void>;
 }
 
+type AddPackageFormValues = {
+  carrierId: string;
+  senderId: string;
+  dateArrived: string;
+  notes: string;
+};
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function todayString() {
   return new Date().toISOString().split('T')[0];
 }
 
+const initialValues: AddPackageFormValues = {
+  carrierId: '',
+  senderId: '',
+  dateArrived: todayString(),
+  notes: '',
+};
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function AddPackageModal({
-  onClose,
-  onSuccess,
-}: AddPackageModalProps) {
+export default function AddPackageModal({ onClose, onSuccess }: AddPackageModalProps) {
   const { user } = useAuth();
 
+  // Recipient lives outside FormModal's `values` because Typeahead binds to a User object,
+  // not a string. The CustomField below renders Typeahead and closes over this state.
   const [recipient, setRecipient] = useState<User | null>(null);
-  const [carrierId, setCarrierId] = useState('');
-  const [senderId, setSenderId] = useState('');
-  const [notes, setNotes] = useState('');
-  const [dateArrived, setDateArrived] = useState(todayString());
+  const [values, setValues] = useState<AddPackageFormValues>(initialValues);
 
   const [carriers, setCarriers] = useState<DropdownEntity[]>([]);
   const [senders, setSenders] = useState<DropdownEntity[]>([]);
@@ -49,27 +56,13 @@ export default function AddPackageModal({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadDropdowns = async () => {
-      try {
-        const [carriersData, sendersData] = await Promise.all([
-          fetchCarriers(true),
-          fetchSenders(true),
-        ]);
-        setCarriers(carriersData);
-        setSenders(sendersData);
-      } catch {
-        console.error('Failed to load carriers/senders');
-      }
-    };
-    loadDropdowns();
+    fetchCarriers(true).then(setCarriers).catch(console.error);
+    fetchSenders(true).then(setSenders).catch(console.error);
   }, []);
 
   const resetForm = () => {
     setRecipient(null);
-    setCarrierId('');
-    setSenderId('');
-    setNotes('');
-    setDateArrived(todayString());
+    setValues(initialValues);
     setError(null);
   };
 
@@ -78,14 +71,13 @@ export default function AddPackageModal({
     onClose();
   };
 
-  const isValid = !!recipient && !!carrierId && !!senderId && !!user?.id;
+  const isValid = !!recipient && !!values.carrierId && !!values.senderId && !!user?.id;
 
   const handleSubmit = async () => {
     if (!isValid) {
       setError('Please fill in all required fields.');
       return;
     }
-
     if (!user?.id) {
       setError('You must be signed in to add a package.');
       return;
@@ -97,10 +89,10 @@ export default function AddPackageModal({
     try {
       await createPackage({
         recipientId: recipient!.id,
-        carrierId,
-        senderId,
-        notes: notes || undefined,
-        dateArrived,
+        carrierId: values.carrierId,
+        senderId: values.senderId,
+        notes: values.notes || undefined,
+        dateArrived: values.dateArrived,
         checkedInById: user.id,
       });
       resetForm();
@@ -112,8 +104,88 @@ export default function AddPackageModal({
     }
   };
 
+  const fields: FormModalField[] = [
+    {
+      kind: 'custom',
+      key: 'recipient',
+      colSpan: 2,
+      render: () => (
+        <FieldWrapper label="Recipient" required>
+          <Typeahead
+            value={recipient}
+            onChange={setRecipient}
+            fetchItems={async (query) => {
+              const res = await fetchUsers({ search: query, pageSize: 10 });
+              return res.data;
+            }}
+            getLabel={(u) => `${u.fullName} (${u.netId})`}
+            getKey={(u) => u.id}
+            placeholder="Search by name or Net ID..."
+            disabled={isSubmitting}
+          />
+        </FieldWrapper>
+      ),
+    },
+    {
+      kind: 'select',
+      key: 'carrierId',
+      label: 'Carrier',
+      required: true,
+      options: carriers
+        .filter((c) => c.isActive)
+        .map((c) => ({ label: c.name, value: c.id })),
+      placeholder: 'Select a carrier',
+    },
+    {
+      kind: 'select',
+      key: 'senderId',
+      label: 'Sender',
+      required: true,
+      options: senders
+        .filter((s) => s.isActive)
+        .map((s) => ({ label: s.name, value: s.id })),
+      placeholder: 'Select a sender',
+    },
+    {
+      key: 'dateArrived',
+      label: 'Date Arrived',
+      type: 'date',
+      required: true,
+    },
+    {
+      kind: 'custom',
+      key: 'checkedInBanner',
+      colSpan: 2,
+      render: () => (
+        <div className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm">
+          <p className="text-gray-500">
+            Checking in package as{' '}
+            <span className="font-medium text-byu-navy">{user?.fullName ?? 'Unknown'}</span>
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: 'notes',
+      label: 'Internal Notes',
+      type: 'textarea',
+      placeholder: 'Any internal notes about this package…',
+      colSpan: 2,
+    },
+    ...(error
+      ? [
+          {
+            kind: 'custom' as const,
+            key: 'errorBanner',
+            colSpan: 2 as const,
+            render: () => <p className="text-sm text-red-600">{error}</p>,
+          },
+        ]
+      : []),
+  ];
+
   return (
-    <BaseModal
+    <FormModal<AddPackageFormValues>
       open={true}
       title="Add New Package"
       size="md"
@@ -122,79 +194,9 @@ export default function AddPackageModal({
       saving={isSubmitting}
       saveLabel="Add Package"
       submitDisabled={!isValid}
-    >
-      <fieldset disabled={isSubmitting} className="space-y-4 border-0 p-0 m-0 min-w-0">
-      {/* Recipient */}
-      <FieldWrapper label="Recipient" required>
-        <Typeahead
-          value={recipient}
-          onChange={setRecipient}
-          fetchItems={async (query) => {
-            const res = await fetchUsers({ search: query, pageSize: 10 });
-            return res.data;
-          }}
-          getLabel={(user) => `${user.fullName} (${user.netId})`}
-          getKey={(user) => user.id}
-          placeholder="Search by name or Net ID..."
-        />
-      </FieldWrapper>
-
-      {/* Carrier */}
-      <FieldWrapper label="Carrier" required>
-        <SelectField
-          value={carrierId}
-          onChange={setCarrierId}
-          options={carriers
-            .filter((c) => c.isActive)
-            .map((c) => ({ label: c.name, value: c.id }))}
-          placeholder="Select a carrier"
-        />
-      </FieldWrapper>
-
-      {/* Sender */}
-      <FieldWrapper label="Sender" required>
-        <SelectField
-          value={senderId}
-          onChange={setSenderId}
-          options={senders
-            .filter((s) => s.isActive)
-            .map((s) => ({ label: s.name, value: s.id }))}
-          placeholder="Select a sender"
-        />
-      </FieldWrapper>
-
-      {/* Date Arrived */}
-      <FieldWrapper label="Date Arrived" required>
-        <input
-          type="date"
-          value={dateArrived}
-          onChange={(e) => setDateArrived(e.target.value)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-byu-navy focus:outline-none focus:ring-1 focus:ring-byu-royal focus:border-byu-royal"
-        />
-      </FieldWrapper>
-
-      {/* Checked in by (logged-in user) */}
-      <div className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm">
-        <p className="text-gray-500">
-          Checking in package as{' '}
-          <span className="font-medium text-byu-navy">
-            {user?.fullName ?? 'Unknown'}
-          </span>
-        </p>
-      </div>
-
-      {/* Notes */}
-      <FieldWrapper label="Internal Notes">
-        <TextLikeField
-          value={notes}
-          onChange={setNotes}
-          placeholder="Any internal notes about this package…"
-          rows={3}
-        />
-      </FieldWrapper>
-
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      </fieldset>
-    </BaseModal>
+      values={values}
+      setValues={setValues}
+      fields={fields}
+    />
   );
 }

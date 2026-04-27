@@ -5,6 +5,7 @@ import type React from 'react';
 import type { Package } from '@/types/package';
 import { formatDate } from '@/utils/formatDate';
 import TabModal, { type TabConfig } from '@/components/ui/modals/TabModal';
+import { PackageStatusBadge, getPackageStatus } from './packageStatus';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,7 +36,7 @@ export default function ViewPackageModal({
 
   if (!pkg) return null;
 
-  const isCheckedOut = pkg.datePickedUp !== null || pkg.deliveredToOffice;
+  const isCheckedOut = getPackageStatus(pkg) !== 'checked_in';
   const arrivedAgo = !isCheckedOut ? daysAgo(pkg.dateArrived) : null;
 
   const tabs: TabConfig[] = [
@@ -97,15 +98,7 @@ function DetailsTab({
     <div className="space-y-1">
       {/* Status badge */}
       <div className="mb-3">
-        <span
-          className={`inline-block rounded px-2.5 py-0.5 text-xs font-medium ${
-            isCheckedOut
-              ? 'bg-byu-green-bright text-white'
-              : 'bg-byu-yellow-bright text-byu-dark-gray'
-          }`}
-        >
-          {isCheckedOut ? 'Checked Out' : 'Active'}
-        </span>
+        <PackageStatusBadge pkg={pkg} />
       </div>
 
       <Row label="Recipient" value={`${pkg.recipient?.fullName ?? '—'} (${pkg.recipient?.netId ?? '—'})`} />

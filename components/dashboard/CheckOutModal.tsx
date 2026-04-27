@@ -8,6 +8,8 @@ import { fetchUsers } from '@/lib/api/users';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
 import StepModal, { type StepConfig } from '@/components/ui/modals/StepModal';
 import FieldWrapper from '@/components/ui/forms/FieldWrapper';
+import FormGrid from '@/components/ui/forms/FormGrid';
+import TextLikeField from '@/components/ui/forms/TextLikeField';
 import Typeahead from '@/components/ui/forms/Typeahead';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -78,8 +80,15 @@ export default function CheckOutModal({
     {
       title: 'How is this package leaving?',
       canAdvance: method !== null,
-      content: (
-        <Step1MethodSelect method={method} onSelect={setMethod} pkg={pkg} />
+      content: ({ goNext }) => (
+        <Step1MethodSelect
+          method={method}
+          onSelect={(m) => {
+            setMethod(m);
+            if (m !== null) goNext();
+          }}
+          pkg={pkg}
+        />
       ),
     },
     {
@@ -105,7 +114,7 @@ export default function CheckOutModal({
     <StepModal
       open={true}
       title="Check Out Package"
-      size="sm"
+      size="md"
       onClose={handleClose}
       steps={steps}
       onComplete={handleComplete}
@@ -194,9 +203,9 @@ function Step2Details({
   error: string | null;
 }) {
   return (
-    <div className="space-y-4 py-2">
-      {/* Package summary */}
-      <div className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm space-y-1">
+    <FormGrid>
+      {/* Package summary - full width */}
+      <div className="md:col-span-2 rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm space-y-1">
         <p className="text-gray-500">
           Recipient:{' '}
           <span className="font-medium text-byu-navy">
@@ -210,9 +219,9 @@ function Step2Details({
         )}
       </div>
 
-      {/* Pickup-specific: who collected it */}
+      {/* Pickup-specific: who collected it - full width */}
       {method === 'pickup' && (
-        <FieldWrapper label="Picked Up By" required>
+        <FieldWrapper className="md:col-span-2" label="Picked Up By" required>
           <Typeahead
             value={pickedUpBy}
             onChange={setPickedUpBy}
@@ -229,25 +238,24 @@ function Step2Details({
         </FieldWrapper>
       )}
 
-      {/* Office delivery confirmation */}
+      {/* Office delivery confirmation - full width */}
       {method === 'office' && (
-        <p className="text-sm text-gray-600 rounded-lg bg-blue-50 border border-blue-100 px-4 py-3">
+        <p className="md:col-span-2 text-sm text-gray-600 rounded-lg bg-blue-50 border border-blue-100 px-4 py-3">
           This package will be marked as delivered to office.
         </p>
       )}
 
-      {/* Date */}
-      <FieldWrapper label="Date" required>
-        <input
+      {/* Date - full width */}
+      <FieldWrapper className="md:col-span-2" label="Date" required>
+        <TextLikeField
           type="date"
           value={datePickedUp}
-          onChange={(e) => setDatePickedUp(e.target.value)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-byu-navy focus:outline-none focus:ring-1 focus:ring-byu-royal focus:border-byu-royal"
+          onChange={setDatePickedUp}
         />
       </FieldWrapper>
 
-      {/* Checked out by (logged-in user) */}
-      <div className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm">
+      {/* Checked out by - full width */}
+      <div className="md:col-span-2 rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm">
         <p className="text-gray-500">
           Checked out by{' '}
           <span className="font-medium text-byu-navy">
@@ -256,7 +264,7 @@ function Step2Details({
         </p>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-    </div>
+      {error && <p className="md:col-span-2 text-sm text-red-600">{error}</p>}
+    </FormGrid>
   );
 }

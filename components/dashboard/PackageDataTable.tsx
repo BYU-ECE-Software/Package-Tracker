@@ -5,6 +5,7 @@ import { FiEdit2, FiTrash2, FiLogOut } from 'react-icons/fi';
 import type { Package } from '@/types/package';
 import { formatDate } from '@/utils/formatDate';
 import DataTable, { type DataTableColumn } from '@/components/ui/tables/DataTable';
+import { PackageStatusBadge } from './packageStatus';
 
 interface PackageDataTableProps {
   packages: Package[];
@@ -13,6 +14,7 @@ interface PackageDataTableProps {
   onCheckOut: (pkg: Package) => void;
   onDelete: (pkg: Package) => void;
   readOnly?: boolean;
+  showStatus?: boolean;
 }
 
 const PackageDataTable: React.FC<PackageDataTableProps> = ({
@@ -22,8 +24,17 @@ const PackageDataTable: React.FC<PackageDataTableProps> = ({
   onCheckOut,
   onDelete,
   readOnly = false,
+  showStatus = false,
 }) => {
+  const statusColumn: DataTableColumn = {
+    key: 'status',
+    header: 'Status',
+    noWrap: true,
+    render: (row: Package) => <PackageStatusBadge pkg={row} />,
+  };
+
   const columns: DataTableColumn[] = [
+    ...(showStatus ? [statusColumn] : []),
     {
       key: 'dateArrived',
       header: 'Arrived',
