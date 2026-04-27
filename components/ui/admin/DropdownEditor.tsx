@@ -1,3 +1,6 @@
+// NOT IN Template-Repo — application-level pattern, not a generic primitive.
+// Drag-and-drop ordered list editor for carriers/senders/etc; coupled to
+// DropdownEntity shape and admin workflows.
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';

@@ -1,3 +1,10 @@
+// MODIFIED from Template-Repo: components/general/forms/formFieldTypes.ts
+// Worth upstreaming. Local addition:
+//   - `CheckboxField` kind for boolean form fields. Sibling to SelectField/
+//     RadioField rather than an `InputField` type variant because checkboxes
+//     carry boolean values and don't share the input-field props (placeholder,
+//     inputMode, etc.). Paired with components/ui/forms/CheckboxField.tsx.
+
 import type { HTMLAttributes, ReactNode } from 'react';
 
 // An adornment is a small label inside the input, like a "$" prefix
@@ -46,6 +53,10 @@ export type RadioField = BaseField & {
   options: RadioOption[];
 };
 
+export type CheckboxField = BaseField & {
+  kind: 'checkbox';
+};
+
 // Custom fields let you render anything inside the form grid
 export type CustomField<TItem = any> = {
   kind: 'custom';
@@ -64,4 +75,5 @@ export type SharedFormField<TItem = any> =
   | InputField
   | SelectField
   | RadioField
+  | CheckboxField
   | CustomField<TItem>;

@@ -1,3 +1,4 @@
+// IDENTICAL to Template-Repo: components/general/forms/formFieldStyles.ts
 // Shared class strings for consistent field styling across all form inputs
 
 export const LABEL_CLASS = 'block text-sm font-medium text-byu-navy mb-1';

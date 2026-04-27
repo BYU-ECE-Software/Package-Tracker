@@ -1,3 +1,9 @@
+// NOT IN Template-Repo — built locally and worth upstreaming.
+// Generic async-search autocomplete with optional "suggested item" slot.
+// Fully generic over T, no app-specific assumptions. Configurable:
+//   - disabled: locks input + clear button + dropdown
+//   - debounceMs: tune debounce delay (default 300ms)
+//   - noResultsMessage / loadingMessage: customize empty + loading copy
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -15,6 +21,13 @@ export type TypeaheadProps<T> = {
   suggestedItem?: T; // Shows when empty and focused
   suggestedLabel?: string; // Optional custom label for suggested item (default: "Suggested:")
   className?: string;
+  disabled?: boolean;
+  /** Debounce delay before firing fetchItems with the user's input (default 300ms). */
+  debounceMs?: number;
+  /** Copy shown when fetchItems returns no results (default "No results found"). */
+  noResultsMessage?: string;
+  /** Copy shown while fetchItems is in flight (default "Searching..."). */
+  loadingMessage?: string;
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -29,6 +42,10 @@ export default function Typeahead<T>({
   suggestedItem,
   suggestedLabel = 'Suggested:',
   className = '',
+  disabled = false,
+  debounceMs = 300,
+  noResultsMessage = 'No results found',
+  loadingMessage = 'Searching...',
 }: TypeaheadProps<T>) {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -42,9 +59,9 @@ export default function Typeahead<T>({
 
   // Debounce search term
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm.trim()), debounceMs);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, debounceMs]);
 
   // Fetch results when debounced search changes
   useEffect(() => {
@@ -106,6 +123,7 @@ export default function Typeahead<T>({
   };
 
   const handleFocus = () => {
+    if (disabled) return;
     setIsOpen(true);
   };
 
@@ -144,7 +162,8 @@ export default function Typeahead<T>({
   const showResults = searchTerm && results.length > 0;
   const showLoading = searchTerm && loading;
   const showEmpty = searchTerm && !loading && results.length === 0;
-  const showDropdown = isOpen && (showSuggested || showResults || showLoading || showEmpty);
+  const showDropdown =
+    isOpen && !disabled && (showSuggested || showResults || showLoading || showEmpty);
 
   return (
     <div className={`relative ${className}`}>
@@ -167,10 +186,11 @@ export default function Typeahead<T>({
           placeholder={placeholder}
           className={`${INPUT_CLASS} pr-8`}
           autoComplete="off"
+          disabled={disabled}
         />
 
-        {/* Clear button */}
-        {value && (
+        {/* Clear button — hidden while disabled so users can't fight the lock */}
+        {value && !disabled && (
           <button
             type="button"
             onClick={handleClear}
@@ -229,12 +249,12 @@ export default function Typeahead<T>({
 
           {/* Loading state */}
           {showLoading && (
-            <div className="px-3 py-2 text-sm text-gray-500">Searching...</div>
+            <div className="px-3 py-2 text-sm text-gray-500">{loadingMessage}</div>
           )}
 
           {/* Empty state */}
           {showEmpty && (
-            <div className="px-3 py-2 text-sm text-gray-500">No results found</div>
+            <div className="px-3 py-2 text-sm text-gray-500">{noResultsMessage}</div>
           )}
         </div>
       )}

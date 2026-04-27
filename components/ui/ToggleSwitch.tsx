@@ -1,3 +1,4 @@
+// IDENTICAL to Template-Repo: components/general/actions/ToggleSwitch.tsx
 'use client';
 
 type ToggleSwitchProps = {

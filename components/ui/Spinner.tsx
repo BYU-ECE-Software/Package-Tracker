@@ -1,11 +1,41 @@
-export default function Spinner({ className = 'h-4 w-4' }: { className?: string }) {
+// NOT IN Template-Repo — built locally and worth upstreaming.
+// Generic loading spinner. Sized via the `size` prop (sm/md/lg) with
+// `className` available as an escape hatch for arbitrary sizing.
+// Pass `label` when used as a standalone loading indicator (no adjacent text)
+// — it sets aria-label + role="status" so screen readers announce it.
+// Default is decorative (aria-hidden) for use inside buttons/labels.
+//
+// Follow-up upstream change once this lands in the template:
+// have Button consume Spinner instead of inlining its own SVG.
+
+type SpinnerSize = 'sm' | 'md' | 'lg';
+
+type SpinnerProps = {
+  size?: SpinnerSize;
+  /** Extra classes appended after the size class — useful for color overrides. */
+  className?: string;
+  /** When provided, renders as a standalone status indicator with this aria-label. */
+  label?: string;
+};
+
+const SIZE_CLASSES: Record<SpinnerSize, string> = {
+  sm: 'h-3 w-3',
+  md: 'h-4 w-4',
+  lg: 'h-5 w-5',
+};
+
+export default function Spinner({ size = 'md', className = '', label }: SpinnerProps) {
+  const a11yProps = label
+    ? { role: 'status' as const, 'aria-label': label }
+    : { 'aria-hidden': true as const };
+
   return (
     <svg
-      className={`animate-spin ${className}`}
+      className={`animate-spin ${SIZE_CLASSES[size]} ${className}`.trim()}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      aria-hidden="true"
+      {...a11yProps}
     >
       <circle
         className="opacity-25"

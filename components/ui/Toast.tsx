@@ -1,3 +1,4 @@
+// IDENTICAL to Template-Repo: components/general/feedback/Toast.tsx
 'use client';
 
 import { useEffect, useState } from 'react';

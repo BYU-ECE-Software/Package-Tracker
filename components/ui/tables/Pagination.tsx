@@ -1,3 +1,10 @@
+// MODIFIED from Template-Repo: components/general/data-display/Pagination.tsx
+// Worth upstreaming. Improvements over the template:
+//   - Cleaner API: takes a `pagination` object + `totalItems` instead of three
+//     separate props; computes totalPages internally so callers don't have to.
+//   - Same safety/a11y as the template (aria-current, blur-commit input, hide
+//     when nothing to paginate, defensive totalPages clamp).
+//   - Same configurability (itemLabel, pageSizeOptions, delta, className).
 'use client';
 
 import { useState } from 'react';
@@ -11,26 +18,38 @@ export default function Pagination({
   onPageChange,
   setPageSize,
   itemLabel = 'Items',
-}: PaginationProps & { itemLabel?: string }) {
+  pageSizeOptions = [10, 25, 50, 100],
+  delta = 1,
+  className = '',
+}: PaginationProps) {
   const { currentPage, pageSize } = pagination;
   const totalPages = Math.ceil(totalItems / pageSize);
+  const safeTotalPages = Math.max(1, totalPages);
+
   const [inputPage, setInputPage] = useState('');
 
-  const handleClick = (page: number) => {
-    if (page >= 1 && page <= totalPages && page !== currentPage) {
-      onPageChange(page);
-    }
+  const goTo = (page: number) => {
+    if (!Number.isFinite(page)) return;
+    const clamped = Math.max(1, Math.min(safeTotalPages, page));
+    if (clamped !== currentPage) onPageChange(clamped);
+  };
+
+  const commitInput = () => {
+    if (!inputPage.trim()) return;
+    const n = Number(inputPage);
+    if (!Number.isFinite(n)) return;
+    goTo(n);
+    setInputPage('');
   };
 
   const renderPageNumbers = () => {
     const pages: React.ReactNode[] = [];
-    const delta = 1;
     let lastWasEllipsis = false;
 
-    for (let i = 1; i <= totalPages; i++) {
+    for (let i = 1; i <= safeTotalPages; i++) {
       const inRange =
         i === 1 ||
-        i === totalPages ||
+        i === safeTotalPages ||
         (i >= currentPage - delta && i <= currentPage + delta);
 
       if (inRange) {
@@ -39,7 +58,8 @@ export default function Pagination({
           <button
             key={i}
             type="button"
-            onClick={() => onPageChange(i)}
+            onClick={() => goTo(i)}
+            aria-current={currentPage === i ? 'page' : undefined}
             className={`px-3 py-1 rounded-md text-sm border transition ${
               currentPage === i
                 ? 'bg-byu-navy text-white border-byu-navy font-semibold'
@@ -52,7 +72,7 @@ export default function Pagination({
       } else if (!lastWasEllipsis) {
         lastWasEllipsis = true;
         pages.push(
-          <span key={`ellipsis-${i}`} className="px-2 text-gray-400">
+          <span key={`ellipsis-${i}`} className="px-2 text-gray-400 select-none">
             ...
           </span>
         );
@@ -63,52 +83,54 @@ export default function Pagination({
   };
 
   return (
-    <div className="flex flex-col md:flex-row justify-center items-center mt-6 gap-4 flex-wrap">
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => handleClick(currentPage - 1)}
-          disabled={currentPage === 1}
-          className={buttonClass}
-        >
-          Previous
-        </button>
+    <div
+      className={`flex flex-col md:flex-row justify-center items-center mt-6 gap-4 flex-wrap ${className}`}
+    >
+      {totalPages > 1 && (
+        <>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => goTo(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={buttonClass}
+            >
+              Previous
+            </button>
 
-        {renderPageNumbers()}
+            {renderPageNumbers()}
 
-        <button
-          type="button"
-          onClick={() => handleClick(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className={buttonClass}
-        >
-          Next
-        </button>
-      </div>
+            <button
+              type="button"
+              onClick={() => goTo(currentPage + 1)}
+              disabled={currentPage === safeTotalPages}
+              className={buttonClass}
+            >
+              Next
+            </button>
+          </div>
 
-      <div className="flex items-center gap-2">
-        <label htmlFor="goToPage" className="text-sm text-byu-navy">
-          Go to page:
-        </label>
-        <input
-          id="goToPage"
-          type="number"
-          min={1}
-          max={totalPages}
-          value={inputPage}
-          onChange={(e) => setInputPage(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              const page = Number(inputPage);
-              if (page >= 1 && page <= totalPages) {
-                onPageChange(page);
-                setInputPage('');
-              }
-            }
-          }}
-          className="w-20 rounded border border-byu-navy px-2 py-1 text-sm text-byu-navy focus:outline-none focus:ring-2 focus:ring-byu-navy"
-        />
-      </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="goToPage" className="text-sm text-byu-navy">
+              Go to page:
+            </label>
+            <input
+              id="goToPage"
+              type="number"
+              min={1}
+              max={safeTotalPages}
+              value={inputPage}
+              onChange={(e) => setInputPage(e.target.value)}
+              onBlur={commitInput}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') commitInput();
+                if (e.key === 'Escape') setInputPage('');
+              }}
+              className="w-20 rounded border border-byu-navy px-2 py-1 text-sm text-byu-navy focus:outline-none focus:ring-2 focus:ring-byu-navy"
+            />
+          </div>
+        </>
+      )}
 
       <div className="flex items-center gap-2">
         <label htmlFor="pageSize" className="text-sm text-byu-navy">
@@ -123,8 +145,10 @@ export default function Pagination({
           }}
           className="rounded border border-byu-navy bg-white px-3 py-1 text-sm text-byu-navy focus:outline-none focus:ring-2 focus:ring-byu-navy transition"
         >
-          {[10, 25, 50, 100].map((size) => (
-            <option key={size} value={size}>{size}</option>
+          {pageSizeOptions.map((size) => (
+            <option key={size} value={size}>
+              {size}
+            </option>
           ))}
         </select>
       </div>

@@ -1,3 +1,4 @@
+// IDENTICAL to Template-Repo: components/general/data-display/SearchBar.tsx
 'use client';
 
 import { HiOutlineMagnifyingGlass } from 'react-icons/hi2';

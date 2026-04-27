@@ -1,3 +1,9 @@
+// MODIFIED from Template-Repo: components/general/data-display/DataTable.tsx
+// Local improvements worth upstreaming to the template:
+//   - Cell-level onRowClick: clicks on non-actions cells trigger the row click
+//     (with auto cursor-pointer styling), instead of relying on a wrapping <tr>
+//     handler that fires when the user clicks the actions menu.
+//   - stopPropagation on the expand toggle so it doesn't double-fire onRowClick.
 'use client';
 
 import { useState, useEffect } from 'react';

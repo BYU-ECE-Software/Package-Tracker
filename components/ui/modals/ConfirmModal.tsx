@@ -1,3 +1,6 @@
+// IDENTICAL to Template-Repo: components/general/overlays/ConfirmModal.tsx
+// Only difference: BaseModal and Button import paths (template uses
+// '@/components/general/overlays/BaseModal' and '../actions/Button').
 'use client';
 
 import type { ReactNode } from 'react';

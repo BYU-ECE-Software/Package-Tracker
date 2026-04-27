@@ -1,3 +1,6 @@
+// NOT IN Template-Repo — application-level pattern, not a generic primitive.
+// Belongs in this project, not the template. Built on top of template primitives
+// (DataTable, ConfirmModal, Button, Toast) but encodes app-specific CRUD assumptions.
 "use client";
 
 import { useEffect, useState, useRef } from 'react';

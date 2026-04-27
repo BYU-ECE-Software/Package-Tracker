@@ -1,3 +1,4 @@
+// IDENTICAL to Template-Repo: components/general/actions/Button.tsx
 'use client';
 
 import type { ButtonHTMLAttributes, ReactNode } from 'react';

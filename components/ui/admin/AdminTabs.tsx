@@ -1,3 +1,6 @@
+// NOT IN Template-Repo — application-level pattern, not a generic primitive.
+// Vertical tab switcher specifically for admin pages; not template-worthy.
+
 /**
  * Generic vertical tab switcher for admin panels.
  * 

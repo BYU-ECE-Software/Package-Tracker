@@ -1,3 +1,4 @@
+// IDENTICAL to Template-Repo: components/general/forms/TextLikeField.tsx
 'use client';
 
 import { INPUT_CLASS, INPUT_CLASS_NO_TEXT_COLOR } from './formFieldStyles';
