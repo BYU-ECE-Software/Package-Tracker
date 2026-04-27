@@ -19,18 +19,20 @@ export default function AdminPage() {
   return (
     <>
       <PageTitle title="SITE ADMIN" />
-      <div className="flex flex-col lg:flex-row px-4 sm:px-6 py-6 sm:py-10 gap-4 sm:gap-6">
-        <AdminTabs
-          tabs={tabNames}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
-        <div className="flex-1">
-          {config.component === 'dropdown' ? (
-            <DropdownEditor key={activeTab} {...config.dropdown} />
-          ) : (
-            <AdminCrudPanel title={activeTab} config={config} />
-          )}
+      <div className="px-6 py-10">
+        <div className="mx-auto max-w-7xl flex flex-col lg:flex-row gap-4 sm:gap-6">
+          <AdminTabs
+            tabs={tabNames}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
+          <div className="flex-1">
+            {config.component === 'dropdown' ? (
+              <DropdownEditor key={activeTab} {...config.dropdown} />
+            ) : (
+              <AdminCrudPanel title={activeTab} config={config} />
+            )}
+          </div>
         </div>
       </div>
     </>

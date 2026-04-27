@@ -5,8 +5,8 @@ const FooterBar = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#002E5D] text-white py-8 px-6">
-      <div className="grid items-start grid-cols-1 md:grid-cols-3 gap-4 px-4 md:px-32">
+    <footer className="bg-[#002E5D] px-6 py-8 text-white">
+      <div className="grid grid-cols-1 items-start gap-4 px-4 md:grid-cols-3 md:px-32">
         {/* Left Section: Helpful Links */}
         <div className="text-center">
           <h2 className="text-xl font-bold">Helpful Links</h2>
@@ -16,7 +16,7 @@ const FooterBar = () => {
                 href="https://www.byu.edu"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:underline text-white"
+                className="text-white hover:underline"
               >
                 BYU Homepage
               </a>
@@ -26,7 +26,7 @@ const FooterBar = () => {
                 href="https://www.byu.edu/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:underline text-white"
+                className="text-white hover:underline"
               >
                 Privacy Policy
               </a>
@@ -36,7 +36,7 @@ const FooterBar = () => {
                 href="https://www.byu.edu/accessibility"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:underline text-white"
+                className="text-white hover:underline"
               >
                 Accessibility
               </a>
@@ -46,7 +46,7 @@ const FooterBar = () => {
                 href="https://www.ece.byu.edu"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:underline text-white"
+                className="text-white hover:underline"
               >
                 ECE Department
               </a>

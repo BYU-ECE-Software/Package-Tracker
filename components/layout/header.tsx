@@ -1,11 +1,8 @@
 'use client';
 
 import { useLayoutEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { AiOutlineMenu, AiOutlineClose } from 'react-icons/ai';
-import BYULogo from '@/public/BYU_monogram_white.svg';
 import RoleToggle from '@/components/dev/RoleToggle';
 import SignInSignOut from '@/components/dev/SignInSignOut';
 import { useRole } from '@/components/dev/TestingRoleProvider';
@@ -41,43 +38,37 @@ const HeaderBar = () => {
   const navLinks = allNavLinks.filter((l) => !l.adminOnly || isAdmin);
 
   return (
-    <div className="w-full sticky top-0 z-50">
-      {/* Navy bar */}
-      <header className="relative w-full bg-byu-navy text-white py-4 shadow-md">
-        <div className="px-6 flex items-center justify-between">
+    <div className="sticky top-0 z-50 w-full">
+      <header className="bg-byu-navy relative w-full py-4 text-white shadow-md md:w-full">
+        <div className="flex items-center justify-between px-6">
           <div className="flex items-center">
             <a
               ref={logoRef}
               href="https://www.byu.edu"
               target="_blank"
               rel="noopener noreferrer"
-              className="mr-4 border-r-[1px] border-byu-royal"
+              className="border-byu-royal mr-4 border-r pr-4"
             >
-              <Image
-                src={BYULogo}
-                alt="BYU Logo"
-                className="h-10 w-auto"
-                priority
-              />
+              <img src="/BYU_monogram_white.svg" alt="BYU logo" className="h-10 w-auto" />
             </a>
             <h1 className="text-2xl">ECE Mail</h1>
           </div>
 
-          <div className="flex items-center gap-4 pr-6">
+          <div className="flex items-center gap-3 pr-6 text-base">
             <RoleToggle />
             <SignInSignOut variant="desktop" />
+
             <button
-              className="inline-flex items-center justify-center p-2 rounded md:hidden hover:bg-white/10 focus:outline-none"
+              type="button"
+              className="inline-flex items-center justify-center rounded p-2 hover:bg-white/10 focus:outline-none md:hidden"
               aria-label="Toggle navigation menu"
               aria-expanded={mobileOpen}
               aria-controls="mobile-menu"
               onClick={() => setMobileOpen((v) => !v)}
             >
-              {mobileOpen ? (
-                <AiOutlineClose size={22} />
-              ) : (
-                <AiOutlineMenu size={22} />
-              )}
+              <span className="text-xl" aria-hidden="true">
+                {mobileOpen ? '✕' : '☰'}
+              </span>
             </button>
           </div>
         </div>
@@ -87,12 +78,9 @@ const HeaderBar = () => {
       {mobileOpen && (
         <div
           id="mobile-menu"
-          className="md:hidden w-full bg-white text-byu-navy shadow border-t"
+          className="text-byu-navy w-full border-t bg-white shadow md:hidden"
         >
-          <SignInSignOut
-            variant="mobile"
-            onAction={() => setMobileOpen(false)}
-          />
+          <SignInSignOut variant="mobile" onAction={() => setMobileOpen(false)} />
           <nav className="flex flex-col py-2">
             {navLinks.map((link) => (
               <Link
@@ -111,17 +99,17 @@ const HeaderBar = () => {
       )}
 
       {/* White nav bar - desktop only */}
-      <nav className="hidden md:block w-full bg-white text-byu-navy shadow">
+      <nav className="text-byu-navy hidden w-full bg-white shadow md:block">
         <div
-          className="flex text-base font-medium px-6"
+          className="flex px-6 text-base font-medium"
           style={{ paddingLeft: navPadLeft }}
         >
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`px-8 py-4 hover:bg-[#FAFAFA] rounded-md block ${
-                pathname === link.href ? 'bg-gray-100 font-semibold' : ''
+              className={`nav-link-hover px-8 py-4 whitespace-nowrap hover:bg-[#FAFAFA] ${
+                pathname === link.href ? 'nav-link-active bg-[#FAFAFA] font-semibold' : ''
               }`}
             >
               {link.label}

@@ -2,13 +2,13 @@ interface PageTitleProps {
   title: string;
 }
 
-// Page Title. On the view, you set what you want the title to actually render and say
+// Pages don't need a title. Use it when you feel it works with the vibe of the site.
 const PageTitle = ({ title }: PageTitleProps) => {
   return (
-    <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
-      <header className="w-full bg-[#F6F6F8] text-[#141414] py-14 px-6">
-        <div className="flex justify-center items-center">
-          <h1 className="text-4xl font-semibold tracking-widest">{title}</h1>
+    <div className="w-full">
+      <header className="text-byu-dark-gray w-full bg-[#F6F6F8] px-6 py-14">
+        <div className="flex items-center justify-center">
+          <h1 className="text-center text-4xl font-semibold tracking-widest">{title}</h1>
         </div>
       </header>
     </div>
