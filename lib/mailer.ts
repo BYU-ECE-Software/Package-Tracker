@@ -2,6 +2,8 @@
 import nodemailer from 'nodemailer';
 import type { Transporter, SendMailOptions, SentMessageInfo } from 'nodemailer';
 
+const FORCE_EMAIL_FAILURE = process.env.FORCE_EMAIL_FAILURE === 'true';
+
 // Lazy-init transporter - only create when first needed
 let transporter: Transporter | null = null;
 
@@ -62,6 +64,12 @@ export default async function sendMail({
   } catch (error) {
     console.error('✗ SMTP verification failed:', error);
     throw new Error('Mail server connection failed. Check SMTP configuration.');
+  }
+
+  // TEST MODE: Force failure if env var is set
+  if (FORCE_EMAIL_FAILURE) {
+    console.error('🚫 FORCE_EMAIL_FAILURE is enabled - simulating email failure');
+    throw new Error('Simulated email failure for testing');
   }
 
   try {

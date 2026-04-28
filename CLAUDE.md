@@ -93,7 +93,7 @@ proxy.ts                Next 16 proxy file (replaces deprecated middleware.ts)
 
 - **User** — netId, email, fullName, role (STUDENT | SECRETARY | ADMIN)
 - **Package** — recipient, carrier, sender, dateArrived, datePickedUp, checkedInBy, checkedOutBy, `deliveredToOffice`, `notificationSent`
-- **Carrier / Sender** — name, `isActive` (soft delete), `sortOrder` (drag-reorder)
+- **Carrier / Sender** — name, `hidden` (soft delete), `sortOrder` (drag-reorder)
   - Delete endpoints return **409** if a package still references the entity
 
 ## Conventions

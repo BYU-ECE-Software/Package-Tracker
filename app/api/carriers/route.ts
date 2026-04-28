@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const activeOnly = searchParams.get('activeOnly') === 'true';
 
     const carriers = await prisma.carrier.findMany({
-      where: activeOnly ? { isActive: true } : undefined,
+      where: activeOnly ? { hidden: false } : undefined,
       orderBy: [{ order: 'asc' }, { name: 'asc' }],
     });
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const carrier = await prisma.carrier.create({
       data: {
         name: body.name,
-        isActive: body.isActive ?? true,
+        hidden: body.hidden ?? true,
         order: nextOrder,
       },
     });

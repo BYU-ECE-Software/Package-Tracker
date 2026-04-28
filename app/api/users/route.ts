@@ -1,7 +1,7 @@
 // ===== USERS API (app/api/users/route.ts) =====
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma, UserRole } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const pageSize = parseInt(searchParams.get('pageSize') || '25');
     const skip = (page - 1) * pageSize;
     
-    const role = searchParams.get('role') as UserRole | null;
+    const role = searchParams.get('role') as Role | null;
     const search = searchParams.get('search');
     
     const where: Prisma.UserWhereInput = {};

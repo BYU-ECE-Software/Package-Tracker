@@ -1,6 +1,7 @@
 import type { User } from './user';
 import type { DropdownEntity } from '@/types/dropdown';
 import type { PaginatedResponse } from './pagination';
+import type { PackageStatus } from '@prisma/client';
 
 export type PackageListResponse = PaginatedResponse<Package>;
 
@@ -20,7 +21,10 @@ export interface Package {
   checkedInBy?: User | null;
   checkedOutById: string | null;
   checkedOutBy?: User | null;
+  pickedUpByUserId: string | null;      // NEW
+  pickedUpBy?: User | null;             // NEW
   deliveredToOffice: boolean;
+  status: PackageStatus;                // NEW
   notes: string | null;
   notificationSent: boolean;
 }
@@ -46,6 +50,7 @@ export interface UpdatePackageRequest {
   datePickedUp?: string;
   checkedInById?: string;
   checkedOutById?: string;
+  pickedUpByUserId?: string;
   deliveredToOffice?: boolean;
   notes?: string;
   notificationSent?: boolean;

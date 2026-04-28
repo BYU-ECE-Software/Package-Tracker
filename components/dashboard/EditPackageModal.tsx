@@ -6,6 +6,7 @@ import type { DropdownEntity } from '@/types/dropdown';
 import { updatePackage } from '@/lib/api/packages';
 import { fetchCarriers } from '@/lib/api/carriers';
 import { fetchSenders } from '@/lib/api/senders';
+import { useToast } from '@/hooks/useToast';
 import FormModal, { type FormModalField } from '@/components/ui/modals/FormModal';
 import FieldWrapper from '@/components/ui/forms/FieldWrapper';
 
@@ -27,6 +28,8 @@ type EditPackageFormValues = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function EditPackageModal({ onClose, pkg, onSuccess }: EditPackageModalProps) {
+  const { showToast, ToastContainer } = useToast({ position: 'bottom-right' });
+
   const [values, setValues] = useState<EditPackageFormValues>({
     carrierId: pkg.carrierId ?? '',
     senderId: pkg.senderId ?? '',
@@ -37,7 +40,6 @@ export default function EditPackageModal({ onClose, pkg, onSuccess }: EditPackag
   const [carriers, setCarriers] = useState<DropdownEntity[]>([]);
   const [senders, setSenders] = useState<DropdownEntity[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCarriers(true).then(setCarriers).catch(console.error);
@@ -54,14 +56,8 @@ export default function EditPackageModal({ onClose, pkg, onSuccess }: EditPackag
     });
   }, [pkg]);
 
-  const handleClose = () => {
-    setError(null);
-    onClose();
-  };
-
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    setError(null);
     try {
       await updatePackage(pkg.id, {
         carrierId: values.carrierId || undefined,
@@ -71,7 +67,11 @@ export default function EditPackageModal({ onClose, pkg, onSuccess }: EditPackag
       });
       await onSuccess();
     } catch {
-      setError('Something went wrong. Please try again.');
+      showToast({
+        type: 'error',
+        title: 'Save failed',
+        message: 'Something went wrong. Please try again.',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -118,30 +118,23 @@ export default function EditPackageModal({ onClose, pkg, onSuccess }: EditPackag
       placeholder: 'Any internal notes about this package…',
       colSpan: 2,
     },
-    ...(error
-      ? [
-          {
-            kind: 'custom' as const,
-            key: 'errorBanner',
-            colSpan: 2 as const,
-            render: () => <p className="text-sm text-red-600">{error}</p>,
-          },
-        ]
-      : []),
   ];
 
   return (
-    <FormModal<EditPackageFormValues>
-      open={true}
-      title="Edit Package"
-      size="md"
-      onClose={handleClose}
-      onSubmit={handleSubmit}
-      saving={isSubmitting}
-      saveLabel="Save Changes"
-      values={values}
-      setValues={setValues}
-      fields={fields}
-    />
+    <>
+      <FormModal<EditPackageFormValues>
+        open={true}
+        title="Edit Package"
+        size="md"
+        onClose={onClose}
+        onSubmit={handleSubmit}
+        saving={isSubmitting}
+        saveLabel="Save Changes"
+        values={values}
+        setValues={setValues}
+        fields={fields}
+      />
+      <ToastContainer />
+    </>
   );
 }

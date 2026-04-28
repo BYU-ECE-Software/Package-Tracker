@@ -1,6 +1,5 @@
 // ===== SINGLE PACKAGE API (app/api/packages/[id]/route.ts) =====
 
-
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
@@ -11,25 +10,26 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const updatedPackage = await prisma.package.findUnique({
+    const package_record = await prisma.package.findUnique({
       where: { id },
       include: {
         recipient: true,
         checkedInBy: true,
         checkedOutBy: true,
+        pickedUpBy: true,
         carrier: true,
         sender: true,
       },
     });
     
-    if (!updatedPackage) {
+    if (!package_record) {
       return NextResponse.json(
         { error: 'Package not found' },
         { status: 404 }
       );
     }
     
-    return NextResponse.json(updatedPackage);
+    return NextResponse.json(package_record);
   } catch (error) {
     console.error('Error fetching package:', error);
     return NextResponse.json(
@@ -49,15 +49,30 @@ export async function PUT(
 
     const updateData: Prisma.PackageUncheckedUpdateInput = {};
     
-    if (body.carrierId        !== undefined) updateData.carrierId        = body.carrierId;
-    if (body.senderId         !== undefined) updateData.senderId         = body.senderId;
-    if (body.dateArrived      !== undefined && body.dateArrived !== null) updateData.dateArrived = new Date(body.dateArrived);
-    if (body.datePickedUp     !== undefined) updateData.datePickedUp     = body.datePickedUp ? new Date(body.datePickedUp) : null;
-    if (body.checkedInById    !== undefined) updateData.checkedInById    = body.checkedInById;
-    if (body.checkedOutById   !== undefined) updateData.checkedOutById   = body.checkedOutById;
+    // Dropdown fields
+    if (body.carrierId !== undefined) updateData.carrierId = body.carrierId;
+    if (body.senderId !== undefined) updateData.senderId = body.senderId;
+    
+    // Date fields
+    if (body.dateArrived !== undefined && body.dateArrived !== null) {
+      updateData.dateArrived = new Date(body.dateArrived);
+    }
+    if (body.datePickedUp !== undefined) {
+      updateData.datePickedUp = body.datePickedUp ? new Date(body.datePickedUp) : null;
+    }
+    
+    // User relationships
+    if (body.checkedInById !== undefined) updateData.checkedInById = body.checkedInById;
+    if (body.checkedOutById !== undefined) updateData.checkedOutById = body.checkedOutById;
+    if (body.pickedUpByUserId !== undefined) updateData.pickedUpByUserId = body.pickedUpByUserId;
+    
+    // Boolean/status fields
     if (body.deliveredToOffice !== undefined) updateData.deliveredToOffice = body.deliveredToOffice;
-    if (body.notes            !== undefined) updateData.notes            = body.notes;
+    if (body.status !== undefined) updateData.status = body.status;
     if (body.notificationSent !== undefined) updateData.notificationSent = body.notificationSent;
+    
+    // Text fields
+    if (body.notes !== undefined) updateData.notes = body.notes;
     
     const updatedPackage = await prisma.package.update({
       where: { id },
@@ -66,6 +81,9 @@ export async function PUT(
         recipient: true,
         checkedInBy: true,
         checkedOutBy: true,
+        pickedUpBy: true,
+        carrier: true,
+        sender: true,
       },
     });
     

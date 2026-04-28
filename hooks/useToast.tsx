@@ -78,7 +78,7 @@ export function useToast({ position = 'bottom-right' }: UseToastOptions = {}): U
     () => (
       <div
         aria-live="polite"
-        className={`fixed z-50 flex flex-col gap-3 w-80 pointer-events-none ${POSITION_CLASSES[position]}`}
+        className={`fixed z-[60] flex flex-col gap-3 w-80 pointer-events-none ${POSITION_CLASSES[position]}`}
       >
         {toasts.map((t) => (
           <div key={t.id} className="pointer-events-auto">

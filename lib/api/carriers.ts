@@ -21,7 +21,7 @@ export async function fetchCarriers(activeOnly?: boolean): Promise<DropdownEntit
   return res.json();
 }
 
-export async function createCarrier(data: { name: string }): Promise<DropdownEntity> {
+export async function createCarrier(data: { name: string; hidden?: boolean }): Promise<DropdownEntity> {
   const res = await fetch('/api/carriers', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -38,7 +38,7 @@ export async function createCarrier(data: { name: string }): Promise<DropdownEnt
 
 export async function updateCarrier(
   id: string,
-  data: { name?: string; isActive?: boolean }
+  data: { name?: string; hidden?: boolean }
 ): Promise<DropdownEntity> {
   const res = await fetch(`/api/carriers/${id}`, {
     method: 'PUT',

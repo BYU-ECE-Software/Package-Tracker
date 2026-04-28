@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { FiUser, FiHome } from 'react-icons/fi';
 import type { Package } from '@/types/package';
 import type { User } from '@/types/user';
-import { checkOutPackage, updatePackage } from '@/lib/api/packages';
+import { updatePackage } from '@/lib/api/packages';
 import { fetchUsers } from '@/lib/api/users';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
+import { useToast } from '@/hooks/useToast';
 import StepModal, { type StepConfig } from '@/components/ui/modals/StepModal';
 import FieldWrapper from '@/components/ui/forms/FieldWrapper';
 import FormGrid from '@/components/ui/forms/FormGrid';
@@ -30,31 +32,33 @@ export default function CheckOutModal({
   onSuccess,
 }: CheckOutModalProps) {
   const { user } = useAuth();
-  
+  const { showToast, ToastContainer } = useToast({ position: 'bottom-right' });
+
   const [method, setMethod] = useState<CheckoutMethod>(null);
   const [pickedUpBy, setPickedUpBy] = useState<User | null>(null);
   const [datePickedUp, setDatePickedUp] = useState(
     new Date().toISOString().split('T')[0]
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleClose = () => {
     setMethod(null);
     setPickedUpBy(null);
     setDatePickedUp(new Date().toISOString().split('T')[0]);
-    setError(null);
     onClose();
   };
 
   const handleComplete = async () => {
     if (!user?.id) {
-      setError('You must be signed in to check out a package.');
+      showToast({
+        type: 'error',
+        title: 'Not signed in',
+        message: 'You must be signed in to check out a package.',
+      });
       return;
     }
 
     setIsSubmitting(true);
-    setError(null);
     try {
       if (method === 'office') {
         await updatePackage(pkg.id, {
@@ -63,12 +67,21 @@ export default function CheckOutModal({
           datePickedUp,
         });
       } else {
-        await checkOutPackage(pkg.id, user.id);
+        await updatePackage(pkg.id, {
+          deliveredToOffice: false,
+          checkedOutById: user.id,
+          pickedUpByUserId: pickedUpBy?.id,
+          datePickedUp,
+        });
       }
       await onSuccess();
       handleClose();
     } catch {
-      setError('Something went wrong. Please try again.');
+      showToast({
+        type: 'error',
+        title: 'Check out failed',
+        message: 'Something went wrong. Please try again.',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -104,23 +117,25 @@ export default function CheckOutModal({
           datePickedUp={datePickedUp}
           setDatePickedUp={setDatePickedUp}
           checkedOutBy={user}
-          error={error}
         />
       ),
     },
   ];
 
   return (
-    <StepModal
-      open={true}
-      title="Check Out Package"
-      size="md"
-      onClose={handleClose}
-      steps={steps}
-      onComplete={handleComplete}
-      completingLabel="Check Out"
-      completing={isSubmitting}
-    />
+    <>
+      <StepModal
+        open={true}
+        title="Check Out Package"
+        size="md"
+        onClose={handleClose}
+        steps={steps}
+        onComplete={handleComplete}
+        completingLabel="Check Out"
+        completing={isSubmitting}
+      />
+      <ToastContainer />
+    </>
   );
 }
 
@@ -136,38 +151,59 @@ function Step1MethodSelect({
   pkg: Package;
 }) {
   return (
-    <div className="space-y-3 py-2">
-      <p className="text-sm text-gray-500">
-        Package for{' '}
-        <span className="font-medium text-byu-navy">
-          {pkg.recipient?.fullName ?? 'Unknown'}
-        </span>{' '}
-        ({pkg.recipient?.netId ?? '—'})
-      </p>
+    <div className="space-y-4">
+      {/* Package details at the top */}
+      <div className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm space-y-1">
+        <p className="text-gray-500">
+          Recipient:{' '}
+          <span className="font-medium text-byu-navy">
+            {pkg.recipient?.fullName ?? '—'}
+          </span>
+          {' '}
+          <span className="text-gray-400">({pkg.recipient?.netId ?? '—'})</span>
+        </p>
+        {pkg.carrier && (
+          <p className="text-gray-500">
+            Carrier: <span className="font-medium text-byu-navy">{pkg.carrier.name}</span>
+          </p>
+        )}
+        {pkg.sender && (
+          <p className="text-gray-500">
+            Sender: <span className="font-medium text-byu-navy">{pkg.sender.name}</span>
+          </p>
+        )}
+      </div>
 
-      <button
-        type="button"
-        onClick={() => onSelect('pickup')}
-        className={methodButtonClass(method === 'pickup')}
-      >
-        <span className="text-2xl">🧍</span>
-        <div className="text-left">
-          <p className="font-medium text-sm">Picked Up</p>
-          <p className="text-xs text-gray-500">Recipient or someone else collected it</p>
-        </div>
-      </button>
+      {/* Method selection buttons */}
+      <div className="space-y-3">
+        <button
+          type="button"
+          onClick={() => onSelect('pickup')}
+          className={methodButtonClass(method === 'pickup')}
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-byu-navy/10">
+            <FiUser className="h-5 w-5 text-byu-navy" />
+          </div>
+          <div className="text-left flex-1">
+            <p className="font-medium text-sm">Picked Up</p>
+            <p className="text-xs text-gray-500">Recipient or someone else collected it</p>
+          </div>
+        </button>
 
-      <button
-        type="button"
-        onClick={() => onSelect('office')}
-        className={methodButtonClass(method === 'office')}
-      >
-        <span className="text-2xl">🚪</span>
-        <div className="text-left">
-          <p className="font-medium text-sm">Delivered to Office</p>
-          <p className="text-xs text-gray-500">Package was brought to a professor&apos;s office</p>
-        </div>
-      </button>
+        <button
+          type="button"
+          onClick={() => onSelect('office')}
+          className={methodButtonClass(method === 'office')}
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-byu-navy/10">
+            <FiHome className="h-5 w-5 text-byu-navy" />
+          </div>
+          <div className="text-left flex-1">
+            <p className="font-medium text-sm">Delivered to Office</p>
+            <p className="text-xs text-gray-500">Package was brought to a professor&apos;s office</p>
+          </div>
+        </button>
+      </div>
     </div>
   );
 }
@@ -191,7 +227,6 @@ function Step2Details({
   datePickedUp,
   setDatePickedUp,
   checkedOutBy,
-  error,
 }: {
   method: CheckoutMethod;
   pkg: Package;
@@ -200,25 +235,9 @@ function Step2Details({
   datePickedUp: string;
   setDatePickedUp: (v: string) => void;
   checkedOutBy: User | null;
-  error: string | null;
 }) {
   return (
     <FormGrid>
-      {/* Package summary - full width */}
-      <div className="md:col-span-2 rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm space-y-1">
-        <p className="text-gray-500">
-          Recipient:{' '}
-          <span className="font-medium text-byu-navy">
-            {pkg.recipient?.fullName ?? '—'}
-          </span>
-        </p>
-        {pkg.carrier && (
-          <p className="text-gray-500">
-            Carrier: <span className="font-medium text-byu-navy">{pkg.carrier.name}</span>
-          </p>
-        )}
-      </div>
-
       {/* Pickup-specific: who collected it - full width */}
       {method === 'pickup' && (
         <FieldWrapper className="md:col-span-2" label="Picked Up By" required>
@@ -238,13 +257,6 @@ function Step2Details({
         </FieldWrapper>
       )}
 
-      {/* Office delivery confirmation - full width */}
-      {method === 'office' && (
-        <p className="md:col-span-2 text-sm text-gray-600 rounded-lg bg-blue-50 border border-blue-100 px-4 py-3">
-          This package will be marked as delivered to office.
-        </p>
-      )}
-
       {/* Date - full width */}
       <FieldWrapper className="md:col-span-2" label="Date" required>
         <TextLikeField
@@ -254,17 +266,12 @@ function Step2Details({
         />
       </FieldWrapper>
 
-      {/* Checked out by - full width */}
-      <div className="md:col-span-2 rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm">
-        <p className="text-gray-500">
-          Checked out by{' '}
-          <span className="font-medium text-byu-navy">
-            {checkedOutBy?.fullName ?? 'Unknown'}
-          </span>
+      {/* Logged in as - full width */}
+      <div className="md:col-span-2 mt-2">
+        <p className="text-xs text-gray-600">
+          Logged in as <span className="font-semibold">{checkedOutBy?.fullName ?? 'Unknown'}</span>
         </p>
       </div>
-
-      {error && <p className="md:col-span-2 text-sm text-red-600">{error}</p>}
     </FormGrid>
   );
 }

@@ -86,8 +86,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// app/api/packages/route.ts - ONLY THE POST FUNCTION (leave GET unchanged)
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -107,33 +105,28 @@ export async function POST(request: NextRequest) {
 
     // Send email notification if requested
     if (notificationSent && emailOptions && new_package.recipient?.email) {
-      try {
-        const { subject, body } = emailOptions;
-        
-        const html = renderEmailTemplate({
-          name: new_package.recipient.fullName,
-          subject,
-          body,
-        });
+      const { subject, body } = emailOptions;
+      
+      const html = renderEmailTemplate({
+        name: new_package.recipient.fullName,
+        subject,
+        body,
+      });
 
-        const text = renderPlainText({
-          name: new_package.recipient.fullName,
-          body,
-        });
+      const text = renderPlainText({
+        name: new_package.recipient.fullName,
+        body,
+      });
 
-        await sendMail({
-          to: new_package.recipient.email,
-          subject,
-          text,
-          html,
-        });
+      // Let email errors bubble up - this will cause the whole request to fail
+      await sendMail({
+        to: new_package.recipient.email,
+        subject,
+        text,
+        html,
+      });
 
-        console.log(`✓ Notification sent to ${new_package.recipient.email}`);
-      } catch (emailError) {
-        // Log email failure but don't fail the package creation
-        console.error('✗ Failed to send notification email:', emailError);
-        // TODO: Consider updating package.notificationSent to false if email fails
-      }
+      console.log(`✓ Notification sent to ${new_package.recipient.email}`);
     } else if (notificationSent && !new_package.recipient?.email) {
       console.warn(`⚠ Cannot send notification: recipient ${recipientId} has no email on file`);
     }
@@ -141,7 +134,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(new_package, { status: 201 });
   } catch (error) {
     console.error('Error creating package:', error);
-    return NextResponse.json({ error: 'Failed to create package' }, { status: 500 });
+    
+    // More specific error message if it's an email error
+    const errorMessage = error instanceof Error && error.message.includes('Mail')
+      ? 'Failed to send notification email'
+      : 'Failed to create package';
+    
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
-

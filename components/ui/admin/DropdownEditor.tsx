@@ -38,78 +38,6 @@ import { CSS } from '@dnd-kit/utilities';
 
 type EditingState = { id: string; name: string } | null;
 
-/**
- * Reusable admin interface for managing ordered dropdown lists (carriers, senders, categories, etc.).
- * 
- * ## Features
- * - Drag-and-drop reordering
- * - Inline editing with keyboard shortcuts (Enter to save, Escape to cancel)
- * - Active/inactive toggle (eye icon)
- * - Delete with confirmation modal
- * - Toast notifications for all actions
- * 
- * ## Setup Requirements
- * 
- * ### 1. Database Schema
- * Your entity must have these fields:
- * ```prisma
- * model YourEntity {
- *   id       String  @id @default(cuid())
- *   name     String
- *   isActive Boolean @default(true)
- *   order    Int     @default(0)
- * }
- * ```
- * 
- * ### 2. API Functions
- * Implement these in `lib/api/yourEntities.ts`:
- * ```typescript
- * import type { DropdownEntity } from '@/types/dropdown';
- * 
- * export async function fetchYourEntities(): Promise<DropdownEntity[]>
- * export async function createYourEntity(data: { name: string }): Promise<DropdownEntity>
- * export async function updateYourEntity(id: string, data: { name?: string; isActive?: boolean }): Promise<DropdownEntity>
- * export async function deleteYourEntity(id: string): Promise<void>
- * export async function reorderYourEntities(orderedIds: string[]): Promise<void>
- * ```
- * 
- * ### 3. API Routes
- * Create these endpoints:
- * - `GET /api/your-entities` - fetch all
- * - `POST /api/your-entities` - create
- * - `PATCH /api/your-entities/[id]` - update
- * - `DELETE /api/your-entities/[id]` - delete
- * - `POST /api/your-entities/reorder` - reorder
- * 
- * ### 4. Admin Config
- * Add to `lib/adminConfigs.ts`:
- * ```typescript
- * YourEntities: {
- *   noun: 'Your Entity',
- *   component: 'dropdown' as const,
- *   dropdown: {
- *     noun: 'Your Entity',
- *     fetchItems: fetchYourEntities,
- *     createItem: createYourEntity,
- *     updateItem: updateYourEntity,
- *     deleteItem: deleteYourEntity,
- *     reorderItems: reorderYourEntities,
- *   }
- * }
- * ```
- * 
- * @example
- * ```tsx
- * <DropdownEditor
- *   noun="Carrier"
- *   fetchItems={fetchCarriers}
- *   createItem={createCarrier}
- *   updateItem={updateCarrier}
- *   deleteItem={deleteCarrier}
- *   reorderItems={reorderCarriers}
- * />
- * ```
- */
 export interface DropdownEditorProps {
   /** Human-readable singular noun (e.g., "Carrier", "Sender") used in UI messages */
   noun: string;
@@ -121,7 +49,7 @@ export interface DropdownEditorProps {
   createItem: (data: { name: string }) => Promise<DropdownEntity>;
   
   /** Update an item's name and/or active status */
-  updateItem: (id: string, data: { name?: string; isActive?: boolean }) => Promise<DropdownEntity>;
+  updateItem: (id: string, data: { name?: string; hidden?: boolean }) => Promise<DropdownEntity>;
   
   /** Permanently delete an item */
   deleteItem: (id: string) => Promise<void>;
@@ -190,7 +118,7 @@ export default function DropdownEditor({
 
   const handleToggleActive = async (item: DropdownEntity) => {
     try {
-      await updateItem(item.id, { isActive: !item.isActive });
+      await updateItem(item.id, { hidden: !item.hidden });
       await load();
     } catch {
       setToast({ type: 'error', title: 'Error', message: `Failed to update ${noun}.` });
@@ -378,7 +306,7 @@ function SortableRow({
       style={style}
       className={[
         'flex items-center gap-3 px-4 py-3',
-        item.isActive ? 'bg-white' : 'bg-gray-50',
+        !item.hidden ? 'bg-gray-50' : 'bg-white',
         isDragging ? 'shadow-lg' : '',
       ]
         .filter(Boolean)
@@ -424,7 +352,7 @@ function SortableRow({
         ) : (
           <span
             className={`text-sm ${
-              item.isActive ? 'text-byu-navy' : 'text-gray-400 line-through'
+              !item.hidden ? 'text-byu-navy' : 'text-gray-400 line-through'
             }`}
           >
             {item.name}
@@ -438,10 +366,10 @@ function SortableRow({
           <button
             type="button"
             onClick={() => onToggleActive(item)}
-            title={item.isActive ? 'Hide from dropdown' : 'Show in dropdown'}
+            title={!item.hidden ? 'Hide from dropdown' : 'Show in dropdown'}
             className="text-gray-400 hover:text-byu-navy transition-colors"
           >
-            {item.isActive
+            {!item.hidden
               ? <EyeIcon className="h-5 w-5" />
               : <EyeSlashIcon className="h-5 w-5" />
             }

@@ -21,7 +21,7 @@ export async function fetchSenders(activeOnly?: boolean): Promise<DropdownEntity
   return res.json();
 }
 
-export async function createSender(data: { name: string }): Promise<DropdownEntity> {
+export async function createSender(data: { name: string; hidden?: boolean }): Promise<DropdownEntity> {
   const res = await fetch('/api/senders', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -38,7 +38,7 @@ export async function createSender(data: { name: string }): Promise<DropdownEnti
 
 export async function updateSender(
   id: string,
-  data: { name?: string; isActive?: boolean }
+  data: { name?: string; hidden?: boolean }
 ): Promise<DropdownEntity> {
   const res = await fetch(`/api/senders/${id}`, {
     method: 'PUT',

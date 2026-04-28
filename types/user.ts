@@ -1,6 +1,6 @@
 import type { Package } from './package';
 import type { PaginatedResponse } from './pagination';
-import type { UserRole } from '@prisma/client';
+import type { Role } from '@prisma/client';
 
 export type UserListResponse = PaginatedResponse<User>;
 
@@ -9,7 +9,7 @@ export interface User {
   netId: string;
   email: string;
   fullName: string;
-  role: UserRole;
+  role: Role;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,20 +18,20 @@ export interface CreateUserRequest {
   netId: string;
   email: string;
   fullName: string;
-  role?: UserRole;
+  role?: Role;
 }
 
 export interface UpdateUserRequest {
   email?: string;
   fullName?: string;
-  role?: UserRole;
+  role?: Role;
 }
 
 // Query parameters for fetching users
 export interface UserQueryParams {
   page?: number;
   pageSize?: number;
-  role?: UserRole;
+  role?: Role;
   search?: string;
 }
 

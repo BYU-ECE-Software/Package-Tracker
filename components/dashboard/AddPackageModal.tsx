@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
 import type { DropdownEntity } from '@/types/dropdown';
-import { createPackage } from '@/lib/api/packages';
+import { createPackage, updatePackage } from '@/lib/api/packages';
 import { fetchUsers } from '@/lib/api/users';
-import { fetchCarriers } from '@/lib/api/carriers';
-import { fetchSenders } from '@/lib/api/senders';
+import { fetchCarriers, createCarrier } from '@/lib/api/carriers';
+import { fetchSenders, createSender } from '@/lib/api/senders';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
 import { useToast } from '@/hooks/useToast'; // Correct hook import
 import StepModal, { type StepConfig } from '@/components/ui/modals/StepModal';
@@ -15,7 +15,7 @@ import Typeahead from '@/components/ui/forms/Typeahead';
 import FormGrid from '@/components/ui/forms/FormGrid';
 import CheckboxField from '@/components/ui/forms/CheckboxField';
 import TextLikeField from '@/components/ui/forms/TextLikeField';
-import SelectField from '@/components/ui/forms/SelectField';
+import DropdownCombobox, { type DropdownComboboxValue } from './DropdownCombobox';
 
 export default function AddPackageModal({
   onClose,
@@ -33,12 +33,14 @@ export default function AddPackageModal({
   const [carriers, setCarriers] = useState<DropdownEntity[]>([]);
   const [senders, setSenders] = useState<DropdownEntity[]>([]);
   
+  const [carrier, setCarrier] = useState<DropdownComboboxValue>({ id: '', name: '' });
+  const [sender, setSender] = useState<DropdownComboboxValue>({ id: '', name: '' });
+
   const [packageData, setPackageData] = useState({
-    carrierId: '',
-    senderId: '',
     dateArrived: new Date().toISOString().split('T')[0],
     notes: '',
     sendEmail: true,
+    deliverToOffice: false,
   });
 
   const [emailData, setEmailData] = useState({
@@ -49,10 +51,12 @@ export default function AddPackageModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchCarriers(true).then(setCarriers).catch(console.error);
-    fetchSenders(true).then(setSenders).catch(console.error);
+    // Fetch ALL carriers/senders (including hidden) so we can match a typed
+    // name against hidden entries and reuse them instead of duplicating.
+    fetchCarriers().then(setCarriers).catch(console.error);
+    fetchSenders().then(setSenders).catch(console.error);
   }, []);
-  
+
   useEffect(() => {
     if (recipient) {
       setEmailData((prev) => ({
@@ -68,16 +72,46 @@ export default function AddPackageModal({
     setIsSubmitting(true);
 
     try {
-      await createPackage({
+      // Resolve carrier/sender. If the user typed a name that matches an
+      // existing entry (including a hidden one), reuse that id. Otherwise
+      // create a new entry as visible.
+      const carrierName = carrier.name.trim();
+      const existingCarrier = carriers.find(
+        (c) => c.name.toLowerCase() === carrierName.toLowerCase(),
+      );
+      const carrierId =
+        carrier.id ||
+        existingCarrier?.id ||
+        (await createCarrier({ name: carrierName, hidden: false })).id;
+
+      const senderName = sender.name.trim();
+      const existingSender = senders.find(
+        (s) => s.name.toLowerCase() === senderName.toLowerCase(),
+      );
+      const senderId =
+        sender.id ||
+        existingSender?.id ||
+        (await createSender({ name: senderName, hidden: false })).id;
+
+      const newPackage = await createPackage({
         recipientId: recipient.id,
-        carrierId: packageData.carrierId,
-        senderId: packageData.senderId,
+        carrierId,
+        senderId,
         notes: packageData.notes || undefined,
         dateArrived: packageData.dateArrived,
         checkedInById: user.id,
         notificationSent: packageData.sendEmail,
         emailOptions: packageData.sendEmail ? emailData : undefined,
       });
+
+      // Auto-check-out as office delivery when requested.
+      if (packageData.deliverToOffice) {
+        await updatePackage(newPackage.id, {
+          deliveredToOffice: true,
+          checkedOutById: user.id,
+          datePickedUp: packageData.dateArrived,
+        });
+      }
       
       // Success Toast
       showToast({ 
@@ -88,12 +122,16 @@ export default function AddPackageModal({
 
       await onSuccess();
       onClose();
-    } catch {
-      // Error Toast appears on the screen you clicked "Submit" on
-      showToast({ 
-        type: 'error', 
-        title: 'Submission Failed', 
-        message: 'Could not add package. Please check your SMTP settings or connection.' 
+    } catch (err) {
+      const rawMessage = err instanceof Error ? err.message : String(err);
+      const isEmailError = /mail|smtp|notification email/i.test(rawMessage);
+
+      showToast({
+        type: 'error',
+        title: isEmailError ? 'Notification email failed' : 'Submission failed',
+        message: isEmailError
+          ? `${rawMessage}. Check your SMTP settings or connection.`
+          : rawMessage || 'Could not add package. Please try again.',
       });
     } finally {
       setIsSubmitting(false);
@@ -103,7 +141,7 @@ export default function AddPackageModal({
   const steps: StepConfig[] = [
     {
       title: 'Enter package details',
-      canAdvance: !!recipient && !!packageData.carrierId && !!packageData.senderId,
+      canAdvance: !!recipient && !!carrier.name.trim() && !!sender.name.trim(),
       content: (
         <FormGrid>
           <FieldWrapper label="Recipient" required className="md:col-span-2">
@@ -122,24 +160,22 @@ export default function AddPackageModal({
           </FieldWrapper>
 
           <FieldWrapper label="Carrier" required>
-            <SelectField
-              value={packageData.carrierId}
-              placeholder="Select carrier"
-              options={carriers
-                .filter((c) => c.isActive)
-                .map((c) => ({ label: c.name, value: c.id }))}
-              onChange={(v: string) => setPackageData((p) => ({ ...p, carrierId: v }))}
+            <DropdownCombobox
+              items={carriers.filter((c) => !c.hidden)}
+              value={carrier}
+              onChange={setCarrier}
+              placeholder="Select or type a new carrier…"
+              disabled={isSubmitting}
             />
           </FieldWrapper>
 
           <FieldWrapper label="Sender" required>
-            <SelectField
-              value={packageData.senderId}
-              placeholder="Select sender"
-              options={senders
-                .filter((s) => s.isActive)
-                .map((s) => ({ label: s.name, value: s.id }))}
-              onChange={(v: string) => setPackageData((p) => ({ ...p, senderId: v }))}
+            <DropdownCombobox
+              items={senders.filter((s) => !s.hidden)}
+              value={sender}
+              onChange={setSender}
+              placeholder="Select or type a new sender…"
+              disabled={isSubmitting}
             />
           </FieldWrapper>
 
@@ -151,16 +187,22 @@ export default function AddPackageModal({
             />
           </FieldWrapper>
 
-          {/* Fixed Alignment: Using FieldWrapper with an empty label matches the other field heights */}
-          <FieldWrapper label=" ">
-            <div className="flex items-center gap-3 pt-2">
+          <FieldWrapper label="">
+            <div className="-mt-4 pl-4 space-y-2">
               <CheckboxField
                 checked={packageData.sendEmail}
                 onChange={(checked: boolean) =>
                   setPackageData((p) => ({ ...p, sendEmail: checked }))
                 }
+                label="Send notification email"
               />
-              <span className="text-sm font-medium text-gray-700">Send notification email?</span>
+              <CheckboxField
+                checked={packageData.deliverToOffice}
+                onChange={(checked: boolean) =>
+                  setPackageData((p) => ({ ...p, deliverToOffice: checked }))
+                }
+                label="Deliver To Office"
+              />
             </div>
           </FieldWrapper>
 
@@ -173,9 +215,10 @@ export default function AddPackageModal({
             />
           </FieldWrapper>
 
-          <div className="md:col-span-2 mt-4 opacity-40">
-             <p className="text-[10px] uppercase tracking-widest text-gray-500">
-               Logged by <span className="font-bold">{user?.fullName ?? 'Unknown'}</span>
+          {/* Fixed: reduced gap (mt-4 → mt-2), darker text, better wording */}
+          <div className="md:col-span-2">
+             <p className="text-xs text-gray-600">
+               Logged in as <span className="font-semibold">{user?.fullName ?? 'Unknown'}</span>
              </p>
           </div>
         </FormGrid>

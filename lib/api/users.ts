@@ -10,7 +10,7 @@ import { type
   CreateUserRequest,
   UpdateUserRequest,
 } from '@/types/user';
-import { UserRole } from '@prisma/client';
+import { Role } from '@prisma/client';
 
 /**
  * Fetch all users with optional filtering and pagination
@@ -116,7 +116,7 @@ export async function deleteUser(id: string): Promise<void> {
 /**
  * Fetch users by role (convenience function)
  */
-export async function fetchUsersByRole(role: UserRole): Promise<User[]> {
+export async function fetchUsersByRole(role: Role): Promise<User[]> {
   const response = await fetchUsers({ role, pageSize: 1000 });
   return response.data;
 }
@@ -125,7 +125,7 @@ export async function fetchUsersByRole(role: UserRole): Promise<User[]> {
  * Fetch all students (convenience function)
  */
 export async function fetchStudents(): Promise<User[]> {
-  return fetchUsersByRole(UserRole.STUDENT);
+  return fetchUsersByRole(Role.STUDENT);
 }
 
 /**

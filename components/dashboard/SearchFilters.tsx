@@ -148,7 +148,7 @@ export default function SearchFilters({
               >
                 <option value="">All carriers</option>
                 {carriers
-                  .filter((c) => c.isActive)
+                  .filter((c) => !c.hidden)
                   .map((carrier) => (
                     <option key={carrier.id} value={carrier.id}>
                       {carrier.name}
@@ -181,7 +181,7 @@ export default function SearchFilters({
               >
                 <option value="">All senders</option>
                 {senders
-                  .filter((s) => s.isActive)
+                  .filter((s) => !s.hidden)
                   .map((sender) => (
                     <option key={sender.id} value={sender.id}>
                       {sender.name}

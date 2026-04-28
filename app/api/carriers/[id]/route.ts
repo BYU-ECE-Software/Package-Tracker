@@ -36,9 +36,9 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    const updateData: { name?: string; isActive?: boolean } = {};
+    const updateData: { name?: string; hidden?: boolean } = {};
     if (body.name !== undefined) updateData.name = body.name;
-    if (body.isActive !== undefined) updateData.isActive = body.isActive;
+    if (body.hidden !== undefined) updateData.hidden = body.hidden;
 
     const carrier = await prisma.carrier.update({
       where: { id },

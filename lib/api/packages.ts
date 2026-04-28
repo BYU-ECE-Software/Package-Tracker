@@ -36,8 +36,11 @@ export async function createPackage(data: CreatePackageRequest): Promise<Package
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  
-  if (!res.ok) throw new Error('Failed to create package');
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ error: 'Failed to create package' }));
+    throw new Error(body.error || 'Failed to create package');
+  }
   return res.json();
 }
 
@@ -47,8 +50,11 @@ export async function updatePackage(id: string, data: UpdatePackageRequest): Pro
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  
-  if (!res.ok) throw new Error('Failed to update package');
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ error: 'Failed to update package' }));
+    throw new Error(body.error || 'Failed to update package');
+  }
   return res.json();
 }
 
