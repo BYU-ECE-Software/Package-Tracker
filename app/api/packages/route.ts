@@ -3,6 +3,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import sendMail from '@/lib/mailer'; // Import your mailer utility
+import { renderEmailTemplate, renderPlainText } from '@/lib/emailTemplate';
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -83,30 +86,62 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// app/api/packages/route.ts - ONLY THE POST FUNCTION (leave GET unchanged)
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+    const { recipientId, carrierId, senderId, notes, dateArrived, notificationSent, emailOptions } = body;
+
     const new_package = await prisma.package.create({
       data: {
-        recipientId: body.recipientId,
-        carrierId: body.carrierId ?? null,
-        senderId:  body.senderId  ?? null,
-        notes:     body.notes     ?? null,
+        recipientId,
+        carrierId: carrierId || null,
+        senderId: senderId || null,
+        notes: notes || null,
+        dateArrived: dateArrived ? new Date(dateArrived) : new Date(),
+        notificationSent: notificationSent || false,
       },
-      include: {
-        recipient: true,
-      },
+      include: { recipient: true },
     });
-    
+
+    // Send email notification if requested
+    if (notificationSent && emailOptions && new_package.recipient?.email) {
+      try {
+        const { subject, body } = emailOptions;
+        
+        const html = renderEmailTemplate({
+          name: new_package.recipient.fullName,
+          subject,
+          body,
+        });
+
+        const text = renderPlainText({
+          name: new_package.recipient.fullName,
+          body,
+        });
+
+        await sendMail({
+          to: new_package.recipient.email,
+          subject,
+          text,
+          html,
+        });
+
+        console.log(`✓ Notification sent to ${new_package.recipient.email}`);
+      } catch (emailError) {
+        // Log email failure but don't fail the package creation
+        console.error('✗ Failed to send notification email:', emailError);
+        // TODO: Consider updating package.notificationSent to false if email fails
+      }
+    } else if (notificationSent && !new_package.recipient?.email) {
+      console.warn(`⚠ Cannot send notification: recipient ${recipientId} has no email on file`);
+    }
+
     return NextResponse.json(new_package, { status: 201 });
   } catch (error) {
     console.error('Error creating package:', error);
-    return NextResponse.json(
-      { error: 'Failed to create package' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create package' }, { status: 500 });
   }
 }
-
 

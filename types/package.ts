@@ -32,6 +32,11 @@ export interface CreatePackageRequest {
   notes?: string;
   dateArrived?: string;
   checkedInById?: string;
+  notificationSent?: boolean; // Added
+  emailOptions?: {             // Added
+    subject: string;
+    body: string;
+  };
 }
 
 export interface UpdatePackageRequest {
