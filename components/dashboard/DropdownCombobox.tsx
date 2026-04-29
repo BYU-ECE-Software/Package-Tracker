@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import type { DropdownEntity } from '@/types/dropdown';
 import { INPUT_CLASS } from '@/components/ui/forms/formFieldStyles';
@@ -18,6 +19,12 @@ type Props = {
   disabled?: boolean;
 };
 
+type Position = {
+  top: number;
+  left: number;
+  width: number;
+};
+
 export default function DropdownCombobox({
   items,
   value,
@@ -27,29 +34,63 @@ export default function DropdownCombobox({
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
+  const [position, setPosition] = useState<Position | null>(null);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Once an item is selected (value.id set), input text mirrors the selection,
+  // so we don't want to filter by it — that would trap the user with a list of
+  // one. Treat selection as "no query" until they actually type, which clears
+  // the id.
+  const query = value.id ? '' : value.name.trim().toLowerCase();
+  const filtered = query
+    ? items.filter((it) => it.name.toLowerCase().includes(query))
+    : items;
+
+  const exactMatch = items.find((it) => it.name.toLowerCase() === query);
+  const showCreateRow = !!query && !exactMatch;
+
+  // Click outside closes — but only if the click is outside *both* the input
+  // wrapper and the portaled dropdown.
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
+      const target = e.target as Node;
+      if (
+        wrapperRef.current?.contains(target) ||
+        dropdownRef.current?.contains(target)
+      ) {
+        return;
       }
+      setIsOpen(false);
     };
     document.addEventListener('mousedown', onClickOutside);
     return () => document.removeEventListener('mousedown', onClickOutside);
   }, []);
 
-  const query = value.name.trim().toLowerCase();
-  const filtered = query
-    ? items.filter((it) => it.name.toLowerCase().includes(query))
-    : items;
+  // Reposition the portaled dropdown anytime layout could shift.
+  useLayoutEffect(() => {
+    if (!isOpen) return;
 
-  const exactMatch = items.find(
-    (it) => it.name.toLowerCase() === query,
-  );
-  const showCreateRow = !!query && !exactMatch;
+    const updatePosition = () => {
+      const rect = wrapperRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setPosition({
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     setHighlight(0);
@@ -99,6 +140,58 @@ export default function DropdownCombobox({
     }
   };
 
+  const showDropdown =
+    isOpen && !disabled && (filtered.length > 0 || showCreateRow) && position;
+
+  const dropdownContent = showDropdown ? (
+    <div
+      ref={dropdownRef}
+      style={{
+        position: 'fixed',
+        top: position!.top,
+        left: position!.left,
+        width: position!.width,
+      }}
+      className="z-[55] max-h-60 overflow-auto rounded-md border border-gray-300 bg-white shadow-lg"
+    >
+      {filtered.map((item, index) => (
+        <button
+          key={item.id}
+          type="button"
+          onMouseEnter={() => setHighlight(index)}
+          onClick={() => select(item)}
+          className={`block w-full px-3 py-2 text-left text-sm transition ${
+            highlight === index
+              ? 'bg-byu-royal/10 text-byu-navy'
+              : 'text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          {item.name}
+        </button>
+      ))}
+
+      {showCreateRow && (
+        <button
+          type="button"
+          onMouseEnter={() => setHighlight(filtered.length)}
+          onClick={() => {
+            // Keep typed name, leave id empty — parent creates on submit.
+            setIsOpen(false);
+            inputRef.current?.blur();
+          }}
+          className={`block w-full cursor-pointer px-3 py-2 text-left text-sm transition ${
+            highlight === filtered.length
+              ? 'bg-byu-royal/10 text-byu-navy'
+              : 'text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          <span className="text-xs text-gray-500">Create new </span>
+          <span className="font-medium">“{value.name.trim()}”</span>
+        </button>
+      )}
+    </div>
+  ) : null;
+
   return (
     <div ref={wrapperRef} className="relative">
       <input
@@ -112,7 +205,13 @@ export default function DropdownCombobox({
           onChange({ id: '', name: e.target.value });
           setIsOpen(true);
         }}
-        onFocus={() => !disabled && setIsOpen(true)}
+        onFocus={(e) => {
+          if (disabled) return;
+          setIsOpen(true);
+          // If a selection is already locked in, highlight it so the user can
+          // type to replace without manually clearing first.
+          if (value.id) e.target.select();
+        }}
         onKeyDown={handleKeyDown}
         className={`${INPUT_CLASS} pr-9`}
       />
@@ -133,39 +232,9 @@ export default function DropdownCombobox({
         <ChevronDownIcon className="h-5 w-5" />
       </button>
 
-      {isOpen && !disabled && (filtered.length > 0 || showCreateRow) && (
-        <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-300 bg-white shadow-lg">
-          {filtered.map((item, index) => (
-            <button
-              key={item.id}
-              type="button"
-              onMouseEnter={() => setHighlight(index)}
-              onClick={() => select(item)}
-              className={`block w-full px-3 py-2 text-left text-sm transition ${
-                highlight === index
-                  ? 'bg-byu-royal/10 text-byu-navy'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              {item.name}
-            </button>
-          ))}
-
-          {showCreateRow && (
-            <div
-              onMouseEnter={() => setHighlight(filtered.length)}
-              className={`px-3 py-2 text-sm transition ${
-                highlight === filtered.length
-                  ? 'bg-byu-royal/10 text-byu-navy'
-                  : 'text-gray-700'
-              }`}
-            >
-              <span className="text-xs text-gray-500">Create new </span>
-              <span className="font-medium">“{value.name.trim()}”</span>
-            </div>
-          )}
-        </div>
-      )}
+      {typeof document !== 'undefined' && dropdownContent
+        ? createPortal(dropdownContent, document.body)
+        : null}
     </div>
   );
 }

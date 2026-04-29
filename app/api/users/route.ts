@@ -20,25 +20,51 @@ export async function GET(request: NextRequest) {
     if (role) where.role = role;
     
     if (search) {
+      // Note: email is intentionally excluded — every BYU email contains
+      // "byu.edu", so any single letter in the domain matches every user.
       where.OR = [
         { fullName: { contains: search, mode: 'insensitive' } },
         { netId: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
       ];
     }
-    
+
+    // Fetch the alphabetical page from the DB, then rank by relevance below.
+    // For relevance to be meaningful when paging, we over-fetch slightly so
+    // the rank pass has a real candidate pool to reorder.
+    const fetchSize = search ? Math.max(pageSize * 3, 30) : pageSize;
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         where,
         skip,
-        take: pageSize,
+        take: fetchSize,
         orderBy: { fullName: 'asc' },
       }),
       prisma.user.count({ where }),
     ]);
-    
+
+    // Rank: prefix match on fullName (rank 0), word-start match within
+    // fullName (rank 1), prefix on netId (rank 2), everything else (rank 3).
+    // Stable secondary sort by fullName preserves alphabetical order within
+    // each rank.
+    const ranked = search
+      ? users
+          .map((u) => {
+            const q = search.toLowerCase();
+            const name = u.fullName.toLowerCase();
+            const netId = u.netId.toLowerCase();
+            let rank = 3;
+            if (name.startsWith(q)) rank = 0;
+            else if (name.split(/\s+/).some((w) => w.startsWith(q))) rank = 1;
+            else if (netId.startsWith(q)) rank = 2;
+            return { user: u, rank };
+          })
+          .sort((a, b) => a.rank - b.rank)
+          .slice(0, pageSize)
+          .map((r) => r.user)
+      : users;
+
     return NextResponse.json({
-      data: users,
+      data: ranked,
       total,
       page,
       pageSize,

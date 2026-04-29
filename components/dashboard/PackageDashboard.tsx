@@ -5,7 +5,7 @@ import { FiPlus } from 'react-icons/fi';
 import type { Package } from '@/types/package';
 import type { PaginationState } from '@/types/pagination';
 import type { DropdownEntity } from '@/types/dropdown';
-import { fetchPackages, deletePackage } from '@/lib/api/packages';
+import { fetchPackages, fetchPackageById, deletePackage } from '@/lib/api/packages';
 import { fetchCarriers } from '@/lib/api/carriers';
 import { fetchSenders } from '@/lib/api/senders';
 import { useToast } from '@/hooks/useToast';
@@ -182,6 +182,16 @@ export default function PackageDashboard() {
         <ViewPackageModal
           pkg={detailsPackage}
           onClose={() => setDetailsPackage(null)}
+          onSuccess={async () => {
+            // Refresh both: the open modal (so notification list + status
+            // flip show immediately) and the underlying list.
+            const id = detailsPackage.id;
+            const [fresh] = await Promise.all([
+              fetchPackageById(id),
+              loadPackages(),
+            ]);
+            setDetailsPackage(fresh);
+          }}
         />
       )}
 

@@ -15,7 +15,6 @@ export default function StudentDashboard() {
   const { showToast, ToastContainer } = useToast();
 
   const [packages, setPackages] = useState<Package[]>([]);
-  const [detailsPackage, setDetailsPackage] = useState<Package | null>(null);
   const [activeOnly, setActiveOnly] = useState(true);
 
   const loadPackages = useCallback(async () => {
@@ -67,21 +66,12 @@ export default function StudentDashboard() {
       {/* Table */}
       <PackageDataTable
         packages={packages}
-        onRowClick={setDetailsPackage}
         onEdit={() => {}} // Students can't edit
         onCheckOut={() => {}} // Students can't checkout
         onDelete={() => {}} // Students can't delete
         readOnly={true}
         showStatus={true}
       />
-
-      {/* View Modal */}
-      {detailsPackage && (
-        <ViewPackageModal
-          pkg={detailsPackage}
-          onClose={() => setDetailsPackage(null)}
-        />
-      )}
 
       <ToastContainer />
       </div>

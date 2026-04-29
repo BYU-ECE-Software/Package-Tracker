@@ -19,9 +19,10 @@ export async function GET(
         pickedUpBy: true,
         carrier: true,
         sender: true,
+        notifications: { orderBy: { sentAt: 'desc' } },
       },
     });
-    
+
     if (!package_record) {
       return NextResponse.json(
         { error: 'Package not found' },
@@ -84,9 +85,10 @@ export async function PUT(
         pickedUpBy: true,
         carrier: true,
         sender: true,
+        notifications: { orderBy: { sentAt: 'desc' } },
       },
     });
-    
+
     return NextResponse.json(updatedPackage);
   } catch (error) {
     console.error('Error updating package:', error);

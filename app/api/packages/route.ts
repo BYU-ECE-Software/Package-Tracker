@@ -3,8 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import sendMail from '@/lib/mailer'; // Import your mailer utility
-import { renderEmailTemplate, renderPlainText } from '@/lib/emailTemplate';
+import { sendAndLogNotification } from '@/lib/notifications';
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,7 +15,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * pageSize;
 
     // Sorting
-    const sortBy = searchParams.get('sortBy') || 'createdAt';
+    const sortBy = searchParams.get('sortBy') || 'dateArrived';
     const order = searchParams.get('order') || 'desc';
 
     // Filters
@@ -65,6 +64,7 @@ export async function GET(request: NextRequest) {
           checkedOutBy: true,
           carrier: true,
           sender: true,
+          notifications: { orderBy: { sentAt: 'desc' } },
         },
       }),
       prisma.package.count({ where }),
@@ -89,7 +89,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { recipientId, carrierId, senderId, notes, dateArrived, notificationSent, emailOptions } = body;
+    const {
+      recipientId,
+      carrierId,
+      senderId,
+      notes,
+      dateArrived,
+      checkedInById,
+      notificationSent,
+      emailOptions,
+    } = body;
 
     const new_package = await prisma.package.create({
       data: {
@@ -98,34 +107,25 @@ export async function POST(request: NextRequest) {
         senderId: senderId || null,
         notes: notes || null,
         dateArrived: dateArrived ? new Date(dateArrived) : new Date(),
-        notificationSent: notificationSent || false,
+        checkedInById: checkedInById || null,
+        // notificationSent flips to true only when the email actually goes out
+        // (handled by sendAndLogNotification). If we set it here too, a send
+        // failure would leave it permanently true.
+        notificationSent: false,
       },
       include: { recipient: true },
     });
 
-    // Send email notification if requested
+    // Send + log the arrival notification if requested.
     if (notificationSent && emailOptions && new_package.recipient?.email) {
-      const { subject, body } = emailOptions;
-      
-      const html = renderEmailTemplate({
-        name: new_package.recipient.fullName,
-        subject,
-        body,
+      await sendAndLogNotification({
+        packageId: new_package.id,
+        recipientId: new_package.recipientId,
+        recipientEmail: new_package.recipient.email,
+        recipientName: new_package.recipient.fullName,
+        subject: emailOptions.subject,
+        body: emailOptions.body,
       });
-
-      const text = renderPlainText({
-        name: new_package.recipient.fullName,
-        body,
-      });
-
-      // Let email errors bubble up - this will cause the whole request to fail
-      await sendMail({
-        to: new_package.recipient.email,
-        subject,
-        text,
-        html,
-      });
-
       console.log(`✓ Notification sent to ${new_package.recipient.email}`);
     } else if (notificationSent && !new_package.recipient?.email) {
       console.warn(`⚠ Cannot send notification: recipient ${recipientId} has no email on file`);

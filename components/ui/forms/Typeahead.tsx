@@ -4,6 +4,10 @@
 //   - disabled: locks input + clear button + dropdown
 //   - debounceMs: tune debounce delay (default 300ms)
 //   - noResultsMessage / loadingMessage: customize empty + loading copy
+//   - initialItems / initialItemsLabel: list of pre-populated suggestions
+//     shown when the input is empty and focused (e.g. "frecent" / "popular"
+//     items). Coexists with suggestedItem — both render when empty, and
+//     keyboard navigation walks across both lists in order.
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -28,6 +32,14 @@ export type TypeaheadProps<T> = {
   noResultsMessage?: string;
   /** Copy shown while fetchItems is in flight (default "Searching..."). */
   loadingMessage?: string;
+  /**
+   * Items to show when the input is empty and focused — useful for "recently
+   * used" or "most common" pre-populated suggestions. Renders below
+   * suggestedItem (if both are provided).
+   */
+  initialItems?: T[];
+  /** Optional header label shown above the initialItems list. */
+  initialItemsLabel?: string;
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -46,6 +58,8 @@ export default function Typeahead<T>({
   debounceMs = 300,
   noResultsMessage = 'No results found',
   loadingMessage = 'Searching...',
+  initialItems,
+  initialItemsLabel,
 }: TypeaheadProps<T>) {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -127,26 +141,35 @@ export default function Typeahead<T>({
     setIsOpen(true);
   };
 
+  // Flat list of selectable items in current dropdown order. When searching,
+  // it's the search results; when empty, it's [suggestedItem?, ...initialItems].
+  // Highlight index walks this list so keyboard nav works across both lists.
+  const emptyStateItems: T[] = !searchTerm
+    ? [
+        ...(suggestedItem ? [suggestedItem] : []),
+        ...(initialItems ?? []),
+      ]
+    : [];
+  const navItems: T[] = searchTerm ? results : emptyStateItems;
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) return;
 
-    const itemCount = searchTerm ? results.length : suggestedItem ? 1 : 0;
+    const itemCount = navItems.length;
 
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setHighlightedIndex((prev) => (prev + 1) % itemCount);
+        if (itemCount > 0) setHighlightedIndex((prev) => (prev + 1) % itemCount);
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setHighlightedIndex((prev) => (prev - 1 + itemCount) % itemCount);
+        if (itemCount > 0) setHighlightedIndex((prev) => (prev - 1 + itemCount) % itemCount);
         break;
       case 'Enter':
         e.preventDefault();
-        if (searchTerm && results[highlightedIndex]) {
-          handleSelect(results[highlightedIndex]);
-        } else if (!searchTerm && suggestedItem && highlightedIndex === 0) {
-          handleSelect(suggestedItem);
+        if (navItems[highlightedIndex]) {
+          handleSelect(navItems[highlightedIndex]);
         }
         break;
       case 'Escape':
@@ -158,12 +181,16 @@ export default function Typeahead<T>({
   };
 
   // Determine what to show in dropdown
-  const showSuggested = !searchTerm && suggestedItem;
+  const showSuggested = !searchTerm && !!suggestedItem;
+  const showInitialItems = !searchTerm && !!initialItems && initialItems.length > 0;
   const showResults = searchTerm && results.length > 0;
   const showLoading = searchTerm && loading;
   const showEmpty = searchTerm && !loading && results.length === 0;
   const showDropdown =
-    isOpen && !disabled && (showSuggested || showResults || showLoading || showEmpty);
+    isOpen && !disabled && (showSuggested || showInitialItems || showResults || showLoading || showEmpty);
+
+  // Index offset for initialItems within the unified empty-state nav list.
+  const initialItemsOffset = suggestedItem ? 1 : 0;
 
   return (
     <div className={`relative ${className}`}>
@@ -209,7 +236,7 @@ export default function Typeahead<T>({
           className="absolute z-10 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg max-h-60 overflow-auto"
         >
           {/* Suggested item */}
-          {showSuggested && (
+          {showSuggested && suggestedItem && (
             <button
               type="button"
               onClick={() => handleSelect(suggestedItem)}
@@ -227,6 +254,35 @@ export default function Typeahead<T>({
                 {getLabel(suggestedItem)}
               </span>
             </button>
+          )}
+
+          {/* Pre-populated initial items (e.g. recently used / most common) */}
+          {showInitialItems && (
+            <>
+              {initialItemsLabel && (
+                <div className="px-3 pt-2 pb-1 text-xs font-medium text-gray-500">
+                  {initialItemsLabel}
+                </div>
+              )}
+              {initialItems!.map((item, i) => {
+                const navIndex = initialItemsOffset + i;
+                return (
+                  <button
+                    key={getKey(item)}
+                    type="button"
+                    onClick={() => handleSelect(item)}
+                    onMouseEnter={() => setHighlightedIndex(navIndex)}
+                    className={`w-full px-3 py-2 text-left text-sm cursor-pointer transition ${
+                      highlightedIndex === navIndex
+                        ? 'bg-byu-royal/10 text-byu-navy'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {getLabel(item)}
+                  </button>
+                );
+              })}
+            </>
           )}
 
           {/* Search results */}

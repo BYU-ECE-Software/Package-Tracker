@@ -27,6 +27,19 @@ export interface Package {
   status: PackageStatus;                // NEW
   notes: string | null;
   notificationSent: boolean;
+  notifications?: PackageNotification[];
+}
+
+export interface PackageNotification {
+  id: string;
+  packageId: string;
+  recipientId: string;
+  subject: string;
+  body: string;
+  sentAt: Date;
+  readAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CreatePackageRequest {

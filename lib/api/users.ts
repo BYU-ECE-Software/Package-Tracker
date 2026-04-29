@@ -143,3 +143,20 @@ export async function searchUsers(searchTerm: string): Promise<User[]> {
   const response = await fetchUsers({ search: searchTerm, pageSize: 50 });
   return response.data;
 }
+
+/**
+ * Fetch recipients ranked by how many packages they've received in the last
+ * week, most frequent first. Used to pre-populate recipient pickers.
+ */
+export async function fetchTopRecipients(): Promise<User[]> {
+  const res = await fetch('/api/packages/top-recipients', {
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: 'Failed to fetch top recipients' }));
+    throw new Error(error.error || 'Failed to fetch top recipients');
+  }
+
+  return res.json();
+}

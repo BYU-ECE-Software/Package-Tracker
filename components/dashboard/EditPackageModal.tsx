@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import type { Package } from '@/types/package';
 import type { DropdownEntity } from '@/types/dropdown';
 import { updatePackage } from '@/lib/api/packages';
-import { fetchCarriers } from '@/lib/api/carriers';
-import { fetchSenders } from '@/lib/api/senders';
+import { fetchCarriers, createCarrier } from '@/lib/api/carriers';
+import { fetchSenders, createSender } from '@/lib/api/senders';
 import { useToast } from '@/hooks/useToast';
 import FormModal, { type FormModalField } from '@/components/ui/modals/FormModal';
 import FieldWrapper from '@/components/ui/forms/FieldWrapper';
+import DropdownCombobox, { type DropdownComboboxValue } from './DropdownCombobox';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,10 +20,7 @@ interface EditPackageModalProps {
 }
 
 type EditPackageFormValues = {
-  carrierId: string;
-  senderId: string;
   notes: string;
-  notificationSent: boolean;
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -31,10 +29,16 @@ export default function EditPackageModal({ onClose, pkg, onSuccess }: EditPackag
   const { showToast, ToastContainer } = useToast({ position: 'bottom-right' });
 
   const [values, setValues] = useState<EditPackageFormValues>({
-    carrierId: pkg.carrierId ?? '',
-    senderId: pkg.senderId ?? '',
     notes: pkg.notes ?? '',
-    notificationSent: pkg.notificationSent ?? false,
+  });
+
+  const [carrier, setCarrier] = useState<DropdownComboboxValue>({
+    id: pkg.carrierId ?? '',
+    name: pkg.carrier?.name ?? '',
+  });
+  const [sender, setSender] = useState<DropdownComboboxValue>({
+    id: pkg.senderId ?? '',
+    name: pkg.sender?.name ?? '',
   });
 
   const [carriers, setCarriers] = useState<DropdownEntity[]>([]);
@@ -42,28 +46,48 @@ export default function EditPackageModal({ onClose, pkg, onSuccess }: EditPackag
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchCarriers(true).then(setCarriers).catch(console.error);
-    fetchSenders(true).then(setSenders).catch(console.error);
+    // Fetch all (including hidden) so a typed name can match a hidden entry
+    // and reuse it instead of creating a duplicate.
+    fetchCarriers().then(setCarriers).catch(console.error);
+    fetchSenders().then(setSenders).catch(console.error);
   }, []);
 
-  // Re-sync values whenever pkg changes (parent may pass a different package)
+  // Re-sync whenever pkg changes (parent may pass a different package)
   useEffect(() => {
-    setValues({
-      carrierId: pkg.carrierId ?? '',
-      senderId: pkg.senderId ?? '',
-      notes: pkg.notes ?? '',
-      notificationSent: pkg.notificationSent ?? false,
-    });
+    setValues({ notes: pkg.notes ?? '' });
+    setCarrier({ id: pkg.carrierId ?? '', name: pkg.carrier?.name ?? '' });
+    setSender({ id: pkg.senderId ?? '', name: pkg.sender?.name ?? '' });
   }, [pkg]);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      // Resolve carrier/sender. If the user typed a name matching an existing
+      // entry (including a hidden one), reuse that id. Otherwise create new.
+      const carrierName = carrier.name.trim();
+      const existingCarrier = carriers.find(
+        (c) => c.name.toLowerCase() === carrierName.toLowerCase(),
+      );
+      const carrierId = carrierName
+        ? carrier.id ||
+          existingCarrier?.id ||
+          (await createCarrier({ name: carrierName, hidden: false })).id
+        : undefined;
+
+      const senderName = sender.name.trim();
+      const existingSender = senders.find(
+        (s) => s.name.toLowerCase() === senderName.toLowerCase(),
+      );
+      const senderId = senderName
+        ? sender.id ||
+          existingSender?.id ||
+          (await createSender({ name: senderName, hidden: false })).id
+        : undefined;
+
       await updatePackage(pkg.id, {
-        carrierId: values.carrierId || undefined,
-        senderId: values.senderId || undefined,
+        carrierId,
+        senderId,
         notes: values.notes || undefined,
-        notificationSent: values.notificationSent,
       });
       await onSuccess();
     } catch {
@@ -92,24 +116,34 @@ export default function EditPackageModal({ onClose, pkg, onSuccess }: EditPackag
       ),
     },
     {
-      kind: 'select',
-      key: 'carrierId',
-      label: 'Carrier',
-      options: carriers.map((c) => ({ label: c.name, value: c.id })),
-      placeholder: 'Select carrier',
+      kind: 'custom',
+      key: 'carrier',
+      render: () => (
+        <FieldWrapper label="Carrier" required>
+          <DropdownCombobox
+            items={carriers.filter((c) => !c.hidden)}
+            value={carrier}
+            onChange={setCarrier}
+            placeholder="Select or type a new carrier…"
+            disabled={isSubmitting}
+          />
+        </FieldWrapper>
+      ),
     },
     {
-      kind: 'select',
-      key: 'senderId',
-      label: 'Sender',
-      options: senders.map((s) => ({ label: s.name, value: s.id })),
-      placeholder: 'Select sender',
-    },
-    {
-      kind: 'checkbox',
-      key: 'notificationSent',
-      label: 'Recipient Notified',
-      colSpan: 2,
+      kind: 'custom',
+      key: 'sender',
+      render: () => (
+        <FieldWrapper label="Sender" required>
+          <DropdownCombobox
+            items={senders.filter((s) => !s.hidden)}
+            value={sender}
+            onChange={setSender}
+            placeholder="Select or type a new sender…"
+            disabled={isSubmitting}
+          />
+        </FieldWrapper>
+      ),
     },
     {
       key: 'notes',

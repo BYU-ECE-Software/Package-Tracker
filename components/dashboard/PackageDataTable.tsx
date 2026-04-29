@@ -9,7 +9,7 @@ import { PackageStatusBadge } from './packageStatus';
 
 interface PackageDataTableProps {
   packages: Package[];
-  onRowClick: (pkg: Package) => void;
+  onRowClick?: (pkg: Package) => void;
   onEdit: (pkg: Package) => void;
   onCheckOut: (pkg: Package) => void;
   onDelete: (pkg: Package) => void;

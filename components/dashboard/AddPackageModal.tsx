@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
 import type { DropdownEntity } from '@/types/dropdown';
 import { createPackage, updatePackage } from '@/lib/api/packages';
-import { fetchUsers } from '@/lib/api/users';
+import { fetchUsers, fetchTopRecipients } from '@/lib/api/users';
 import { fetchCarriers, createCarrier } from '@/lib/api/carriers';
 import { fetchSenders, createSender } from '@/lib/api/senders';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
@@ -30,6 +30,7 @@ export default function AddPackageModal({
   const { showToast, ToastContainer } = useToast({ position: 'bottom-right' });
   
   const [recipient, setRecipient] = useState<User | null>(null);
+  const [topRecipients, setTopRecipients] = useState<User[]>([]);
   const [carriers, setCarriers] = useState<DropdownEntity[]>([]);
   const [senders, setSenders] = useState<DropdownEntity[]>([]);
   
@@ -55,6 +56,7 @@ export default function AddPackageModal({
     // name against hidden entries and reuse them instead of duplicating.
     fetchCarriers().then(setCarriers).catch(console.error);
     fetchSenders().then(setSenders).catch(console.error);
+    fetchTopRecipients().then(setTopRecipients).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -156,6 +158,7 @@ export default function AddPackageModal({
               getKey={(u) => u.id}
               placeholder="Search by name or Net ID..."
               disabled={isSubmitting}
+              initialItems={topRecipients}
             />
           </FieldWrapper>
 
