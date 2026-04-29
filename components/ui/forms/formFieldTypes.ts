@@ -1,11 +1,15 @@
 // MODIFIED from Template-Repo: components/general/forms/formFieldTypes.ts
-// Worth upstreaming. Local addition:
+// Worth upstreaming. Local additions:
 //   - `CheckboxField` kind for boolean form fields. Sibling to SelectField/
 //     RadioField rather than an `InputField` type variant because checkboxes
 //     carry boolean values and don't share the input-field props (placeholder,
 //     inputMode, etc.). Paired with components/ui/forms/CheckboxField.tsx.
+//   - `ComboboxField` kind for searchable select with create-on-enter
+//     affordance. Paired with components/ui/forms/Combobox.tsx. Value shape
+//     in the form values object is `{ id: string; name: string }`.
 
 import type { HTMLAttributes, ReactNode } from 'react';
+import type { ComboboxItem } from '@/components/ui/forms/Combobox';
 
 // An adornment is a small label inside the input, like a "$" prefix
 export type Adornment = {
@@ -57,6 +61,11 @@ export type CheckboxField = BaseField & {
   kind: 'checkbox';
 };
 
+export type ComboboxField = BaseField & {
+  kind: 'combobox';
+  items: ComboboxItem[];
+};
+
 // Custom fields let you render anything inside the form grid
 export type CustomField<TItem = any> = {
   kind: 'custom';
@@ -76,4 +85,5 @@ export type SharedFormField<TItem = any> =
   | SelectField
   | RadioField
   | CheckboxField
+  | ComboboxField
   | CustomField<TItem>;

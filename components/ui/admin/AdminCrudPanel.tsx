@@ -1,349 +1,241 @@
 // NOT IN Template-Repo — application-level pattern, not a generic primitive.
-// Belongs in this project, not the template. Built on top of template primitives
-// (DataTable, ConfirmModal, Button, Toast) but encodes app-specific CRUD assumptions.
-"use client";
+// Belongs in this project, not the template. Built on top of template
+// primitives (DataTable, FormModal, ConfirmModal, RowActionMenu, Button,
+// useToast) and encodes app-specific CRUD assumptions.
+//
+// What it does for you:
+//   - Header with a title and a primary "Add {noun}" button
+//   - DataTable rendering of items (with whatever columns you configure)
+//   - "More" menu per row containing Edit, Delete, and any extra actions
+//     you pass in `rowActions`
+//   - FormModal for create + edit, driven by FormFieldDef[] (so you get
+//     SelectField / Combobox / CheckboxField / etc. for free)
+//   - ConfirmModal for delete, with toasts on success/failure
+//
+// To adapt for your entity:
+//   1. Define a `ConfigPanel<T, CreatePayload>` (see Users example in
+//      app/Admin/page.tsx for a full walkthrough).
+//   2. Pass it to <AdminCrudPanel title="..." config={config} />.
+'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import Toast, { type ToastProps } from '@/components/ui/Toast';
+import { useEffect, useState } from 'react';
+import Button from '@/components/ui/actions/Button';
+import Spinner from '@/components/ui/forms/Spinner';
 import ConfirmModal from '@/components/ui/modals/ConfirmModal';
-import Button from '@/components/ui/Button';
-import Spinner from '@/components/ui/Spinner';
+import FormModal, { type FormModalField } from '@/components/ui/modals/FormModal';
+import DataTable, {
+  type DataTableAction,
+  type DataTableColumn,
+} from '@/components/ui/tables/DataTable';
+import { useToast } from '@/hooks/useToast';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-/** Supported form input types */
-export type FieldType = 'text' | 'number' | 'checkbox' | 'radio';
-
-/** Per-field UI metadata for form rendering */
-export interface FieldConfig {
-  label: string;
-  type: FieldType;
-  required: boolean;
-}
-
-/** Generic CRUD configuration for any entity */
-export interface ConfigPanel<T extends { id: string }, CreatePayload = Partial<T>> {
-  /** Human-readable noun used in UI messages (e.g., "Student", "Package") */
+export interface ConfigPanel<T extends { id: string }, CreatePayload extends Record<string, any> = Partial<T>> {
+  /** Singular noun for UI copy ("User", "Tag"). */
   noun: string;
-  
-  /** Which component to render: 'crud' for this panel, 'dropdown' for DropdownEditor */
-  component: 'crud' | 'dropdown';
-  
-  /** Field configuration defining form inputs */
-  fields: {
-    [K in keyof CreatePayload]: FieldConfig;
-  };
-  
-  /** API operations for CRUD functionality */
+
+  /** Columns shown in the list table. Edit/Delete/extra actions are appended automatically. */
+  columns: DataTableColumn[];
+
+  /** Form fields for both create and edit. Drives FormModal. */
+  fields: FormModalField[];
+
+  /** Default values for the create form. Combobox fields should default to `{ id: '', name: '' }`. */
+  initialValues: CreatePayload;
+
+  /** Project a row onto the form-values shape when the user clicks Edit. */
+  toFormValues: (item: T) => CreatePayload;
+
   api: {
     getAll: () => Promise<T[]>;
     create: (data: CreatePayload) => Promise<T>;
-    update: (id: string, data: Partial<T>) => Promise<T>;
+    update: (id: string, data: Partial<CreatePayload>) => Promise<T>;
     remove: (id: string) => Promise<void>;
   };
-  
-  /** Optional per-row permission check for edit button visibility */
+
+  /** Hide the Edit menu item per row (returns false to hide). */
   canEdit?: (item: T) => boolean;
-  
-  /** Optional per-row permission check for delete button visibility */
+  /** Hide the Delete menu item per row (returns false to hide). */
   canDelete?: (item: T) => boolean;
 }
 
-interface Props<T extends { id: string }, CreatePayload> {
+interface Props<T extends { id: string }, CreatePayload extends Record<string, any>> {
   title: string;
   config: ConfigPanel<T, CreatePayload>;
+  /** Extra row actions appended to the per-row menu (after Edit, before Delete). */
+  rowActions?: DataTableAction[];
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AdminCrudPanel<
   T extends { id: string },
-  CreatePayload,
->({ title, config }: Props<T, CreatePayload>) {
+  CreatePayload extends Record<string, any>,
+>({ title, config, rowActions = [] }: Props<T, CreatePayload>) {
   const [items, setItems] = useState<T[]>([]);
-  const [formData, setFormData] = useState<Partial<CreatePayload>>({});
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formValues, setFormValues] = useState<CreatePayload>(config.initialValues);
+  const [saving, setSaving] = useState(false);
+
   const [pendingDelete, setPendingDelete] = useState<T | null>(null);
-  const [toast, setToast] = useState<Omit<ToastProps, 'onClose' | 'duration'> | null>(null);
-  const firstInputRef = useRef<HTMLInputElement>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    const loadItems = async () => {
-      try {
-        setLoading(true);
-        const data = await config.api.getAll();
-        setItems(data);
-      } catch (err) {
-        console.error('Error loading items:', err);
-        setToast({
-          type: 'error',
-          title: 'Error',
-          message: `Failed to load ${config.noun}s. Please try again later.`,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { showToast, ToastContainer } = useToast({ position: 'bottom-right' });
 
-    loadItems();
-  }, [config]);
-
-  // ── Handlers ───────────────────────────────────────────────────────────────
-
-  const handleInputChange = (
-    field: keyof CreatePayload,
-    value: string | number | boolean
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const reload = async () => {
     try {
-      if (editingId !== null) {
-        await config.api.update(editingId, formData as Partial<T>);
-        setToast({ type: 'success', title: 'Success', message: `${config.noun} updated` });
-      } else {
-        await config.api.create(formData as CreatePayload);
-        setToast({ type: 'success', title: 'Success', message: `${config.noun} created` });
-      }
-      setFormData({});
-      setEditingId(null);
-      const updated = await config.api.getAll();
-      setItems(updated);
-    } catch (err) {
-      console.error('Error saving:', err);
-      setToast({
+      setLoading(true);
+      const data = await config.api.getAll();
+      setItems(data);
+    } catch {
+      showToast({
         type: 'error',
         title: 'Error',
-        message: `Failed to ${editingId ? 'update' : 'create'} ${config.noun}`,
+        message: `Failed to load ${config.noun}s.`,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleEdit = (item: T) => {
-    const editable: Partial<CreatePayload> = {};
-    for (const key in config.fields) {
-      const fieldKey = key as keyof CreatePayload;
-      const itemKey = key as keyof T;
-      editable[fieldKey] = item[itemKey] as unknown as CreatePayload[typeof fieldKey];
-    }
-    setFormData(editable);
-    setEditingId(item.id);
-    setTimeout(() => firstInputRef.current?.focus(), 0);
-  };
+  useEffect(() => {
+    reload();
+    // Reload only when the underlying config object changes (parent swap).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config]);
 
-  const handleCancelEdit = () => {
-    setFormData({});
+  const openCreate = () => {
     setEditingId(null);
+    setFormValues(config.initialValues);
+    setFormOpen(true);
   };
 
-  const openDelete = (item: T) => {
-    setPendingDelete(item);
-    setConfirmOpen(true);
+  const openEdit = (item: T) => {
+    setEditingId(item.id);
+    setFormValues(config.toFormValues(item));
+    setFormOpen(true);
   };
 
-  const confirmDelete = async () => {
+  const handleSubmit = async () => {
+    setSaving(true);
+    try {
+      if (editingId) {
+        await config.api.update(editingId, formValues);
+        showToast({
+          type: 'success',
+          title: 'Saved',
+          message: `${config.noun} updated.`,
+        });
+      } else {
+        await config.api.create(formValues);
+        showToast({
+          type: 'success',
+          title: 'Added',
+          message: `${config.noun} created.`,
+        });
+      }
+      setFormOpen(false);
+      await reload();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : `Failed to save ${config.noun}.`;
+      showToast({ type: 'error', title: 'Error', message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
     if (!pendingDelete) return;
+    setDeleting(true);
     try {
       await config.api.remove(pendingDelete.id);
-      setItems((prev) => prev.filter((i) => i.id !== pendingDelete.id));
-      setToast({ type: 'success', title: 'Success', message: `${config.noun} deleted` });
-    } catch (err) {
-      console.error('Error deleting:', err);
-      setToast({ type: 'error', title: 'Error', message: `Failed to delete ${config.noun}` });
-    } finally {
-      setConfirmOpen(false);
+      showToast({
+        type: 'success',
+        title: 'Deleted',
+        message: `${config.noun} deleted.`,
+      });
       setPendingDelete(null);
+      await reload();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : `Failed to delete ${config.noun}.`;
+      showToast({ type: 'error', title: 'Cannot delete', message });
+    } finally {
+      setDeleting(false);
     }
   };
 
-  const cancelDelete = () => {
-    setConfirmOpen(false);
-    setPendingDelete(null);
-  };
-
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // Append the actions column. DataTable shows the column header but renders
+  // a "more" menu in each cell, so the header label can stay empty.
+  const columnsWithActions: DataTableColumn[] = [
+    ...config.columns,
+    {
+      key: '__actions',
+      header: '',
+      headerClassName: 'w-12',
+      cellClassName: 'w-12',
+      actions: [
+        {
+          label: 'Edit',
+          onClick: (row: T) => openEdit(row),
+          hidden: (row: T) => config.canEdit?.(row) === false,
+        },
+        ...rowActions,
+        {
+          label: 'Delete',
+          variant: 'danger',
+          onClick: (row: T) => setPendingDelete(row),
+          hidden: (row: T) => config.canDelete?.(row) === false,
+        },
+      ],
+    },
+  ];
 
   return (
-    <div className="p-4 bg-white border rounded-lg shadow text-byu-navy">
-      <h2 className="text-xl font-semibold mb-4">{title}</h2>
-
-      <div className="flex flex-col lg:flex-row gap-8 items-start">
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 w-full lg:w-[45%] mb-6">
-          {Object.entries(config.fields).map(([fieldName, fieldMetaRaw], index) => {
-            const field = fieldName as keyof CreatePayload;
-            const meta = fieldMetaRaw as FieldConfig;
-            const value = formData[field] ?? (meta.type === 'checkbox' ? false : '');
-
-            return (
-              <div key={fieldName}>
-                <label className="block text-sm font-medium text-byu-navy">
-                  {meta.label}
-                  {meta.required && <span className="text-red-500 ml-0.5">*</span>}
-                </label>
-
-                {meta.type === 'radio' ? (
-                  <div className="flex gap-4 mt-1">
-                    <label className="flex items-center gap-1">
-                      <input
-                        type="radio"
-                        name={String(field)}
-                        value="true"
-                        checked={value === true}
-                        onChange={() => handleInputChange(field, true)}
-                        required={meta.required}
-                      />
-                      Yes
-                    </label>
-                    <label className="flex items-center gap-1">
-                      <input
-                        type="radio"
-                        name={String(field)}
-                        value="false"
-                        checked={value === false}
-                        onChange={() => handleInputChange(field, false)}
-                      />
-                      No
-                    </label>
-                  </div>
-                ) : meta.type === 'checkbox' ? (
-                  <input
-                    type="checkbox"
-                    checked={Boolean(value)}
-                    onChange={(e) => handleInputChange(field, e.target.checked)}
-                    className="mt-1"
-                  />
-                ) : (
-                  <input
-                    ref={index === 0 ? firstInputRef : undefined}
-                    type={meta.type}
-                    value={value as string | number}
-                    onChange={(e) =>
-                      handleInputChange(
-                        field,
-                        meta.type === 'number' ? Number(e.target.value) : e.target.value
-                      )
-                    }
-                    required={meta.required}
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-byu-royal focus:border-transparent"
-                  />
-                )}
-              </div>
-            );
-          })}
-
-          <div className="flex gap-3">
-            <Button type="submit">
-              {editingId ? 'Save' : 'Add'}
-            </Button>
-            {editingId && (
-              <Button variant="secondary" onClick={handleCancelEdit}>
-                Cancel
-              </Button>
-            )}
-          </div>
-        </form>
-
-        {/* Table */}
-        <div className="w-full lg:w-[55%] overflow-x-auto">
-          {loading ? (
-            <div className="flex flex-col items-center gap-3 py-8">
-              <Spinner className="h-8 w-8 text-byu-navy" />
-              <p className="text-sm text-gray-500">Loading…</p>
-            </div>
-          ) : items.length === 0 ? (
-            <p className="py-8 text-center text-sm text-gray-500">
-              No {config.noun}s found. Add one to get started!
-            </p>
-          ) : (
-            <table className="table-auto w-full text-sm border border-gray-300">
-              <thead className="bg-gray-100">
-                <tr>
-                  {Object.entries(config.fields).map(([fieldName, fieldMetaRaw]) => {
-                    const meta = fieldMetaRaw as FieldConfig;
-                    return (
-                      <th
-                        key={fieldName}
-                        className="px-4 py-2 border whitespace-nowrap text-left"
-                      >
-                        {meta.label}
-                      </th>
-                    );
-                  })}
-                  <th className="px-4 py-2 border whitespace-nowrap text-center">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => {
-                  const allowEdit = config.canEdit?.(item) ?? true;
-                  const allowDelete = config.canDelete?.(item) ?? true;
-
-                  return (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      {Object.keys(config.fields).map((fieldName) => (
-                        <td
-                          key={fieldName}
-                          className="px-4 py-2 border whitespace-nowrap"
-                        >
-                          {String(item[fieldName as keyof T] ?? '')}
-                        </td>
-                      ))}
-                      <td className="px-4 py-2 border whitespace-nowrap">
-                        <div className="flex justify-center gap-2">
-                          {allowEdit && (
-                            <Button size="sm" onClick={() => handleEdit(item)}>
-                              Edit
-                            </Button>
-                          )}
-                          {allowDelete && (
-                            <Button
-                              size="sm"
-                              variant="danger"
-                              onClick={() => openDelete(item)}
-                            >
-                              Delete
-                            </Button>
-                          )}
-                          {!allowEdit && !allowDelete && (
-                            <span className="text-xs text-gray-400">
-                              Unable to edit
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
+    <div>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-byu-navy text-xl font-semibold">{title}</h2>
+        <Button onClick={openCreate}>Add {config.noun}</Button>
       </div>
 
+      {loading && !items.length ? (
+        <div className="flex flex-col items-center gap-3 py-8">
+          <Spinner className="text-byu-navy h-8 w-8" />
+          <p className="text-sm text-gray-500">Loading…</p>
+        </div>
+      ) : (
+        <DataTable
+          data={items}
+          columns={columnsWithActions}
+          emptyMessage={`No ${config.noun}s yet. Add one to get started.`}
+        />
+      )}
+
+      <FormModal
+        open={formOpen}
+        title={editingId ? `Edit ${config.noun}` : `Add ${config.noun}`}
+        size="md"
+        saving={saving}
+        saveLabel={editingId ? 'Save' : 'Add'}
+        onClose={() => setFormOpen(false)}
+        onSubmit={handleSubmit}
+        values={formValues as Record<string, any>}
+        setValues={(next) => setFormValues(next as CreatePayload)}
+        fields={config.fields}
+      />
+
       <ConfirmModal
-        open={confirmOpen}
+        open={!!pendingDelete}
         title={`Delete ${config.noun}?`}
         message={`This will permanently remove the selected ${config.noun}.`}
         confirmLabel="Delete"
         cancelLabel="Cancel"
-        onConfirm={confirmDelete}
-        onCancel={cancelDelete}
+        busy={deleting}
+        busyLabel="Deleting…"
+        onConfirm={handleDelete}
+        onCancel={() => setPendingDelete(null)}
       />
 
-      {toast && (
-        <Toast
-          type={toast.type}
-          title={toast.title}
-          message={toast.message}
-          onClose={() => setToast(null)}
-        />
-      )}
+      <ToastContainer />
     </div>
   );
 }

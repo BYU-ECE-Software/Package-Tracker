@@ -3,25 +3,17 @@
 import { useState } from 'react';
 import type { Package } from '@/types/package';
 import { formatDate } from '@/utils/formatDate';
+import { daysAgo } from '@/utils/daysAgo';
 import TabModal, { type TabConfig } from '@/components/ui/modals/TabModal';
-import Button from '@/components/ui/Button';
-import SendEmailModal from './SendEmailModal';
+import Button from '@/components/ui/actions/Button';
+import SendEmailModal from '@/components/ui/modals/SendEmailModal';
+import { sendEmail } from '@/lib/api/email';
 
 interface ViewPackageModalProps {
   onClose: () => void;
   pkg: Package | null;
   /** Called after a follow-up email is sent so the parent can refetch. */
   onSuccess?: () => void | Promise<void>;
-}
-
-function daysAgo(dateStr: Date | string | null | undefined): string | null {
-  if (!dateStr) return null;
-  const diff = Math.floor(
-    (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24)
-  );
-  if (diff === 0) return 'today';
-  if (diff === 1) return '1 day ago';
-  return `${diff} days ago`;
 }
 
 export default function ViewPackageModal({ onClose, pkg, onSuccess }: ViewPackageModalProps) {
@@ -179,7 +171,27 @@ export default function ViewPackageModal({ onClose, pkg, onSuccess }: ViewPackag
 
       {sendEmailOpen && (
         <SendEmailModal
-          pkg={pkg}
+          recipient={{
+            name: pkg.recipient?.fullName,
+            email: pkg.recipient?.email ?? '',
+          }}
+          defaultSubject="Package Reminder"
+          defaultBody={
+            `This is a friendly reminder that your package is still waiting for pickup at the ECE mailroom.\n\n` +
+            `Please stop by at your earliest convenience.`
+          }
+          title="Send Follow-Up Email"
+          subjectEditable={false}
+          onSend={(payload) =>
+            sendEmail({
+              to: payload.to,
+              subject: payload.subject,
+              body: payload.body,
+              recipientName: pkg.recipient?.fullName,
+              packageId: pkg.id,
+              recipientId: pkg.recipientId,
+            })
+          }
           onClose={() => setSendEmailOpen(false)}
           onSuccess={onSuccess}
         />

@@ -6,9 +6,9 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import type { RefObject } from 'react';
 import type { DropdownEntity } from '@/types/dropdown';
-import Toast, { type ToastProps } from '@/components/ui/Toast';
+import Toast, { type ToastProps } from '@/components/ui/feedback/Toast';
 import ConfirmModal from '@/components/ui/modals/ConfirmModal';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/actions/Button';
 import {
   EyeIcon,
   EyeSlashIcon,

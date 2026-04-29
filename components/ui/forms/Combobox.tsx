@@ -1,37 +1,46 @@
+// NOT IN Template-Repo — built locally; candidate for upstreaming.
+// Generic searchable select with a "create new" affordance: type to filter,
+// pick with arrow keys / Enter, or hit Enter on a non-matching query to keep
+// the typed text and let the parent handle creation on submit.
+//
+// Value shape is { id, name }. While `id` is empty, the input shows whatever
+// the user is typing; once an item is chosen, the input mirrors the selection
+// and re-focusing pre-selects the text so the user can replace it without
+// manually clearing first.
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import type { DropdownEntity } from '@/types/dropdown';
 import { INPUT_CLASS } from '@/components/ui/forms/formFieldStyles';
 
-export type DropdownComboboxValue = {
+export type ComboboxItem = {
   id: string;
   name: string;
 };
 
-type Props = {
-  items: DropdownEntity[];
-  value: DropdownComboboxValue;
-  onChange: (next: DropdownComboboxValue) => void;
+export type ComboboxValue = {
+  id: string;
+  name: string;
+};
+
+type Props<T extends ComboboxItem> = {
+  items: T[];
+  value: ComboboxValue;
+  onChange: (next: ComboboxValue) => void;
   placeholder?: string;
   disabled?: boolean;
 };
 
-type Position = {
-  top: number;
-  left: number;
-  width: number;
-};
+type Position = { top: number; left: number; width: number };
 
-export default function DropdownCombobox({
+export default function Combobox<T extends ComboboxItem>({
   items,
   value,
   onChange,
   placeholder = 'Select or type to add new…',
   disabled = false,
-}: Props) {
+}: Props<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
   const [position, setPosition] = useState<Position | null>(null);
@@ -76,11 +85,7 @@ export default function DropdownCombobox({
     const updatePosition = () => {
       const rect = wrapperRef.current?.getBoundingClientRect();
       if (!rect) return;
-      setPosition({
-        top: rect.bottom + 4,
-        left: rect.left,
-        width: rect.width,
-      });
+      setPosition({ top: rect.bottom + 4, left: rect.left, width: rect.width });
     };
 
     updatePosition();
@@ -96,7 +101,7 @@ export default function DropdownCombobox({
     setHighlight(0);
   }, [value.name, isOpen]);
 
-  const select = (item: DropdownEntity) => {
+  const select = (item: T) => {
     onChange({ id: item.id, name: item.name });
     setIsOpen(false);
     inputRef.current?.blur();
@@ -175,7 +180,6 @@ export default function DropdownCombobox({
           type="button"
           onMouseEnter={() => setHighlight(filtered.length)}
           onClick={() => {
-            // Keep typed name, leave id empty — parent creates on submit.
             setIsOpen(false);
             inputRef.current?.blur();
           }}
@@ -186,7 +190,7 @@ export default function DropdownCombobox({
           }`}
         >
           <span className="text-xs text-gray-500">Create new </span>
-          <span className="font-medium">“{value.name.trim()}”</span>
+          <span className="font-medium">&ldquo;{value.name.trim()}&rdquo;</span>
         </button>
       )}
     </div>
@@ -208,8 +212,6 @@ export default function DropdownCombobox({
         onFocus={(e) => {
           if (disabled) return;
           setIsOpen(true);
-          // If a selection is already locked in, highlight it so the user can
-          // type to replace without manually clearing first.
           if (value.id) e.target.select();
         }}
         onKeyDown={handleKeyDown}

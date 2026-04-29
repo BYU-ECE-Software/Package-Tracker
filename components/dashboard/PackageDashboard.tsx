@@ -9,6 +9,7 @@ import { fetchPackages, fetchPackageById, deletePackage } from '@/lib/api/packag
 import { fetchCarriers } from '@/lib/api/carriers';
 import { fetchSenders } from '@/lib/api/senders';
 import { useToast } from '@/hooks/useToast';
+import { useAuth } from '@/components/dev/TestingAuthProvider';
 import AddPackageModal from './AddPackageModal';
 import EditPackageModal from './EditPackageModal';
 import ViewPackageModal from './ViewPackageModal';
@@ -17,12 +18,27 @@ import ConfirmModal from '@/components/ui/modals/ConfirmModal';
 import SearchFilters from './SearchFilters';
 import PackageDataTable from './PackageDataTable';
 import Pagination from '@/components/ui/tables/Pagination';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/actions/Button';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function PackageDashboard() {
   const { showToast, ToastContainer } = useToast();
+  const { user } = useAuth();
+
+  // Dev quirk: a Fast Refresh can clear the in-memory `user` while the
+  // auth cookie still says "signed in" — UI looks logged in but actions
+  // that require a checkedInById fail. In prod this would be a stale
+  // session that needs a fresh sign-in. Either way, surface it loudly.
+  const requireSignIn = (action: string): boolean => {
+    if (user?.id) return true;
+    showToast({
+      type: 'error',
+      title: 'Session expired',
+      message: `You're not signed in — please sign back in to ${action}.`,
+    });
+    return false;
+  };
 
   const [packages, setPackages] = useState<Package[]>([]);
   const [totalItems, setTotalItems] = useState(0);
@@ -115,7 +131,9 @@ export default function PackageDashboard() {
       {/* Search & Filters */}
       <div className="flex flex-wrap items-center justify-between gap-4 w-full">
         <Button
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={() => {
+            if (requireSignIn('add a package')) setIsAddModalOpen(true);
+          }}
           icon={<FiPlus className="h-4 w-4" />}
           label="Create New Package"
         />

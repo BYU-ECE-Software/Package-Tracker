@@ -1,8 +1,9 @@
 // IDENTICAL to Template-Repo: components/general/forms/FilePicker.tsx
-// Only difference: IconButton import path (template uses '../actions/IconButton').
+// Only difference: IconButton import path (template uses '../actions/IconButton',
+// this project uses '@/components/ui/actions/IconButton').
 'use client';
 import { useRef } from 'react';
-import IconButton from '@/components/ui/IconButton';
+import IconButton from '@/components/ui/actions/IconButton';
 import { FiTrash2 } from 'react-icons/fi';
 
 type FilePickerProps = {

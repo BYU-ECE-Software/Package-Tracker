@@ -1,11 +1,16 @@
 // MODIFIED from Template-Repo: components/general/forms/FormModal.tsx
-// Worth upstreaming alongside the formFieldTypes change. Local addition:
+// Worth upstreaming alongside the formFieldTypes change. Local additions:
 //   - 'checkbox' field kind dispatch — renders the new CheckboxField for
 //     boolean form fields (paired with components/ui/forms/CheckboxField.tsx
 //     and the CheckboxField type added to formFieldTypes).
+//   - 'combobox' field kind dispatch — renders the searchable Combobox with
+//     create-on-enter affordance (paired with components/ui/forms/Combobox.tsx
+//     and the ComboboxField type added to formFieldTypes). Value in the form
+//     values object is `{ id: string; name: string }`.
 // Import paths (BaseModal, FilePicker, FieldWrapper, SelectField,
-// RadioGroupField, TextLikeField, PinField, CheckboxField, formFieldTypes)
-// also rewritten to match this project's components/ui/ structure.
+// RadioGroupField, TextLikeField, PinField, CheckboxField, Combobox,
+// formFieldTypes) also rewritten to match this project's components/ui/
+// structure.
 'use client';
 
 import { useState, type ReactNode } from 'react';
@@ -18,8 +23,10 @@ import RadioGroupField from '@/components/ui/forms/RadioGroupField';
 import TextLikeField from '@/components/ui/forms/TextLikeField';
 import PinField from '@/components/ui/forms/PinField';
 import CheckboxField from '@/components/ui/forms/CheckboxField';
+import Combobox from '@/components/ui/forms/Combobox';
 import type {
   CheckboxField as CheckboxFieldType,
+  ComboboxField as ComboboxFieldType,
   CustomField,
   InputField,
   RadioField,
@@ -34,6 +41,7 @@ export type FormModalField =
   | SelectFieldType
   | RadioField
   | CheckboxFieldType
+  | ComboboxFieldType
   | CustomField;
 
 // Props for the FormModal component
@@ -134,6 +142,17 @@ export default function FormModal<T extends Record<string, any>>({
                 <CheckboxField
                   checked={Boolean(value)}
                   onChange={(nextValue) => setFieldValue(field.key, nextValue)}
+                />
+              ) : field.kind === 'combobox' ? (
+                <Combobox
+                  items={field.items}
+                  value={
+                    value && typeof value === 'object' && 'id' in value
+                      ? value
+                      : { id: '', name: '' }
+                  }
+                  onChange={(nextValue) => setFieldValue(field.key, nextValue)}
+                  placeholder={field.placeholder}
                 />
               ) : field.type === 'textarea' ? (
                 <TextLikeField

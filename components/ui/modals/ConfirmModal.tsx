@@ -5,7 +5,7 @@
 
 import type { ReactNode } from 'react';
 import BaseModal from '@/components/ui/modals/BaseModal';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/actions/Button';
 
 // Visual intent of the confirm button
 type Variant = 'danger' | 'primary';

@@ -3,7 +3,7 @@
 // the package's notificationSent flag to true.
 
 import { NextRequest, NextResponse } from 'next/server';
-import { sendAndLogNotification } from '@/lib/notifications';
+import { sendAndLogNotification } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {

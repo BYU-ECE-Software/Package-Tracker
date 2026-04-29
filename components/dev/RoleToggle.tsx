@@ -2,7 +2,7 @@
 
 import { useRole } from '@/components/dev/TestingRoleProvider';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
-import ToggleSwitch from '@/components/ui/ToggleSwitch';
+import ToggleSwitch from '@/components/ui/actions/ToggleSwitch';
 
 type RoleToggleProps = {
   className?: string;

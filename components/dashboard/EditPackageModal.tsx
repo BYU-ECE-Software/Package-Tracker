@@ -9,7 +9,7 @@ import { fetchSenders, createSender } from '@/lib/api/senders';
 import { useToast } from '@/hooks/useToast';
 import FormModal, { type FormModalField } from '@/components/ui/modals/FormModal';
 import FieldWrapper from '@/components/ui/forms/FieldWrapper';
-import DropdownCombobox, { type DropdownComboboxValue } from './DropdownCombobox';
+import Combobox, { type ComboboxValue } from '@/components/ui/forms/Combobox';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,11 +32,11 @@ export default function EditPackageModal({ onClose, pkg, onSuccess }: EditPackag
     notes: pkg.notes ?? '',
   });
 
-  const [carrier, setCarrier] = useState<DropdownComboboxValue>({
+  const [carrier, setCarrier] = useState<ComboboxValue>({
     id: pkg.carrierId ?? '',
     name: pkg.carrier?.name ?? '',
   });
-  const [sender, setSender] = useState<DropdownComboboxValue>({
+  const [sender, setSender] = useState<ComboboxValue>({
     id: pkg.senderId ?? '',
     name: pkg.sender?.name ?? '',
   });
@@ -120,7 +120,7 @@ export default function EditPackageModal({ onClose, pkg, onSuccess }: EditPackag
       key: 'carrier',
       render: () => (
         <FieldWrapper label="Carrier" required>
-          <DropdownCombobox
+          <Combobox
             items={carriers.filter((c) => !c.hidden)}
             value={carrier}
             onChange={setCarrier}
@@ -135,7 +135,7 @@ export default function EditPackageModal({ onClose, pkg, onSuccess }: EditPackag
       key: 'sender',
       render: () => (
         <FieldWrapper label="Sender" required>
-          <DropdownCombobox
+          <Combobox
             items={senders.filter((s) => !s.hidden)}
             value={sender}
             onChange={setSender}

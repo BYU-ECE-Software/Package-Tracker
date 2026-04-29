@@ -13,7 +13,7 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import BaseModal from '@/components/ui/modals/BaseModal';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/actions/Button';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

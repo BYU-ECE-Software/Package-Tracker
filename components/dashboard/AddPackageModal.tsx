@@ -15,7 +15,7 @@ import Typeahead from '@/components/ui/forms/Typeahead';
 import FormGrid from '@/components/ui/forms/FormGrid';
 import CheckboxField from '@/components/ui/forms/CheckboxField';
 import TextLikeField from '@/components/ui/forms/TextLikeField';
-import DropdownCombobox, { type DropdownComboboxValue } from './DropdownCombobox';
+import Combobox, { type ComboboxValue } from '@/components/ui/forms/Combobox';
 
 export default function AddPackageModal({
   onClose,
@@ -34,8 +34,8 @@ export default function AddPackageModal({
   const [carriers, setCarriers] = useState<DropdownEntity[]>([]);
   const [senders, setSenders] = useState<DropdownEntity[]>([]);
   
-  const [carrier, setCarrier] = useState<DropdownComboboxValue>({ id: '', name: '' });
-  const [sender, setSender] = useState<DropdownComboboxValue>({ id: '', name: '' });
+  const [carrier, setCarrier] = useState<ComboboxValue>({ id: '', name: '' });
+  const [sender, setSender] = useState<ComboboxValue>({ id: '', name: '' });
 
   const [packageData, setPackageData] = useState({
     dateArrived: new Date().toISOString().split('T')[0],
@@ -69,7 +69,15 @@ export default function AddPackageModal({
   }, [recipient]);
 
   const handleComplete = async () => {
-    if (!user?.id || !recipient) return;
+    if (!user?.id) {
+      showToast({
+        type: 'error',
+        title: 'Session expired',
+        message: `You're not signed in — please sign back in to add a package.`,
+      });
+      return;
+    }
+    if (!recipient) return;
 
     setIsSubmitting(true);
 
@@ -163,7 +171,7 @@ export default function AddPackageModal({
           </FieldWrapper>
 
           <FieldWrapper label="Carrier" required>
-            <DropdownCombobox
+            <Combobox
               items={carriers.filter((c) => !c.hidden)}
               value={carrier}
               onChange={setCarrier}
@@ -173,7 +181,7 @@ export default function AddPackageModal({
           </FieldWrapper>
 
           <FieldWrapper label="Sender" required>
-            <DropdownCombobox
+            <Combobox
               items={senders.filter((s) => !s.hidden)}
               value={sender}
               onChange={setSender}

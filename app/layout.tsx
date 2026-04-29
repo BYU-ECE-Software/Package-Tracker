@@ -2,8 +2,8 @@ import './globals.css';
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
-import HeaderBar from '@/components/layout/header';
-import FooterBar from '@/components/layout/footer';
+import HeaderBar from '@/components/layout/Header';
+import FooterBar from '@/components/layout/Footer';
 import Providers from '@/components/dev/Providers';
 
 export const metadata: Metadata = {

@@ -17,7 +17,7 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import type { ReactNode, KeyboardEvent } from 'react';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/actions/Button';
 
 type ModalSize = 'sm' | 'md' | 'lg';
 

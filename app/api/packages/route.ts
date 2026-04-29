@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { sendAndLogNotification } from '@/lib/notifications';
+import { sendAndLogNotification } from '@/lib/email';
 
 export async function GET(request: NextRequest) {
   try {

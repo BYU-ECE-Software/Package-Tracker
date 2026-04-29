@@ -2,7 +2,7 @@
 
 import { useRole } from '@/components/dev/TestingRoleProvider';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
-import PageTitle from '@/components/layout/pageTitle';
+import PageTitle from '@/components/layout/PageTitle';
 import PackageDashboard from '@/components/dashboard/PackageDashboard';
 import StudentDashboard from '@/components/dashboard/StudentDashboard';
 
