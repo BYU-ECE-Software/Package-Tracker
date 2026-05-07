@@ -18,9 +18,9 @@
 //   2. Update columns/fields to match the fields you want exposed.
 //   3. Wire `api.*` to your lib/api/<entity>.ts wrappers.
 
-import type { DataTableColumn } from '@/components/ui/tables/DataTable';
-import type { FormModalField } from '@/components/ui/modals/FormModal';
-import type { ConfigPanel } from '@/components/ui/admin/AdminCrudPanel';
+import type { DataTableColumn } from '@/components/general/data-display/DataTable';
+import type { FormModalField } from '@/components/general/forms/FormModal';
+import type { ConfigPanel } from '@/components/general/admin/AdminCrudPanel';
 import type { User, CreateUserRequest } from '@/types/user';
 import { Role } from '@prisma/client';
 import {
@@ -33,7 +33,7 @@ import {
 // PT's lib/api/users.ts is paginated — pull a large page and unwrap.
 const fetchAllUsers = () => fetchUsers({ pageSize: 1000 }).then((r) => r.data);
 
-const columns: DataTableColumn[] = [
+const columns: DataTableColumn<User>[] = [
   { key: 'fullName', header: 'Name', noWrap: true },
   { key: 'netId', header: 'Net ID', noWrap: true },
   { key: 'email', header: 'Email' },

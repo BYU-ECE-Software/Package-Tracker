@@ -1,8 +1,75 @@
+name: package_tracker
+
 services:
+  app:
+    build:
+      context: .
+      target: runner
+    container_name: package_tracker_app
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/api/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - package_tracker_network
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: package_tracker_nginx
+    depends_on:
+      app:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/health | grep -q OK"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - package_tracker_network
+
+  db:
+    image: postgres:16
+    container_name: package_tracker_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    restart: unless-stopped
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} && psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c 'SELECT 1'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - package_tracker_network
+
   minio:
     image: minio/minio
-    restart: always
-    container_name: minio
+    container_name: package_tracker_minio
+    restart: unless-stopped
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -12,66 +79,35 @@ services:
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
+    networks:
+      - package_tracker_network
 
-  postgres:
-    image: postgres:16
-    container_name: postgres
-    restart: always
+  # See docker-compose.migrate.yml for in depth explanations about createbuckets and what to change
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    restart: "no"
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    # ports:
-    # - "5433:5432" #had to change to 5433 for dev local computer
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: backend
-    restart: always
-    environment:
-      NODE_ENV: ${NODE_ENV}
-      PORT: 3000
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
-      MINIO_ENDPOINT: minio
-      MINIO_PORT: ${MINIO_PORT}
-      MINIO_USE_SSL: "false"
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      PUBLIC_MINIO_URL: ${PUBLIC_MINIO_URL}
-      ADMIN_SHARED_SECRET: ${ADMIN_SHARED_SECRET}
-      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_TTL_HOURS: ${SESSION_TTL_HOURS}
-      SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT}
-      SMTP_SECURE: ${SMTP_SECURE}
-      FROM_EMAIL: ${FROM_EMAIL}
-      FROM_NAME: ${FROM_NAME}
+    entrypoint: >
+      /bin/sh -c "
+      until /usr/bin/mc alias set myminio http://minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD; do
+        echo 'Waiting for MinIO...';
+        sleep 2;
+      done;
+      /usr/bin/mc mb --ignore-existing myminio/sample-images;
+      echo 'Bucket ensured: sample-images';
+      exit 0;
+      "
+    networks:
+      - package_tracker_network
 
-    depends_on:
-      - postgres
-      - minio
-    ports:
-      - "3000:3000"
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: frontend
-    restart: always
-    depends_on:
-      - backend
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./certs:/etc/ssl/local:ro
+networks:
+  package_tracker_network:
+    driver: bridge
 
 volumes:
+  db_data:
   minio_data:
-    name: minio_data
-  postgres_data:

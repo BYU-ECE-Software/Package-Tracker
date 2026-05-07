@@ -4,7 +4,7 @@ import React from 'react';
 import { FiEdit2, FiTrash2, FiLogOut } from 'react-icons/fi';
 import type { Package } from '@/types/package';
 import { formatDate } from '@/utils/formatDate';
-import DataTable, { type DataTableColumn } from '@/components/ui/tables/DataTable';
+import DataTable, { type DataTableColumn } from '@/components/general/data-display/DataTable';
 import { PackageStatusBadge } from './packageStatus';
 
 interface PackageDataTableProps {
@@ -26,14 +26,14 @@ const PackageDataTable: React.FC<PackageDataTableProps> = ({
   readOnly = false,
   showStatus = false,
 }) => {
-  const statusColumn: DataTableColumn = {
+  const statusColumn: DataTableColumn<Package> = {
     key: 'status',
     header: 'Status',
     noWrap: true,
     render: (row: Package) => <PackageStatusBadge pkg={row} />,
   };
 
-  const columns: DataTableColumn[] = [
+  const columns: DataTableColumn<Package>[] = [
     ...(showStatus ? [statusColumn] : []),
     {
       key: 'dateArrived',
@@ -91,13 +91,13 @@ const PackageDataTable: React.FC<PackageDataTableProps> = ({
                 onClick: (row: Package) => onDelete(row),
               },
             ],
-          } satisfies DataTableColumn,
+          } satisfies DataTableColumn<Package>,
         ]),
   ];
 
   // Template's DataTable doesn't have a separate checkout button column
   // We need to add it as a custom render column
-  const columnsWithCheckout: DataTableColumn[] = readOnly 
+  const columnsWithCheckout: DataTableColumn<Package>[] = readOnly
     ? columns 
     : [
         ...columns.slice(0, -1), // All columns except actions

@@ -1,8 +1,12 @@
+// Good for early development when auth hasn't been set up.
+// This toggle can be placed in the header to simulate an authenticated
+// environment and set up what components and pages are restricted.
+
 'use client';
 
 import { useRole } from '@/components/dev/TestingRoleProvider';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
-import ToggleSwitch from '@/components/ui/actions/ToggleSwitch';
+import ToggleSwitch from '@/components/general/actions/ToggleSwitch';
 
 type RoleToggleProps = {
   className?: string;
@@ -17,11 +21,9 @@ export default function RoleToggle({ className = '' }: RoleToggleProps) {
   return (
     <div className={`hidden items-center gap-3 text-white/80 sm:flex ${className}`}>
       <span>
-        <span className="font-medium text-white">
-          {isAdmin ? 'Admin' : 'Student'}
-        </span>{' '}
-        View
+        <span className="font-medium text-white">{isAdmin ? 'Admin' : 'Student'}</span> View
       </span>
+
       {/* Toggle is locked once signed in — role is determined by the account */}
       <ToggleSwitch
         checked={isAdmin}

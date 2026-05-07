@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { sendAndLogNotification } from '@/lib/email';
+import { sendAndLogNotification } from '@/lib/email/notifications';
 
 export async function GET(request: NextRequest) {
   try {
@@ -116,30 +116,34 @@ export async function POST(request: NextRequest) {
       include: { recipient: true },
     });
 
-    // Send + log the arrival notification if requested.
+    // Send + log the arrival notification if requested. Notification failures
+    // are isolated from the package-create response: the package already
+    // exists, so failing the request would mislead the client into retrying
+    // and creating duplicates. notificationSent stays false on failure, and
+    // the user can resend manually from SendEmailModal.
     if (notificationSent && emailOptions && new_package.recipient?.email) {
-      await sendAndLogNotification({
-        packageId: new_package.id,
-        recipientId: new_package.recipientId,
-        recipientEmail: new_package.recipient.email,
-        recipientName: new_package.recipient.fullName,
-        subject: emailOptions.subject,
-        body: emailOptions.body,
-      });
-      console.log(`✓ Notification sent to ${new_package.recipient.email}`);
+      try {
+        await sendAndLogNotification({
+          packageId: new_package.id,
+          recipientId: new_package.recipientId,
+          recipientEmail: new_package.recipient.email,
+          recipientName: new_package.recipient.fullName,
+          subject: emailOptions.subject,
+          body: emailOptions.body,
+        });
+      } catch (mailError) {
+        console.error(
+          `Notification failed for package ${new_package.id} (package was created):`,
+          mailError,
+        );
+      }
     } else if (notificationSent && !new_package.recipient?.email) {
-      console.warn(`⚠ Cannot send notification: recipient ${recipientId} has no email on file`);
+      console.warn(`Cannot send notification: recipient ${recipientId} has no email on file`);
     }
 
     return NextResponse.json(new_package, { status: 201 });
   } catch (error) {
     console.error('Error creating package:', error);
-    
-    // More specific error message if it's an email error
-    const errorMessage = error instanceof Error && error.message.includes('Mail')
-      ? 'Failed to send notification email'
-      : 'Failed to create package';
-    
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create package' }, { status: 500 });
   }
 }

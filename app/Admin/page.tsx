@@ -1,7 +1,7 @@
 // PT admin page — three tabs:
 //   - Users     (AdminCrudPanel, full CRUD with role select)
-//   - Carriers  (DropdownEditor — drag-reorder + soft-hide)
-//   - Senders   (DropdownEditor — drag-reorder + soft-hide)
+//   - Carriers  (AdminDropdownPanel — drag-reorder + soft-hide)
+//   - Senders   (AdminDropdownPanel — drag-reorder + soft-hide)
 //
 // Configs live in lib/admin/<entity>Config{,.tsx}. The Admin page is a
 // thin shell — to add a new tab, drop a new config file and add it to
@@ -9,10 +9,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import PageTitle from '@/components/layout/PageTitle';
-import AdminTabs from '@/components/ui/admin/AdminTabs';
-import AdminCrudPanel from '@/components/ui/admin/AdminCrudPanel';
-import DropdownEditor from '@/components/ui/admin/DropdownEditor';
+import PageTitle from '@/components/general/layout/PageTitle';
+import AdminTabs from '@/components/general/admin/AdminTabs';
+import AdminCrudPanel from '@/components/general/admin/AdminCrudPanel';
+import AdminDropdownPanel from '@/components/general/admin/AdminDropdownPanel';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
 import { buildUsersConfig } from '@/lib/admin/usersConfig';
 import { carriersEditorProps } from '@/lib/admin/carriersConfig';
@@ -44,10 +44,10 @@ export default function AdminPage() {
               <AdminCrudPanel title="Users" config={usersConfig} />
             )}
             {activeTab === 'Carriers' && (
-              <DropdownEditor key="Carriers" {...carriersEditorProps} />
+              <AdminDropdownPanel key="Carriers" {...carriersEditorProps} />
             )}
             {activeTab === 'Senders' && (
-              <DropdownEditor key="Senders" {...sendersEditorProps} />
+              <AdminDropdownPanel key="Senders" {...sendersEditorProps} />
             )}
           </div>
         </div>

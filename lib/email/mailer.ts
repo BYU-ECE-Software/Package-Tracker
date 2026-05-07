@@ -1,6 +1,9 @@
-// lib/email/mailer.ts
 // Generic SMTP transport. Reads SMTP_HOST / SMTP_PORT / SMTP_SECURE / SMTP_USER /
 // SMTP_PASS / FROM_EMAIL / FROM_NAME from the environment. No app-specific logic.
+
+// console.log here is intentional: SMTP config diagnostics on first transport
+// creation, and the Ethereal preview URL after a dev send.
+/* eslint-disable no-console */
 
 import nodemailer from 'nodemailer';
 import type { Transporter, SendMailOptions, SentMessageInfo } from 'nodemailer';

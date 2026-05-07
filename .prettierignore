@@ -1,0 +1,10 @@
+.next/
+node_modules/
+dist/
+build/
+next-env.d.ts
+package-lock.json
+package.json
+types/validator.ts
+types/routes.d.ts
+types/cache-life.d.ts

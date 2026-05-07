@@ -8,11 +8,11 @@ import { updatePackage } from '@/lib/api/packages';
 import { fetchUsers } from '@/lib/api/users';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
 import { useToast } from '@/hooks/useToast';
-import StepModal, { type StepConfig } from '@/components/ui/modals/StepModal';
-import FieldWrapper from '@/components/ui/forms/FieldWrapper';
-import FormGrid from '@/components/ui/forms/FormGrid';
-import TextLikeField from '@/components/ui/forms/TextLikeField';
-import Typeahead from '@/components/ui/forms/Typeahead';
+import StepModal, { type StepConfig } from '@/components/general/overlays/StepModal';
+import FieldWrapper from '@/components/general/forms/FieldWrapper';
+import FormGrid from '@/components/general/forms/FormGrid';
+import TextLikeField from '@/components/general/forms/TextLikeField';
+import Typeahead from '@/components/general/forms/Typeahead';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

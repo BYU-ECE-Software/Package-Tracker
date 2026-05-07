@@ -2,20 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
-import type { DropdownEntity } from '@/types/dropdown';
+import type { DropdownEntity } from '@/types/general/DropdownEntity';
 import { createPackage, updatePackage } from '@/lib/api/packages';
 import { fetchUsers, fetchTopRecipients } from '@/lib/api/users';
 import { fetchCarriers, createCarrier } from '@/lib/api/carriers';
 import { fetchSenders, createSender } from '@/lib/api/senders';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
 import { useToast } from '@/hooks/useToast'; // Correct hook import
-import StepModal, { type StepConfig } from '@/components/ui/modals/StepModal';
-import FieldWrapper from '@/components/ui/forms/FieldWrapper';
-import Typeahead from '@/components/ui/forms/Typeahead';
-import FormGrid from '@/components/ui/forms/FormGrid';
-import CheckboxField from '@/components/ui/forms/CheckboxField';
-import TextLikeField from '@/components/ui/forms/TextLikeField';
-import Combobox, { type ComboboxValue } from '@/components/ui/forms/Combobox';
+import StepModal, { type StepConfig } from '@/components/general/overlays/StepModal';
+import FieldWrapper from '@/components/general/forms/FieldWrapper';
+import Typeahead from '@/components/general/forms/Typeahead';
+import FormGrid from '@/components/general/forms/FormGrid';
+import CheckboxField from '@/components/general/forms/CheckboxField';
+import TextLikeField from '@/components/general/forms/TextLikeField';
+import Combobox, { type ComboboxValue } from '@/components/general/forms/Combobox';
 
 export default function AddPackageModal({
   onClose,

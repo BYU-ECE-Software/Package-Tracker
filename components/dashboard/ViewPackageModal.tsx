@@ -4,9 +4,9 @@ import { useState } from 'react';
 import type { Package } from '@/types/package';
 import { formatDate } from '@/utils/formatDate';
 import { daysAgo } from '@/utils/daysAgo';
-import TabModal, { type TabConfig } from '@/components/ui/modals/TabModal';
-import Button from '@/components/ui/actions/Button';
-import SendEmailModal from '@/components/ui/modals/SendEmailModal';
+import TabModal, { type TabConfig } from '@/components/general/overlays/TabModal';
+import Button from '@/components/general/actions/Button';
+import SendEmailModal from '@/components/general/overlays/SendEmailModal';
 import { sendEmail } from '@/lib/api/email';
 
 interface ViewPackageModalProps {

@@ -19,7 +19,7 @@ export function statusToBadgeClasses(status: string): string {
     s.includes('broken') ||
     s.includes('raven') // this is for harry potter template example can take this out in dev
   ) {
-    return 'bg-blue-50 text-blue-800 ring-1 ring-blue-200';
+    return 'bg-blue-50 text-byu-info-blue-dark ring-1 ring-blue-200';
   }
 
   if (
@@ -30,7 +30,7 @@ export function statusToBadgeClasses(status: string): string {
     s.includes('progr') ||
     s.includes('huffle') // this is for harry potter template example can take this out in dev
   ) {
-    return 'bg-amber-50 text-amber-800 ring-1 ring-amber-200';
+    return 'bg-amber-50 text-byu-brown ring-1 ring-amber-200';
   }
 
   if (
@@ -41,7 +41,7 @@ export function statusToBadgeClasses(status: string): string {
     s.includes('complete') ||
     s.includes('slyth') // this is for harry potter template example can take this out in dev
   ) {
-    return 'bg-green-50 text-green-800 ring-1 ring-green-200';
+    return 'bg-green-50 text-byu-green-dark ring-1 ring-green-200';
   }
 
   if (
@@ -51,7 +51,7 @@ export function statusToBadgeClasses(status: string): string {
     s.includes('reject') ||
     s.includes('gryf') // this is for harry potter template example can take this out in dev
   ) {
-    return 'bg-red-50 text-red-800 ring-1 ring-red-200';
+    return 'bg-red-50 text-byu-red-dark ring-1 ring-red-200';
   }
 
   return 'bg-slate-50 text-slate-700 ring-1 ring-slate-200';

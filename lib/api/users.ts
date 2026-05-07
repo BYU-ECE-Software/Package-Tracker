@@ -2,7 +2,7 @@
 // lib/api/users.ts - User API Functions
 // ============================================
 
-import { type
+import type {
   User,
   UserListResponse,
   UserQueryParams,
@@ -133,7 +133,7 @@ export async function fetchStudents(): Promise<User[]> {
  */
 export async function fetchEmployees(): Promise<User[]> {
   const response = await fetchUsers({ pageSize: 1000 });
-  return response.data.filter(u => u.role === 'SECRETARY' || u.role === 'ADMIN');
+  return response.data.filter((u: User) => u.role === 'SECRETARY' || u.role === 'ADMIN');
 }
 
 /**

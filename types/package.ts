@@ -1,6 +1,6 @@
 import type { User } from './user';
-import type { DropdownEntity } from '@/types/dropdown';
-import type { PaginatedResponse } from './pagination';
+import type { DropdownEntity } from '@/types/general/DropdownEntity';
+import type { PaginatedResponse } from '@/components/general/data-display/Pagination';
 import type { PackageStatus } from '@prisma/client';
 
 export type PackageListResponse = PaginatedResponse<Package>;

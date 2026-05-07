@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(json|config|css|tsx|ts\\)$\")",
+      "Bash(python -c ':*)",
+      "Bash(node -e ':*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npm run *)",
+      "Bash(git -C \"C:/Users/mjohans0/Documents/Package-Tracker\" log --oneline -1 -- middleware.ts)"
+    ]
+  }
+}

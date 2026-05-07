@@ -1,17 +1,20 @@
-// Prisma 6+ config file. Replaces the deprecated `prisma` block in
-// package.json (removed in Prisma 7). See https://pris.ly/prisma-config.
-//
-// `dotenv/config` is imported up front because Prisma stops auto-loading
-// `.env` when a config file is present, and the schema's
-// datasource still reads DATABASE_URL via `env(...)`.
+// `prisma.config.ts` disables Prisma's automatic env loading, so we load .env
+// ourselves. dotenv alone does NOT expand ${VAR} references — dotenv-expand
+// adds that, matching the behavior Next.js and docker-compose already use.
+import dotenv from 'dotenv';
+import { expand } from 'dotenv-expand';
+expand(dotenv.config());
 
-import 'dotenv/config';
-import path from 'node:path';
-import { defineConfig } from 'prisma/config';
+import { defineConfig, env } from 'prisma/config';
 
 export default defineConfig({
-  schema: path.join('prisma', 'schema.prisma'),
+  schema: 'prisma/schema.prisma',
   migrations: {
+    path: 'prisma/migrations',
     seed: 'tsx prisma/seed.ts',
+  },
+  engine: 'classic',
+  datasource: {
+    url: env('DATABASE_URL'),
   },
 });

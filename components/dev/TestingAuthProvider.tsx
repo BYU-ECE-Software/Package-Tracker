@@ -1,7 +1,10 @@
-'use client';
+// Test code for authentication.
+// Someone who is authenticated is considered "signed in".
+// This provider simulates authentication using dev accounts from
+// lib/devAccounts.ts. Replace with your real auth integration before
+// shipping.
 
-// TODO: replace with real auth before going to production
-// This provider simulates authentication using dev accounts from lib/devAccounts.ts
+'use client';
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 import type { User } from '@/types/user';
@@ -35,11 +38,12 @@ export function TestAuthProvider({ children, initialAuth }: TestAuthProviderProp
     // (checkedInById, checkedOutById, …) succeed.
     fetchUsers({ search: account.netId, pageSize: 5 })
       .then((res) => {
-        const real = res.data.find((u) => u.netId === account.netId);
+        const real = res.data.find((u: User) => u.netId === account.netId);
         if (real) setUser(real);
-        else console.warn(
-          `Dev account ${account.netId} has no matching DB user — run \`npx prisma db seed\`.`,
-        );
+        else
+          console.warn(
+            `Dev account ${account.netId} has no matching DB user — run \`npx prisma db seed\`.`,
+          );
       })
       .catch((err) => console.warn('Failed to resolve dev account:', err));
   };

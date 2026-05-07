@@ -3,9 +3,8 @@
 // the same transaction. Both /api/packages POST and /api/email/send funnel
 // through this so logging stays consistent.
 //
-// This file is the only piece of lib/email/ that's PT-specific (the rest —
-// mailer.ts, template.ts, and the sendNotification helper in index.ts —
-// are generic and can be lifted into another project as-is).
+// This file is the only piece of lib/email/ that's PT-specific. mailer.ts
+// and template.ts are generic and can be lifted into another project as-is.
 
 import { prisma } from '@/lib/prisma';
 import sendMail from './mailer';

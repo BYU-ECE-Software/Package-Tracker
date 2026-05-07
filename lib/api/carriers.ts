@@ -2,7 +2,7 @@
 // Carrier API Functions
 // ============================================
 
-import type { DropdownEntity } from '@/types/dropdown';
+import type { DropdownEntity } from '@/types/general/DropdownEntity';
 
 export async function fetchCarriers(activeOnly?: boolean): Promise<DropdownEntity[]> {
   const searchParams = new URLSearchParams();

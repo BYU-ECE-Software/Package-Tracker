@@ -5,7 +5,6 @@ import type { Package } from '@/types/package';
 import { fetchPackages } from '@/lib/api/packages';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
 import { useToast } from '@/hooks/useToast';
-import ViewPackageModal from './ViewPackageModal';
 import PackageDataTable from './PackageDataTable';
 
 // ─── Component ────────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 'use client';
 
-// Catches errors that thrown by the root layout itself (cookies(), providers,
+// Catches errors thrown by the root layout itself (cookies(), providers,
 // etc.) — these bubble *past* app/error.tsx because error.tsx only catches
 // errors in its own segment. Without this file you get Next's bare
 // "Internal Server Error" page.
@@ -52,11 +52,14 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             <div className="flex justify-center gap-3">
               <button
                 onClick={reset}
-                className="bg-byu-navy rounded-lg px-6 py-3 text-sm font-medium text-white transition hover:opacity-90"
+                className="bg-byu-navy cursor-pointer rounded-lg px-6 py-3 text-sm font-medium text-white transition hover:opacity-90"
               >
                 try again
               </button>
 
+              {/* Plain <a> is intentional — global-error replaces the root layout, so the
+                  Next.js Link/router context may not be available when this renders. */}
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a
                 href="/"
                 className="rounded-lg border border-gray-300 px-6 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50"

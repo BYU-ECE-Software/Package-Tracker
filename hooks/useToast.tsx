@@ -3,8 +3,8 @@
 import { useState, useCallback, useRef } from 'react';
 import type { ReactElement } from 'react';
 import { createPortal } from 'react-dom';
-import Toast from '@/components/ui/feedback/Toast';
-import type { ToastProps, ToastType } from '@/components/ui/feedback/Toast';
+import Toast from '@/components/general/feedback/Toast';
+import type { ToastProps, ToastType } from '@/components/general/feedback/Toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

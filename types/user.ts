@@ -1,5 +1,5 @@
 import type { Package } from './package';
-import type { PaginatedResponse } from './pagination';
+import type { PaginatedResponse } from '@/components/general/data-display/Pagination';
 import type { Role } from '@prisma/client';
 
 export type UserListResponse = PaginatedResponse<User>;

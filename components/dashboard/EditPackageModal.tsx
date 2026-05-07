@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import type { Package } from '@/types/package';
-import type { DropdownEntity } from '@/types/dropdown';
+import type { DropdownEntity } from '@/types/general/DropdownEntity';
 import { updatePackage } from '@/lib/api/packages';
 import { fetchCarriers, createCarrier } from '@/lib/api/carriers';
 import { fetchSenders, createSender } from '@/lib/api/senders';
 import { useToast } from '@/hooks/useToast';
-import FormModal, { type FormModalField } from '@/components/ui/modals/FormModal';
-import FieldWrapper from '@/components/ui/forms/FieldWrapper';
-import Combobox, { type ComboboxValue } from '@/components/ui/forms/Combobox';
+import FormModal, { type FormModalField } from '@/components/general/forms/FormModal';
+import FieldWrapper from '@/components/general/forms/FieldWrapper';
+import Combobox, { type ComboboxValue } from '@/components/general/forms/Combobox';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

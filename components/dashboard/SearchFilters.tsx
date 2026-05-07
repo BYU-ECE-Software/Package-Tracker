@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { HiOutlineAdjustmentsHorizontal } from 'react-icons/hi2';
-import SearchBar from '@/components/ui/tables/SearchBar';
-import type { DropdownEntity } from '@/types/dropdown';
+import SearchBar from '@/components/general/data-display/SearchBar';
+import type { DropdownEntity } from '@/types/general/DropdownEntity';
 
 export type SearchFiltersState = {
   searchTerm: string;

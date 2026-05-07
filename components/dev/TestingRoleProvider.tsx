@@ -1,8 +1,11 @@
 // For testing purposes, there are two types of users: "student" and "admin".
-// Student/admin role has access to everything originally. once you mark things as admin only then it is removed from student view
-// You can mark nav tabs, entire pages, or individual components/buttons as admin only and they will disappear when on student view
-// If more roles are added, this file will need to be updated and new ways of switching between multiple roles for testing will be needed (currently uing RoleToggle.tsx)
-// the use of isAdmin is supposed to integrate easily with real role authorization in the future
+// Student/admin role has access to everything originally; once you mark
+// things as admin-only they're removed from the student view. You can mark
+// nav tabs, entire pages, or individual components/buttons as admin-only.
+// If more roles are added, this file will need to be updated and new ways
+// of switching between roles for testing will be needed (currently using
+// RoleToggle.tsx).
+// `isAdmin` is shaped to integrate easily with real role authorization later.
 
 'use client';
 

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 // This page catches unexpected runtime errors that weren't caught by a try/catch.
 // It will NOT trigger for 404s or 403s — those have their own pages.
 
@@ -43,17 +44,17 @@ export default function Error({ error, reset }: ErrorPageProps) {
         <div className="flex justify-center gap-3">
           <button
             onClick={reset}
-            className="bg-byu-navy rounded-lg px-6 py-3 text-sm font-medium text-white transition hover:opacity-90"
+            className="bg-byu-navy rounded-lg px-6 py-3 text-sm font-medium text-white transition hover:opacity-90 cursor-pointer"
           >
             let the wheel decide again
           </button>
 
-          <a
+          <Link
             href="/"
             className="rounded-lg border border-gray-300 px-6 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
           >
             go home
-          </a>
+          </Link>
         </div>
       </div>
     </div>

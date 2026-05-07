@@ -1,6 +1,9 @@
+name: package_tracker
+
 services:
   db:
     image: postgres:16
+    container_name: package_tracker_migrate_db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -11,13 +14,54 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
+  minio:
+    image: minio/minio
+    container_name: package_tracker_migrate_minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+
+  # This service looks at your minio service and creates buckets automatically if they are missing
+  # Every time you run this app on a different local computer or server, you would have to manually create all the buckets you need if you don't include this service
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    restart: "no"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    # Repeat the following two lines for every bucket you want to create, and just change the bucket name each time. sample-images is the bucket name in this example
+    # /usr/bin/mc mb --ignore-existing myminio/sample-images;
+    # echo 'Bucket ensured: sample-images';
+    entrypoint: >
+      /bin/sh -c "
+      until /usr/bin/mc alias set myminio http://minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD; do
+        echo 'Waiting for MinIO...';
+        sleep 2;
+      done;
+      /usr/bin/mc mb --ignore-existing myminio/sample-images;
+      echo 'Bucket ensured: sample-images';
+      exit 0;
+      "
+
 volumes:
   db_data:
-
+  minio_data:
 # To migrate using this file:
 # Change the DATABASE_URL in .env to use localhost instead of db as the host
 # Then run: npx prisma generate
-# Then run: docker compose -f docker-compose.migrate.yaml -d
+# Then run: docker compose -f docker-compose.migrate.yaml up -d
 # Run: npx prisma migrate dev
 # When done, stop and remove the migration container: docker compose down
 # Finally, change the DATABASE_URL in .env back to use db as the host
+
+# On your local machine, not in Docker
+# npx prisma migrate dev --name your_migration_name

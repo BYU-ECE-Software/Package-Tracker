@@ -1,9 +1,6 @@
-// lib/email/template.ts
-// Generic HTML + plain-text email rendering. App identity (name, footer text)
-// is parameterized so this file is reusable across projects without edits.
-//
-// Defaults read from NEXT_PUBLIC_APP_NAME / NEXT_PUBLIC_APP_FOOTER. Pass
-// `appName` / `footerText` explicitly if you need per-message overrides.
+// Generic HTML + plain-text email rendering. App identity (name, footer
+// text) is parameterized so this file is reusable across projects without
+// edits — pass `appName` and `footerText` from the caller.
 
 const HTML_TEMPLATE = `
 <!DOCTYPE html>
@@ -29,20 +26,16 @@ interface TemplateParams {
   name: string;
   subject: string;
   body: string;
-  appName?: string;
-  footerText?: string;
+  appName: string;
+  footerText: string;
 }
-
-const defaultAppName = () => process.env.NEXT_PUBLIC_APP_NAME ?? 'App';
-const defaultFooter = () =>
-  process.env.NEXT_PUBLIC_APP_FOOTER ?? 'This is an automated notification.';
 
 export function renderEmailTemplate({
   name,
   subject,
   body,
-  appName = defaultAppName(),
-  footerText = defaultFooter(),
+  appName,
+  footerText,
 }: TemplateParams): string {
   const bodyWithBreaks = (body || '').replace(/\n/g, '<br />');
 
@@ -56,8 +49,8 @@ export function renderEmailTemplate({
 export function renderPlainText({
   name,
   body,
-  appName = defaultAppName(),
-  footerText = defaultFooter(),
+  appName,
+  footerText,
 }: Pick<TemplateParams, 'name' | 'body' | 'appName' | 'footerText'>): string {
   return `Hello ${name || 'there'},
 
