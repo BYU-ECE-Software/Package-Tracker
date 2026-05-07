@@ -86,6 +86,7 @@ model Package {
   @@index([senderId])
   @@index([dateArrived])
   @@index([datePickedUp])
+  @@index([createdAt])
 }
 
 model Notification {
