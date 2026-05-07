@@ -1,9 +1,10 @@
 // ===== PACKAGES API (app/api/packages/route.ts) =====
 
-import { NextRequest, NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { sendAndLogNotification } from '@/lib/email/notifications';
+import { sendAndLogNotification } from '@/lib/notifications/send';
 
 export async function GET(request: NextRequest) {
   try {
@@ -96,9 +97,15 @@ export async function POST(request: NextRequest) {
       notes,
       dateArrived,
       checkedInById,
-      notificationSent,
       emailOptions,
     } = body;
+
+    if (!recipientId || !checkedInById) {
+      return NextResponse.json(
+        { error: 'recipientId and checkedInById are required' },
+        { status: 400 }
+      );
+    }
 
     const new_package = await prisma.package.create({
       data: {
@@ -107,11 +114,7 @@ export async function POST(request: NextRequest) {
         senderId: senderId || null,
         notes: notes || null,
         dateArrived: dateArrived ? new Date(dateArrived) : new Date(),
-        checkedInById: checkedInById || null,
-        // notificationSent flips to true only when the email actually goes out
-        // (handled by sendAndLogNotification). If we set it here too, a send
-        // failure would leave it permanently true.
-        notificationSent: false,
+        checkedInById,
       },
       include: { recipient: true },
     });
@@ -119,15 +122,15 @@ export async function POST(request: NextRequest) {
     // Send + log the arrival notification if requested. Notification failures
     // are isolated from the package-create response: the package already
     // exists, so failing the request would mislead the client into retrying
-    // and creating duplicates. notificationSent stays false on failure, and
-    // the user can resend manually from SendEmailModal.
-    if (notificationSent && emailOptions && new_package.recipient?.email) {
+    // and creating duplicates. The user can resend manually from SendEmailModal.
+    if (emailOptions && new_package.recipient?.email) {
       try {
         await sendAndLogNotification({
           packageId: new_package.id,
           recipientId: new_package.recipientId,
           recipientEmail: new_package.recipient.email,
           recipientName: new_package.recipient.fullName,
+          type: 'ARRIVAL',
           subject: emailOptions.subject,
           body: emailOptions.body,
         });
@@ -137,7 +140,7 @@ export async function POST(request: NextRequest) {
           mailError,
         );
       }
-    } else if (notificationSent && !new_package.recipient?.email) {
+    } else if (emailOptions && !new_package.recipient?.email) {
       console.warn(`Cannot send notification: recipient ${recipientId} has no email on file`);
     }
 

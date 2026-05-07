@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Package } from '@/types/package';
 import { fetchPackages } from '@/lib/api/packages';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
@@ -16,29 +16,35 @@ export default function StudentDashboard() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [activeOnly, setActiveOnly] = useState(true);
 
-  const loadPackages = useCallback(async () => {
+  useEffect(() => {
     if (!user?.id) return;
 
-    try {
-      const res = await fetchPackages({
-        page: 1,
-        pageSize: 1000,
-        recipientId: user.id,
-        activeOnly,
-      });
-      setPackages(res.data);
-    } catch {
-      showToast({
-        type: 'error',
-        title: 'Load Failed',
-        message: 'Failed to load your packages.',
-      });
-    }
-  }, [user?.id, activeOnly, showToast]);
+    let cancelled = false;
 
-  useEffect(() => {
-    loadPackages();
-  }, [loadPackages]);
+    (async () => {
+      try {
+        const res = await fetchPackages({
+          page: 1,
+          pageSize: 1000,
+          recipientId: user.id,
+          activeOnly,
+        });
+        if (!cancelled) setPackages(res.data);
+      } catch {
+        if (!cancelled) {
+          showToast({
+            type: 'error',
+            title: 'Load Failed',
+            message: 'Failed to load your packages.',
+          });
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, activeOnly, showToast]);
 
   return (
     <div className="px-6 py-10">

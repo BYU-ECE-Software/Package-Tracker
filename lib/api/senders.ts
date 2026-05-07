@@ -41,7 +41,7 @@ export async function updateSender(
   data: { name?: string; hidden?: boolean }
 ): Promise<DropdownEntity> {
   const res = await fetch(`/api/senders/${id}`, {
-    method: 'PUT',
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });

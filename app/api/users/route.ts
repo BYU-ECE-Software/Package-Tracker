@@ -1,7 +1,8 @@
 // ===== USERS API (app/api/users/route.ts) =====
 
-import { NextRequest, NextResponse } from 'next/server';
-import { Prisma, Role } from '@prisma/client';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
+import type { Prisma, Role } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
@@ -82,7 +83,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
+    if (!body.netId || !body.email || !body.fullName) {
+      return NextResponse.json(
+        { error: 'netId, email, and fullName are required' },
+        { status: 400 }
+      );
+    }
+
     const user = await prisma.user.create({
       data: {
         netId: body.netId,

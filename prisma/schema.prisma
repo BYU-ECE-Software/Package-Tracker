@@ -12,17 +12,11 @@ datasource db {
 enum Role {
   STUDENT
   SECRETARY
-  ADMIN
 }
 
-enum PackageStatus {
-  ACTIVE           // Default - package is waiting for pickup
-  PICKED_UP        // Normal pickup completed
-  DELIVERED        // Delivered to office
-  LOST             // Package cannot be found
-  RETURNED         // Sent back to sender
-  DAMAGED          // Package arrived damaged
-  HELD             // On hold for some reason
+enum NotificationType {
+  ARRIVAL
+  FOLLOW_UP
 }
 
 // ─── MODELS ───────────────────────────────────────────────────────────────────
@@ -31,19 +25,13 @@ model User {
   id       String @id @default(cuid())
   netId    String @unique
   fullName String
-  email    String?
+  email    String
   role     Role   @default(STUDENT)
 
-  // Packages where this user is the recipient
+  // Relations
   packagesReceived Package[] @relation("PackageRecipient")
-  
-  // Packages this user checked in (as secretary)
   packagesCheckedIn Package[] @relation("CheckedInBy")
-  
-  // Packages this user checked out (as secretary)
   packagesCheckedOut Package[] @relation("CheckedOutBy")
-  
-  // Packages this user physically picked up (could be recipient or someone else)
   packagesPickedUp Package[] @relation("PickedUpBy")
   
   // Notifications sent to this user
@@ -59,43 +47,36 @@ model User {
 model Package {
   id        String   @id @default(cuid())
   
-  // Recipient (who the package is for)
+  // Recipient
   recipientId String
   recipient   User   @relation("PackageRecipient", fields: [recipientId], references: [id])
   
-  // Dropdown selections
+  // Dropdowns
   carrierId String?
   carrier   Carrier? @relation(fields: [carrierId], references: [id])
   
   senderId  String?
   sender    Sender?  @relation(fields: [senderId], references: [id])
+
+  notes     String?  @db.Text
   
-  // Check-in info (when package arrived)
+  // Check-in
   dateArrived   DateTime
-  checkedInById String?
-  checkedInBy   User?    @relation("CheckedInBy", fields: [checkedInById], references: [id])
+  checkedInById String
+  checkedInBy   User     @relation("CheckedInBy", fields: [checkedInById], references: [id])
   
-  // Check-out info (when package left)
+  // Check-out
   datePickedUp     DateTime?
   checkedOutById   String?
   checkedOutBy     User?     @relation("CheckedOutBy", fields: [checkedOutById], references: [id])
   
-  // NEW: Who actually picked it up (might differ from recipient)
+  // Deliver Info
+  deliveredToOffice Boolean  @default(false)
   pickedUpByUserId String?
   pickedUpBy       User?     @relation("PickedUpBy", fields: [pickedUpByUserId], references: [id])
-  
-  deliveredToOffice Boolean  @default(false)
-  
-  // NEW: Status for edge cases
-  status PackageStatus @default(ACTIVE)
-  
+
   // Notification tracking
-  notificationSent Boolean @default(false)
-  
-  // NEW: Relation to notification history
   notifications Notification[]
-  
-  notes     String?  @db.Text
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -105,10 +86,8 @@ model Package {
   @@index([senderId])
   @@index([dateArrived])
   @@index([datePickedUp])
-  @@index([status])
 }
 
-// NEW MODEL: Email notification history
 model Notification {
   id          String   @id @default(cuid())
   
@@ -118,16 +97,13 @@ model Notification {
   recipientId String
   recipient   User     @relation(fields: [recipientId], references: [id])
   
+  type        NotificationType
   subject     String
   body        String   @db.Text
-  
+
   sentAt      DateTime @default(now())
-  readAt      DateTime?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@index([recipientId, readAt])
+
+  @@index([recipientId])
   @@index([packageId])
 }
 

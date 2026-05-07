@@ -10,7 +10,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDownIcon } from '@heroicons/react/20/solid';
+import { FiChevronDown } from 'react-icons/fi';
 import { INPUT_CLASS } from '@/components/general/forms/formFieldStyles';
 import type { ComboboxItem } from '@/components/general/forms/formFieldTypes';
 
@@ -235,7 +235,7 @@ export default function Combobox<T extends ComboboxItem>({
         aria-label="Toggle options"
         className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <ChevronDownIcon className="h-5 w-5" />
+        <FiChevronDown className="h-5 w-5" />
       </button>
 
       {typeof document !== 'undefined' && dropdownContent

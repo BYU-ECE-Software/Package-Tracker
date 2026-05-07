@@ -41,7 +41,7 @@ export async function updateCarrier(
   data: { name?: string; hidden?: boolean }
 ): Promise<DropdownEntity> {
   const res = await fetch(`/api/carriers/${id}`, {
-    method: 'PUT',
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });

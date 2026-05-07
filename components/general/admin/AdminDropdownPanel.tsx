@@ -9,7 +9,7 @@
 //     message; the modal surfaces it)
 //
 // Requirements:
-//   - Entity must conform to DropdownEntity ({ id, name, hidden, sortOrder }).
+//   - Entity must conform to DropdownEntity ({ id, name, hidden, order }).
 //   - Caller supplies CRUD callbacks: fetchItems, createItem, updateItem,
 //     deleteItem, reorderItems.
 'use client';
@@ -18,22 +18,16 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import type { DropdownEntity } from '@/types/general/DropdownEntity';
 import ConfirmModal from '@/components/general/overlays/ConfirmModal';
 import Button from '@/components/general/actions/Button';
-import SortableList from '@/components/general/actions/SortableList';
+import SortableList, { DragHandle } from '@/components/general/actions/SortableList';
 import { INPUT_CLASS } from '@/components/general/forms/formFieldStyles';
 import { useToast } from '@/hooks/useToast';
-import {
-  EyeIcon,
-  EyeSlashIcon,
-  PencilIcon,
-  TrashIcon,
-  Bars3Icon,
-} from '@heroicons/react/24/outline';
+import { FiEye, FiEyeOff, FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type EditingState = { id: string; name: string } | null;
 
-export interface AdminDropdownPanelProps {
+export interface AdminDropdownConfig {
   /** Human-readable singular noun (e.g., "Carrier", "Sender") used in UI messages */
   noun: string;
 
@@ -53,16 +47,15 @@ export interface AdminDropdownPanelProps {
   reorderItems: (orderedIds: string[]) => Promise<void>;
 }
 
+interface Props {
+  title: string;
+  config: AdminDropdownConfig;
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function AdminDropdownPanel({
-  noun,
-  fetchItems,
-  createItem,
-  updateItem,
-  deleteItem,
-  reorderItems,
-}: AdminDropdownPanelProps) {
+export default function AdminDropdownPanel({ title, config }: Props) {
+  const { noun, fetchItems, createItem, updateItem, deleteItem, reorderItems } = config;
   const [items, setItems] = useState<DropdownEntity[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
@@ -173,8 +166,10 @@ export default function AdminDropdownPanel({
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="p-4 bg-white border rounded-lg shadow text-byu-navy">
-      <h2 className="text-xl font-semibold mb-4">{noun}s</h2>
+    <div className="text-byu-navy">
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <h2 className="text-xl font-semibold">{title}</h2>
+      </div>
 
       {/* Add new item */}
       <div className="flex gap-2 mb-6">
@@ -203,7 +198,7 @@ export default function AdminDropdownPanel({
           lockAxis
           // Override SortableList's default flex-col-gap-2 with a divided
           // bordered container so the rows read as a single list.
-          className="divide-y divide-gray-200 border rounded-lg overflow-hidden flex flex-col"
+          className="flex flex-col divide-y divide-gray-200 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
           renderItem={(item, dragHandleProps) => {
             const isEditing = editing?.id === item.id;
 
@@ -213,27 +208,10 @@ export default function AdminDropdownPanel({
                   !item.hidden ? 'bg-gray-50' : 'bg-white'
                 }`}
               >
-                {/* Drag handle — omitted while editing so the row can't be
+                {/* Drag handle — disabled while editing so the row can't be
                     grabbed accidentally. SortableList only listens on the
                     element receiving dragHandleProps. */}
-                {isEditing ? (
-                  <span
-                    aria-hidden="true"
-                    className="text-gray-300 opacity-40 cursor-not-allowed touch-none"
-                  >
-                    <Bars3Icon className="h-5 w-5" />
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    {...dragHandleProps}
-                    title="Drag to reorder"
-                    aria-label="Drag to reorder"
-                    className="touch-none text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing"
-                  >
-                    <Bars3Icon className="h-5 w-5" />
-                  </button>
-                )}
+                <DragHandle disabled={isEditing} {...(isEditing ? {} : dragHandleProps)} />
 
                 {/* Name — switches between display and inline edit */}
                 <div className="flex-1">
@@ -281,9 +259,9 @@ export default function AdminDropdownPanel({
                       className="text-gray-400 hover:text-byu-navy transition-colors"
                     >
                       {!item.hidden ? (
-                        <EyeIcon className="h-5 w-5" />
+                        <FiEye className="h-5 w-5" />
                       ) : (
-                        <EyeSlashIcon className="h-5 w-5" />
+                        <FiEyeOff className="h-5 w-5" />
                       )}
                     </button>
 
@@ -293,7 +271,7 @@ export default function AdminDropdownPanel({
                       title="Edit name"
                       className="text-gray-400 hover:text-byu-royal transition-colors"
                     >
-                      <PencilIcon className="h-5 w-5" />
+                      <FiEdit2 className="h-5 w-5" />
                     </button>
 
                     <button
@@ -302,7 +280,7 @@ export default function AdminDropdownPanel({
                       title="Delete"
                       className="text-gray-400 hover:text-red-600 transition-colors"
                     >
-                      <TrashIcon className="h-5 w-5" />
+                      <FiTrash2 className="h-5 w-5" />
                     </button>
                   </div>
                 )}

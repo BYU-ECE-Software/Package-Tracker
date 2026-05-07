@@ -1,7 +1,8 @@
 // ===== SINGLE USER API (app/api/users/[id]/route.ts) =====
 
-import { NextRequest, NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(
@@ -47,7 +48,12 @@ export async function PUT(
 
     const updateData: Prisma.UserUncheckedUpdateInput = {};
 
-    if (body.email !== undefined) updateData.email = body.email;
+    if (body.email !== undefined) {
+      if (!body.email) {
+        return NextResponse.json({ error: 'email cannot be empty' }, { status: 400 });
+      }
+      updateData.email = body.email;
+    }
     if (body.fullName !== undefined) updateData.fullName = body.fullName;
     if (body.role !== undefined) updateData.role = body.role;
 

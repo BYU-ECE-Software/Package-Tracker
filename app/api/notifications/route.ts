@@ -1,9 +1,9 @@
-// ===== EMAIL SEND API (app/api/email/send/route.ts) =====
-// Sends a package-related email and logs it as a Notification, flipping
-// the package's notificationSent flag to true.
+// Sends a package-related email and logs it as a Notification.
 
-import { NextRequest, NextResponse } from 'next/server';
-import { sendAndLogNotification } from '@/lib/email/notifications';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
+import { NotificationType } from '@prisma/client';
+import { sendAndLogNotification } from '@/lib/notifications/send';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,14 +15,22 @@ export async function POST(request: NextRequest) {
       recipientName,
       packageId,
       recipientId,
+      type,
     } = body;
 
-    if (!to || !subject || !messageBody || !packageId || !recipientId) {
+    if (!to || !subject || !messageBody || !packageId || !recipientId || !type) {
       return NextResponse.json(
         {
           error:
-            'Missing required field: to, subject, body, packageId, or recipientId',
+            'Missing required field: to, subject, body, packageId, recipientId, or type',
         },
+        { status: 400 },
+      );
+    }
+
+    if (!Object.values(NotificationType).includes(type)) {
+      return NextResponse.json(
+        { error: `Invalid notification type: ${type}` },
         { status: 400 },
       );
     }
@@ -32,17 +40,18 @@ export async function POST(request: NextRequest) {
       recipientId,
       recipientEmail: to,
       recipientName: recipientName ?? null,
+      type,
       subject,
       body: messageBody,
     });
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Error sending notification:', error);
     const message =
       error instanceof Error && error.message.includes('Mail')
         ? error.message
-        : 'Failed to send email';
+        : 'Failed to send notification';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

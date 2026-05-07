@@ -16,6 +16,7 @@ type TextLikeFieldProps = {
     position: 'start' | 'end';
   };
   includeTextColor?: boolean; // set false inside FormModal where the parent controls text color
+  disabled?: boolean;
 };
 
 export default function TextLikeField({
@@ -28,6 +29,7 @@ export default function TextLikeField({
   inputMode,
   adornment,
   includeTextColor = true,
+  disabled = false,
 }: TextLikeFieldProps) {
   const hasAdornment = Boolean(adornment?.text);
   const adornPos = adornment?.position ?? 'start';
@@ -39,7 +41,9 @@ export default function TextLikeField({
       : 'pl-3 pr-7'
     : 'px-3';
 
-  const baseClass = includeTextColor ? INPUT_CLASS : INPUT_CLASS_NO_TEXT_COLOR;
+  const baseClassRaw = includeTextColor ? INPUT_CLASS : INPUT_CLASS_NO_TEXT_COLOR;
+  const disabledClass = disabled ? ' bg-gray-50 text-gray-500 cursor-not-allowed' : '';
+  const baseClass = baseClassRaw + disabledClass;
 
   const fieldClass = [baseClass.replace('px-3 ', ''), 'py-2', inputPaddingClass].join(' ');
 
@@ -66,6 +70,7 @@ export default function TextLikeField({
           placeholder={placeholder ?? ''}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
         />
       ) : (
         <input
@@ -75,6 +80,7 @@ export default function TextLikeField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           inputMode={inputMode}
+          disabled={disabled}
         />
       )}
     </div>

@@ -1,6 +1,6 @@
 // Admin config — drives <AdminDropdownPanel /> for the Sender entity.
 
-import type { AdminDropdownPanelProps } from '@/components/general/admin/AdminDropdownPanel';
+import type { AdminDropdownConfig } from '@/components/general/admin/AdminDropdownPanel';
 import {
   fetchSenders,
   createSender,
@@ -9,7 +9,7 @@ import {
   reorderSenders,
 } from '@/lib/api/senders';
 
-export const sendersEditorProps: AdminDropdownPanelProps = {
+export const sendersConfig: AdminDropdownConfig = {
   noun: 'Sender',
   fetchItems: fetchSenders,
   createItem: createSender,

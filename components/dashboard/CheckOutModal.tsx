@@ -8,6 +8,8 @@ import { updatePackage } from '@/lib/api/packages';
 import { fetchUsers } from '@/lib/api/users';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
 import { useToast } from '@/hooks/useToast';
+import { formatDate } from '@/utils/formatDate';
+import { daysAgo } from '@/utils/daysAgo';
 import StepModal, { type StepConfig } from '@/components/general/overlays/StepModal';
 import FieldWrapper from '@/components/general/forms/FieldWrapper';
 import FormGrid from '@/components/general/forms/FormGrid';
@@ -153,25 +155,35 @@ function Step1MethodSelect({
   return (
     <div className="space-y-4">
       {/* Package details at the top */}
-      <div className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm space-y-1">
-        <p className="text-gray-500">
-          Recipient:{' '}
-          <span className="font-medium text-byu-navy">
-            {pkg.recipient?.fullName ?? '—'}
-          </span>
-          {' '}
-          <span className="text-gray-400">({pkg.recipient?.netId ?? '—'})</span>
-        </p>
-        {pkg.carrier && (
-          <p className="text-gray-500">
-            Carrier: <span className="font-medium text-byu-navy">{pkg.carrier.name}</span>
-          </p>
-        )}
-        {pkg.sender && (
-          <p className="text-gray-500">
-            Sender: <span className="font-medium text-byu-navy">{pkg.sender.name}</span>
-          </p>
-        )}
+      <div className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+          <div>
+            <p className="text-xs font-medium text-gray-500">Name</p>
+            <p className="text-byu-navy font-medium">
+              {pkg.recipient?.fullName ?? '—'}
+              <span className="ml-1 font-normal text-gray-500">
+                ({pkg.recipient?.netId ?? '—'})
+              </span>
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-gray-500">Date</p>
+            <p className="text-byu-navy">
+              {formatDate(pkg.dateArrived)}
+              {daysAgo(pkg.dateArrived) && (
+                <span className="ml-2 text-gray-400">({daysAgo(pkg.dateArrived)})</span>
+              )}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-gray-500">Carrier</p>
+            <p className="text-byu-navy">{pkg.carrier?.name ?? '—'}</p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-gray-500">Sender</p>
+            <p className="text-byu-navy">{pkg.sender?.name ?? '—'}</p>
+          </div>
+        </div>
       </div>
 
       {/* Method selection buttons */}

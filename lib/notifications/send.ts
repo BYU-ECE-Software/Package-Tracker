@@ -1,17 +1,15 @@
 // PT-specific notification helper: send a package notification email and
-// log it to the Notification table, flipping Package.notificationSent in
-// the same transaction. Both /api/packages POST and /api/email/send funnel
-// through this so logging stays consistent.
+// log it to the Notification table. Both /api/packages POST and
+// /api/notifications funnel through this so logging stays consistent.
 //
-// This file is the only piece of lib/email/ that's PT-specific. mailer.ts
-// and template.ts are generic and can be lifted into another project as-is.
+// This file holds PT branding + DB logging. The pure email primitives in
+// lib/email/ (mailer, template) stay generic and upstreamable.
 
 import { prisma } from '@/lib/prisma';
-import sendMail from './mailer';
-import { renderEmailTemplate, renderPlainText } from './template';
+import type { NotificationType } from '@prisma/client';
+import sendMail from '@/lib/email/mailer';
+import { renderEmailTemplate, renderPlainText } from '@/lib/email/template';
 
-// Brand-locked here so PT emails retain the "ECE Mailroom" voice without
-// requiring callers (or env vars) to keep the strings in sync.
 const APP_NAME = 'ECE Mailroom';
 const FOOTER_TEXT =
   'This is an automated notification from the BYU ECE Package Tracker.';
@@ -21,6 +19,7 @@ export type SendAndLogNotificationParams = {
   recipientId: string;
   recipientEmail: string;
   recipientName: string | null;
+  type: NotificationType;
   subject: string;
   body: string;
 };
@@ -30,6 +29,7 @@ export async function sendAndLogNotification({
   recipientId,
   recipientEmail,
   recipientName,
+  type,
   subject,
   body,
 }: SendAndLogNotificationParams): Promise<void> {
@@ -51,18 +51,12 @@ export async function sendAndLogNotification({
   // email that never went out.
   await sendMail({ to: recipientEmail, subject, text, html });
 
-  // Best-effort logging + status flip. Mail already left the building, so
-  // a DB hiccup here shouldn't propagate as a send failure to the caller.
+  // Best-effort logging. Mail already left the building, so a DB hiccup
+  // here shouldn't propagate as a send failure to the caller.
   try {
-    await prisma.$transaction([
-      prisma.notification.create({
-        data: { packageId, recipientId, subject, body },
-      }),
-      prisma.package.update({
-        where: { id: packageId },
-        data: { notificationSent: true },
-      }),
-    ]);
+    await prisma.notification.create({
+      data: { packageId, recipientId, type, subject, body },
+    });
   } catch (error) {
     console.error(
       `Failed to log notification for package ${packageId} (email already sent):`,

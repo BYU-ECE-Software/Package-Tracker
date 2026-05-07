@@ -18,7 +18,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRightIcon } from '@heroicons/react/24/outline';
+import { FiArrowRight } from 'react-icons/fi';
 import Button from '@/components/general/actions/Button';
 import Spinner from '@/components/general/feedback/Spinner';
 import ConfirmModal from '@/components/general/overlays/ConfirmModal';
@@ -265,7 +265,7 @@ export default function AdminDrillPanel<
       headerClassName: 'w-12',
       cellClassName: 'w-12 text-right',
       render: () => (
-        <ArrowRightIcon className="text-byu-royal h-5 w-5 inline-block" aria-hidden="true" />
+        <FiArrowRight className="text-byu-royal h-5 w-5 inline-block" aria-hidden="true" />
       ),
     },
   ];

@@ -108,10 +108,10 @@ export default function SearchFilters({
         {filtersOpen && (
           <div
             role="menu"
-            className="absolute right-0 z-20 mt-2 w-72 rounded-lg border border-gray-200 bg-white p-4 shadow-lg space-y-3"
+            className="absolute left-1/2 -translate-x-1/2 z-20 mt-2 w-80 rounded-lg border border-gray-200 bg-white p-4 shadow-lg space-y-3"
           >
             {/* Date Filter */}
-            <div className="grid grid-cols-[5rem_1fr_2.5rem] items-center gap-2 text-sm">
+            <div className="grid grid-cols-[5rem_1fr_auto] items-center gap-2 text-sm">
               <label htmlFor="filter-date" className="text-byu-navy">
                 Arrived on:
               </label>
@@ -122,21 +122,19 @@ export default function SearchFilters({
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full min-w-0 rounded-md border border-gray-300 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-byu-royal focus:border-byu-royal"
               />
-              <div className="flex justify-end">
-                {date && (
-                  <button
-                    type="button"
-                    onClick={() => setDate('')}
-                    className="text-xs text-gray-500 hover:text-gray-800 cursor-pointer"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
+              {date && (
+                <button
+                  type="button"
+                  onClick={() => setDate('')}
+                  className="text-xs text-gray-500 hover:text-gray-800 cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
             </div>
 
             {/* Carrier Filter */}
-            <div className="grid grid-cols-[5rem_1fr_2.5rem] items-center gap-2 text-sm">
+            <div className="grid grid-cols-[5rem_1fr_auto] items-center gap-2 text-sm">
               <label htmlFor="filter-carrier" className="text-byu-navy">
                 Carrier:
               </label>
@@ -155,21 +153,19 @@ export default function SearchFilters({
                     </option>
                   ))}
               </select>
-              <div className="flex justify-end">
-                {carrierId && (
-                  <button
-                    type="button"
-                    onClick={() => setCarrierId('')}
-                    className="text-xs text-gray-500 hover:text-gray-800 cursor-pointer"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
+              {carrierId && (
+                <button
+                  type="button"
+                  onClick={() => setCarrierId('')}
+                  className="text-xs text-gray-500 hover:text-gray-800 cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
             </div>
 
             {/* Sender Filter */}
-            <div className="grid grid-cols-[5rem_1fr_2.5rem] items-center gap-2 text-sm">
+            <div className="grid grid-cols-[5rem_1fr_auto] items-center gap-2 text-sm">
               <label htmlFor="filter-sender" className="text-byu-navy">
                 Sender:
               </label>
@@ -188,17 +184,15 @@ export default function SearchFilters({
                     </option>
                   ))}
               </select>
-              <div className="flex justify-end">
-                {senderId && (
-                  <button
-                    type="button"
-                    onClick={() => setSenderId('')}
-                    className="text-xs text-gray-500 hover:text-gray-800 cursor-pointer"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
+              {senderId && (
+                <button
+                  type="button"
+                  onClick={() => setSenderId('')}
+                  className="text-xs text-gray-500 hover:text-gray-800 cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
         )}

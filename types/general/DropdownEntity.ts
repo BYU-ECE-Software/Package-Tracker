@@ -6,5 +6,5 @@ export interface DropdownEntity {
   id: string;
   name: string;
   hidden: boolean;
-  sortOrder: number;
+  order: number;
 }

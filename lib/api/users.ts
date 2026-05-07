@@ -129,11 +129,10 @@ export async function fetchStudents(): Promise<User[]> {
 }
 
 /**
- * Fetch all employees (secretaries and admins) (convenience function)
+ * Fetch all secretaries (convenience function)
  */
-export async function fetchEmployees(): Promise<User[]> {
-  const response = await fetchUsers({ pageSize: 1000 });
-  return response.data.filter((u: User) => u.role === 'SECRETARY' || u.role === 'ADMIN');
+export async function fetchSecretaries(): Promise<User[]> {
+  return fetchUsersByRole(Role.SECRETARY);
 }
 
 /**

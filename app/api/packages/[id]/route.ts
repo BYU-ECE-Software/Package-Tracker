@@ -1,7 +1,8 @@
 // ===== SINGLE PACKAGE API (app/api/packages/[id]/route.ts) =====
 
-import { NextRequest, NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(
@@ -63,14 +64,17 @@ export async function PUT(
     }
     
     // User relationships
-    if (body.checkedInById !== undefined) updateData.checkedInById = body.checkedInById;
+    if (body.checkedInById !== undefined) {
+      if (!body.checkedInById) {
+        return NextResponse.json({ error: 'checkedInById cannot be empty' }, { status: 400 });
+      }
+      updateData.checkedInById = body.checkedInById;
+    }
     if (body.checkedOutById !== undefined) updateData.checkedOutById = body.checkedOutById;
     if (body.pickedUpByUserId !== undefined) updateData.pickedUpByUserId = body.pickedUpByUserId;
     
     // Boolean/status fields
     if (body.deliveredToOffice !== undefined) updateData.deliveredToOffice = body.deliveredToOffice;
-    if (body.status !== undefined) updateData.status = body.status;
-    if (body.notificationSent !== undefined) updateData.notificationSent = body.notificationSent;
     
     // Text fields
     if (body.notes !== undefined) updateData.notes = body.notes;

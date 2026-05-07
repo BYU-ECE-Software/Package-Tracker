@@ -7,7 +7,7 @@ import { daysAgo } from '@/utils/daysAgo';
 import TabModal, { type TabConfig } from '@/components/general/overlays/TabModal';
 import Button from '@/components/general/actions/Button';
 import SendEmailModal from '@/components/general/overlays/SendEmailModal';
-import { sendEmail } from '@/lib/api/email';
+import { sendNotification } from '@/lib/api/notifications';
 
 interface ViewPackageModalProps {
   onClose: () => void;
@@ -24,14 +24,10 @@ export default function ViewPackageModal({ onClose, pkg, onSuccess }: ViewPackag
 
   const arrivedAgo = daysAgo(pkg.dateArrived);
 
-  // Notifications come back ordered newest-first from the API. Classify the
-  // latest one by its subject — anything mentioning "reminder" or "follow-up"
-  // is a follow-up; otherwise it's the package arrival notification.
   const notifications = pkg.notifications ?? [];
   const latestNotification = notifications[0];
-  const latestIsFollowUp = latestNotification
-    ? /reminder|follow.?up/i.test(latestNotification.subject)
-    : false;
+  const latestIsFollowUp = latestNotification?.type === 'FOLLOW_UP';
+  const hasSent = notifications.length > 0;
 
   const tabs: TabConfig[] = [
     {
@@ -75,8 +71,8 @@ export default function ViewPackageModal({ onClose, pkg, onSuccess }: ViewPackag
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-byu-navy">Email Notification</span>
-              <span className={`text-sm ${pkg.notificationSent ? 'text-green-600' : 'text-gray-400'}`}>
-                {pkg.notificationSent ? '✓ Sent' : '✗ Not sent'}
+              <span className={`text-sm ${hasSent ? 'text-green-600' : 'text-gray-400'}`}>
+                {hasSent ? '✓ Sent' : '✗ Not sent'}
               </span>
             </div>
 
@@ -96,9 +92,6 @@ export default function ViewPackageModal({ onClose, pkg, onSuccess }: ViewPackag
                   variant="primary"
                   className="w-full"
                 />
-                <p className="text-xs text-gray-500 mt-2">
-                  Will send to: {pkg.recipient.email}
-                </p>
               </div>
             ) : (
               <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded">
@@ -181,15 +174,15 @@ export default function ViewPackageModal({ onClose, pkg, onSuccess }: ViewPackag
             `Please stop by at your earliest convenience.`
           }
           title="Send Follow-Up Email"
-          subjectEditable={false}
           onSend={(payload) =>
-            sendEmail({
+            sendNotification({
               to: payload.to,
               subject: payload.subject,
               body: payload.body,
               recipientName: pkg.recipient?.fullName,
               packageId: pkg.id,
               recipientId: pkg.recipientId,
+              type: 'FOLLOW_UP',
             })
           }
           onClose={() => setSendEmailOpen(false)}

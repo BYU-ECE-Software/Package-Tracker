@@ -10,6 +10,7 @@ import { fetchSenders, createSender } from '@/lib/api/senders';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
 import { useToast } from '@/hooks/useToast'; // Correct hook import
 import StepModal, { type StepConfig } from '@/components/general/overlays/StepModal';
+import { SendEmailFormFields } from '@/components/general/overlays/SendEmailModal';
 import FieldWrapper from '@/components/general/forms/FieldWrapper';
 import Typeahead from '@/components/general/forms/Typeahead';
 import FormGrid from '@/components/general/forms/FormGrid';
@@ -110,7 +111,6 @@ export default function AddPackageModal({
         notes: packageData.notes || undefined,
         dateArrived: packageData.dateArrived,
         checkedInById: user.id,
-        notificationSent: packageData.sendEmail,
         emailOptions: packageData.sendEmail ? emailData : undefined,
       });
 
@@ -240,20 +240,16 @@ export default function AddPackageModal({
           {
             title: 'Personalize notification',
             content: (
-              <div className="space-y-4">
-                <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm">
-                  <p className="text-blue-800"><strong>To:</strong> {recipient?.email ?? '—'}</p>
-                  <p className="text-blue-800"><strong>Subject:</strong> {emailData.subject}</p>
-                </div>
-                <FieldWrapper label="Email Body">
-                  <TextLikeField
-                    as="textarea"
-                    rows={8}
-                    value={emailData.body}
-                    onChange={(v: string) => setEmailData((e) => ({ ...e, body: v }))}
-                  />
-                </FieldWrapper>
-              </div>
+              <SendEmailFormFields
+                recipient={{
+                  name: recipient?.fullName,
+                  email: recipient?.email ?? '',
+                }}
+                subject={emailData.subject}
+                onSubjectChange={(v) => setEmailData((e) => ({ ...e, subject: v }))}
+                body={emailData.body}
+                onBodyChange={(v) => setEmailData((e) => ({ ...e, body: v }))}
+              />
             ),
           },
         ]

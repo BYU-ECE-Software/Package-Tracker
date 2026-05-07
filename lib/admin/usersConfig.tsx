@@ -20,7 +20,7 @@
 
 import type { DataTableColumn } from '@/components/general/data-display/DataTable';
 import type { FormModalField } from '@/components/general/forms/FormModal';
-import type { ConfigPanel } from '@/components/general/admin/AdminCrudPanel';
+import type { AdminCrudConfig } from '@/components/general/admin/AdminCrudPanel';
 import type { User, CreateUserRequest } from '@/types/user';
 import { Role } from '@prisma/client';
 import {
@@ -61,7 +61,6 @@ const fields: FormModalField[] = [
     options: [
       { label: 'Student', value: Role.STUDENT },
       { label: 'Secretary', value: Role.SECRETARY },
-      { label: 'Admin', value: Role.ADMIN },
     ],
   },
 ];
@@ -73,7 +72,7 @@ const initialValues: CreateUserRequest = {
   role: Role.STUDENT,
 };
 
-export function buildUsersConfig(currentUserId: string | null): ConfigPanel<User, CreateUserRequest> {
+export function buildUsersConfig(currentUserId: string | null): AdminCrudConfig<User, CreateUserRequest> {
   return {
     noun: 'User',
     columns,

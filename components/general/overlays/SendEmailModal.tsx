@@ -1,14 +1,15 @@
-// Generic compose-and-send modal. Pure UI: it shows a recipient summary +
-// (optionally editable) subject + body, then hands the typed payload to the
-// parent's `onSend` callback. The parent decides where it goes (POST
-// /api/email/send, a server action calling lib/email's sendNotification,
-// etc.) — keeps the modal decoupled from any particular API contract.
+// Generic compose-and-send modal + the underlying form fields.
+//
+// SendEmailModal: self-contained modal (chrome + submit). Use when "send"
+// is the whole user intent — e.g. the follow-up button on ViewPackageModal.
+//
+// SendEmailFormFields: the recipient card + subject + body fields, no chrome
+// or submit. Use when these fields are part of a larger flow (e.g. a step
+// in AddPackageModal's wizard) so the layout stays in one place.
 //
 // The `subjectEditable` prop controls how the subject is presented:
 //   - true  (default): subject renders as a TextLikeField the user can edit.
-//   - false: subject is shown read-only inside the To/Subject summary card,
-//     matching a "you're sending the canned reminder, just confirm and go"
-//     UX. The supplied defaultSubject still flows through to onSend.
+//   - false: subject is shown read-only inside the To/Subject summary card.
 'use client';
 
 import { useState } from 'react';
@@ -22,6 +23,55 @@ export type SendEmailPayload = {
   subject: string;
   body: string;
 };
+
+export interface SendEmailFormFieldsProps {
+  recipient: { name?: string; email: string };
+  subject: string;
+  onSubjectChange: (v: string) => void;
+  body: string;
+  onBodyChange: (v: string) => void;
+  subjectEditable?: boolean;
+}
+
+export function SendEmailFormFields({
+  recipient,
+  subject,
+  onSubjectChange,
+  body,
+  onBodyChange,
+  subjectEditable = true,
+}: SendEmailFormFieldsProps) {
+  return (
+    <div>
+      <div className="grid auto-rows-[auto_auto_auto] grid-cols-1">
+        <FieldWrapper label="Subject" required className="-mb-2">
+          <TextLikeField
+            as="input"
+            type="text"
+            value={subject}
+            onChange={onSubjectChange}
+            disabled={!subjectEditable}
+          />
+        </FieldWrapper>
+
+        <FieldWrapper label="Body" required>
+          <TextLikeField
+            as="textarea"
+            rows={10}
+            value={body}
+            onChange={onBodyChange}
+          />
+        </FieldWrapper>
+      </div>
+
+      {recipient.email && (
+        <p className="text-xs text-gray-500 -mt-4">
+          Will send to: {recipient.email}
+        </p>
+      )}
+    </div>
+  );
+}
 
 export interface SendEmailModalProps {
   /** Recipient. `email` is required; `name` shows in the summary card and is passed to the body template. */
@@ -102,39 +152,14 @@ export default function SendEmailModal({
         saveLabel={saveLabel}
         submitDisabled={!subject.trim() || !body.trim()}
       >
-        <div className="space-y-4">
-          <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm">
-            <p className="text-blue-800">
-              <strong>To:</strong>{' '}
-              {recipient.name ? `${recipient.name} <${recipient.email}>` : recipient.email}
-            </p>
-            {!subjectEditable && (
-              <p className="text-blue-800">
-                <strong>Subject:</strong> {subject}
-              </p>
-            )}
-          </div>
-
-          {subjectEditable && (
-            <FieldWrapper label="Subject" required>
-              <TextLikeField
-                as="input"
-                type="text"
-                value={subject}
-                onChange={(v: string) => setSubject(v)}
-              />
-            </FieldWrapper>
-          )}
-
-          <FieldWrapper label="Body" required>
-            <TextLikeField
-              as="textarea"
-              rows={10}
-              value={body}
-              onChange={(v: string) => setBody(v)}
-            />
-          </FieldWrapper>
-        </div>
+        <SendEmailFormFields
+          recipient={recipient}
+          subject={subject}
+          onSubjectChange={setSubject}
+          body={body}
+          onBodyChange={setBody}
+          subjectEditable={subjectEditable}
+        />
       </BaseModal>
       <ToastContainer />
     </>

@@ -100,7 +100,20 @@ function SortableItemWrapper({
 
 // ─── Default drag handle ─────────────────────────────────────────────────────
 
-export function DragHandle(props: React.HTMLAttributes<HTMLButtonElement>) {
+export function DragHandle({
+  disabled = false,
+  ...props
+}: React.HTMLAttributes<HTMLButtonElement> & { disabled?: boolean }) {
+  if (disabled) {
+    return (
+      <span
+        aria-hidden="true"
+        className="p-1 text-gray-300 opacity-40 cursor-not-allowed touch-none"
+      >
+        <FiMenu className="h-4 w-4" />
+      </span>
+    );
+  }
   return (
     <button
       type="button"

@@ -15,8 +15,8 @@ import AdminCrudPanel from '@/components/general/admin/AdminCrudPanel';
 import AdminDropdownPanel from '@/components/general/admin/AdminDropdownPanel';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
 import { buildUsersConfig } from '@/lib/admin/usersConfig';
-import { carriersEditorProps } from '@/lib/admin/carriersConfig';
-import { sendersEditorProps } from '@/lib/admin/sendersConfig';
+import { carriersConfig } from '@/lib/admin/carriersConfig';
+import { sendersConfig } from '@/lib/admin/sendersConfig';
 
 type Tab = 'Users' | 'Carriers' | 'Senders';
 const TABS: Tab[] = ['Users', 'Carriers', 'Senders'];
@@ -44,10 +44,10 @@ export default function AdminPage() {
               <AdminCrudPanel title="Users" config={usersConfig} />
             )}
             {activeTab === 'Carriers' && (
-              <AdminDropdownPanel key="Carriers" {...carriersEditorProps} />
+              <AdminDropdownPanel key="Carriers" title="Carriers" config={carriersConfig} />
             )}
             {activeTab === 'Senders' && (
-              <AdminDropdownPanel key="Senders" {...sendersEditorProps} />
+              <AdminDropdownPanel key="Senders" title="Senders" config={sendersConfig} />
             )}
           </div>
         </div>

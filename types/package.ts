@@ -1,7 +1,7 @@
 import type { User } from './user';
 import type { DropdownEntity } from '@/types/general/DropdownEntity';
 import type { PaginatedResponse } from '@/components/general/data-display/Pagination';
-import type { PackageStatus } from '@prisma/client';
+import type { NotificationType } from '@prisma/client';
 
 export type PackageListResponse = PaginatedResponse<Package>;
 
@@ -17,16 +17,14 @@ export interface Package {
   datePickedUp: Date | null;
   recipientId: string;
   recipient?: User;
-  checkedInById: string | null;
-  checkedInBy?: User | null;
+  checkedInById: string;
+  checkedInBy?: User;
   checkedOutById: string | null;
   checkedOutBy?: User | null;
   pickedUpByUserId: string | null;      // NEW
   pickedUpBy?: User | null;             // NEW
   deliveredToOffice: boolean;
-  status: PackageStatus;                // NEW
   notes: string | null;
-  notificationSent: boolean;
   notifications?: PackageNotification[];
 }
 
@@ -34,12 +32,10 @@ export interface PackageNotification {
   id: string;
   packageId: string;
   recipientId: string;
+  type: NotificationType;
   subject: string;
   body: string;
   sentAt: Date;
-  readAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface CreatePackageRequest {
@@ -48,9 +44,8 @@ export interface CreatePackageRequest {
   senderId?: string;
   notes?: string;
   dateArrived?: string;
-  checkedInById?: string;
-  notificationSent?: boolean; // Added
-  emailOptions?: {             // Added
+  checkedInById: string;
+  emailOptions?: {
     subject: string;
     body: string;
   };
@@ -66,7 +61,6 @@ export interface UpdatePackageRequest {
   pickedUpByUserId?: string;
   deliveredToOffice?: boolean;
   notes?: string;
-  notificationSent?: boolean;
 }
 
 export interface PackageQueryParams {

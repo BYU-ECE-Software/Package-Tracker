@@ -1,9 +1,6 @@
 // Admin config — drives <AdminDropdownPanel /> for the Carrier entity.
-// AdminDropdownPanel takes a flat set of CRUD callbacks rather than a config
-// object; this file just bundles the API wrappers so the page can spread
-// them onto the editor in one line.
 
-import type { AdminDropdownPanelProps } from '@/components/general/admin/AdminDropdownPanel';
+import type { AdminDropdownConfig } from '@/components/general/admin/AdminDropdownPanel';
 import {
   fetchCarriers,
   createCarrier,
@@ -12,7 +9,7 @@ import {
   reorderCarriers,
 } from '@/lib/api/carriers';
 
-export const carriersEditorProps: AdminDropdownPanelProps = {
+export const carriersConfig: AdminDropdownConfig = {
   noun: 'Carrier',
   fetchItems: fetchCarriers,
   createItem: createCarrier,

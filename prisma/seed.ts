@@ -1,4 +1,4 @@
-import { PrismaClient, Role, PackageStatus } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -106,35 +106,15 @@ async function main() {
     null, null, null, null, // More likely to have no notes
   ];
 
-  const statusWeights = [
-    { status: PackageStatus.ACTIVE, weight: 30 },           // 30% active
-    { status: PackageStatus.PICKED_UP, weight: 50 },        // 50% picked up
-    { status: PackageStatus.DELIVERED, weight: 15 },        // 15% delivered
-    { status: PackageStatus.LOST, weight: 2 },              // 2% lost
-    { status: PackageStatus.DAMAGED, weight: 2 },           // 2% damaged
-    { status: PackageStatus.RETURNED, weight: 0.5 },        // 0.5% returned
-    { status: PackageStatus.HELD, weight: 0.5 },            // 0.5% held
-  ];
-
-  const getWeightedStatus = (): PackageStatus => {
-    const total = statusWeights.reduce((sum, { weight }) => sum + weight, 0);
-    let random = Math.random() * total;
-    
-    for (const { status, weight } of statusWeights) {
-      random -= weight;
-      if (random <= 0) return status;
-    }
-    
-    return PackageStatus.ACTIVE; // Fallback
-  };
-
   for (let i = 0; i < NUM_PACKAGES; i++) {
-    const status = getWeightedStatus();
-    const isActive = status === PackageStatus.ACTIVE || status === PackageStatus.HELD;
+    // ~30% active, ~15% delivered to office, ~55% picked up
+    const roll = Math.random();
+    const isActive = roll < 0.3;
+    const deliveredToOffice = !isActive && roll < 0.45;
+
     const arrivedDaysAgo = randomInt(0, 30);
     const pickedUpDaysAgo = isActive ? null : randomInt(0, arrivedDaysAgo);
-    const deliveredToOffice = status === PackageStatus.DELIVERED;
-    
+
     const recipient = randomItem(students);
     const carrier = randomItem(carriers);
     const sender = randomItem(senders);
@@ -159,8 +139,6 @@ async function main() {
         checkedOutById: checkedOutBy?.id,
         pickedUpByUserId: pickedUpBy?.id,
         notes: randomItem(noteOptions),
-        status,
-        notificationSent: randomBool(0.8), // 80% sent notifications
       },
     });
   }

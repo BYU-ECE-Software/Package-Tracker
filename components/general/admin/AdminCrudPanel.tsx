@@ -5,13 +5,14 @@
 //   - ConfirmModal for delete, with toasts on success/failure
 //
 // To adapt for an entity:
-//   1. Build a ConfigPanel<T, CreatePayload> with columns / fields /
+//   1. Build a AdminCrudConfig<T, CreatePayload> with columns / fields /
 //      initialValues / toFormValues / api callbacks (and optional canEdit /
 //      canDelete predicates).
 //   2. Mount: <AdminCrudPanel title="…" config={config} rowActions={…} />
 'use client';
 
 import { useEffect, useState } from 'react';
+import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 import Button from '@/components/general/actions/Button';
 import Spinner from '@/components/general/feedback/Spinner';
 import ConfirmModal from '@/components/general/overlays/ConfirmModal';
@@ -22,7 +23,7 @@ import DataTable, {
 } from '@/components/general/data-display/DataTable';
 import { useToast } from '@/hooks/useToast';
 
-export interface ConfigPanel<
+export interface AdminCrudConfig<
   T extends { id: string },
   CreatePayload extends object = Partial<T>,
 > {
@@ -56,7 +57,7 @@ export interface ConfigPanel<
 
 interface Props<T extends { id: string }, CreatePayload extends object> {
   title: string;
-  config: ConfigPanel<T, CreatePayload>;
+  config: AdminCrudConfig<T, CreatePayload>;
   /** Extra row actions appended to the per-row menu (after Edit, before Delete). */
   rowActions?: DataTableAction<T>[];
 }
@@ -163,12 +164,14 @@ export default function AdminCrudPanel<
       actions: [
         {
           label: 'Edit',
+          icon: <FiEdit2 className="h-4 w-4" />,
           onClick: (row) => openEdit(row),
           hidden: (row) => config.canEdit?.(row) === false,
         },
         ...rowActions,
         {
           label: 'Delete',
+          icon: <FiTrash2 className="h-4 w-4" />,
           variant: 'danger',
           onClick: (row) => setPendingDelete(row),
           hidden: (row) => config.canDelete?.(row) === false,
