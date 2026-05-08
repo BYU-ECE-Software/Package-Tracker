@@ -23,3 +23,5 @@ export const minioClient = new Client({
 // Key Bucket names centralized
 // Edit this portion of the file
 export const SAMPLE_IMAGES_BUCKET = 'sample-images';
+export const ORDER_RECEIPTS_BUCKET = 'order-receipts';
+export const ITEM_FILES_BUCKET = 'item-files';

@@ -99,6 +99,10 @@ services:
       done;
       /usr/bin/mc mb --ignore-existing myminio/sample-images;
       echo 'Bucket ensured: sample-images';
+      /usr/bin/mc mb --ignore-existing myminio/order-receipts;
+      echo 'Bucket ensured: order-receipts';
+      /usr/bin/mc mb --ignore-existing myminio/item-files;
+      echo 'Bucket ensured: item-files';
       exit 0;
       "
     networks:

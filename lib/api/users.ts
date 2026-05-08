@@ -129,10 +129,22 @@ export async function fetchStudents(): Promise<User[]> {
 }
 
 /**
- * Fetch all secretaries (convenience function)
+ * Fetch all secretaries from the dedicated unpaginated endpoint.
+ * Convention: small, bounded list endpoints skip pagination and return a
+ * plain array; use this over fetchUsersByRole(Role.SECRETARY) when you need
+ * the full list (e.g., populating a dropdown).
  */
 export async function fetchSecretaries(): Promise<User[]> {
-  return fetchUsersByRole(Role.SECRETARY);
+  const res = await fetch('/api/users/secretaries', { cache: 'no-store' });
+
+  if (!res.ok) {
+    const error = await res
+      .json()
+      .catch(() => ({ error: 'Failed to fetch secretaries' }));
+    throw new Error(error.error || 'Failed to fetch secretaries');
+  }
+
+  return res.json();
 }
 
 /**
