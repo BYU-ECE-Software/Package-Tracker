@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
         where,
         skip,
         take: pageSize,
-        orderBy: { [sortBy]: order },
+        orderBy: [{ [sortBy]: order }, { createdAt: 'desc' }],
         include: {
           recipient: true,
           checkedInBy: true,
