@@ -6,7 +6,7 @@ import type { Package } from '@/types/package';
 import type { DropdownEntity } from '@/types/general/DropdownEntity';
 import { fetchPackages, fetchPackageById, deletePackage } from '@/lib/api/packages';
 import { fetchCarriers } from '@/lib/api/carriers';
-import { fetchSenders } from '@/lib/api/senders';
+import { fetchVendors } from '@/lib/api/vendors';
 import { useToast } from '@/hooks/useToast';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
 import AddPackageModal from './AddPackageModal';
@@ -48,12 +48,12 @@ export default function PackageDashboard() {
     activeOnly: boolean;
     date: Date | null;
     carrierId: string;
-    senderId: string;
+    vendorId: string;
   }>({
     activeOnly: true,
     date: null,
     carrierId: '',
-    senderId: '',
+    vendorId: '',
   });
 
   const pagination = usePagination({ initialPageSize: 25 });
@@ -67,19 +67,19 @@ export default function PackageDashboard() {
   const [deleting, setDeleting] = useState(false);
 
   const [carriers, setCarriers] = useState<DropdownEntity[]>([]);
-  const [senders, setSenders] = useState<DropdownEntity[]>([]);
+  const [vendors, setVendors] = useState<DropdownEntity[]>([]);
 
   useEffect(() => {
     const loadDropdowns = async () => {
       try {
-        const [carriersData, sendersData] = await Promise.all([
+        const [carriersData, vendorsData] = await Promise.all([
           fetchCarriers(true),
-          fetchSenders(true),
+          fetchVendors(true),
         ]);
         setCarriers(carriersData);
-        setSenders(sendersData);
+        setVendors(vendorsData);
       } catch {
-        console.error('Failed to load carriers/senders');
+        console.error('Failed to load carriers/vendors');
       }
     };
     loadDropdowns();
@@ -89,7 +89,7 @@ export default function PackageDashboard() {
   useEffect(() => {
     pagination.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, filters.activeOnly, filters.date, filters.carrierId, filters.senderId]);
+  }, [searchTerm, filters.activeOnly, filters.date, filters.carrierId, filters.vendorId]);
 
   const loadPackages = useCallback(async () => {
     try {
@@ -100,7 +100,7 @@ export default function PackageDashboard() {
         startDate: filters.date ?? undefined,
         activeOnly: filters.activeOnly,
         carrierId: filters.carrierId || undefined,
-        senderId: filters.senderId || undefined,
+        vendorId: filters.vendorId || undefined,
       });
       setPackages(res.data);
       setTotalItems(res.total);
@@ -118,7 +118,7 @@ export default function PackageDashboard() {
     filters.activeOnly,
     filters.date,
     filters.carrierId,
-    filters.senderId,
+    filters.vendorId,
     showToast,
   ]);
 
@@ -141,7 +141,7 @@ export default function PackageDashboard() {
 
         <SearchFilters
           carriers={carriers}
-          senders={senders}
+          vendors={vendors}
           onSearchChange={setSearchTerm}
           onFiltersChange={setFilters}
         />

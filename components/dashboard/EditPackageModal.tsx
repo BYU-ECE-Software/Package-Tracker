@@ -5,7 +5,7 @@ import type { Package } from '@/types/package';
 import type { DropdownEntity } from '@/types/general/DropdownEntity';
 import { updatePackage } from '@/lib/api/packages';
 import { fetchCarriers, createCarrier } from '@/lib/api/carriers';
-import { fetchSenders, createSender } from '@/lib/api/senders';
+import { fetchVendors, createVendor } from '@/lib/api/vendors';
 import { useToast } from '@/hooks/useToast';
 import FormModal, { type FormModalField } from '@/components/general/forms/FormModal';
 import FieldWrapper from '@/components/general/forms/FieldWrapper';
@@ -36,33 +36,33 @@ export default function EditPackageModal({ onClose, pkg, onSuccess }: EditPackag
     id: pkg.carrierId ?? '',
     name: pkg.carrier?.name ?? '',
   });
-  const [sender, setSender] = useState<ComboboxValue>({
-    id: pkg.senderId ?? '',
-    name: pkg.sender?.name ?? '',
+  const [vendor, setVendor] = useState<ComboboxValue>({
+    id: pkg.vendorId ?? '',
+    name: pkg.vendor?.name ?? '',
   });
 
   const [carriers, setCarriers] = useState<DropdownEntity[]>([]);
-  const [senders, setSenders] = useState<DropdownEntity[]>([]);
+  const [vendors, setVendors] = useState<DropdownEntity[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // Fetch all (including hidden) so a typed name can match a hidden entry
     // and reuse it instead of creating a duplicate.
     fetchCarriers().then(setCarriers).catch(console.error);
-    fetchSenders().then(setSenders).catch(console.error);
+    fetchVendors().then(setVendors).catch(console.error);
   }, []);
 
   // Re-sync whenever pkg changes (parent may pass a different package)
   useEffect(() => {
     setValues({ notes: pkg.notes ?? '' });
     setCarrier({ id: pkg.carrierId ?? '', name: pkg.carrier?.name ?? '' });
-    setSender({ id: pkg.senderId ?? '', name: pkg.sender?.name ?? '' });
+    setVendor({ id: pkg.vendorId ?? '', name: pkg.vendor?.name ?? '' });
   }, [pkg]);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      // Resolve carrier/sender. If the user typed a name matching an existing
+      // Resolve carrier/vendor. If the user typed a name matching an existing
       // entry (including a hidden one), reuse that id. Otherwise create new.
       const carrierName = carrier.name.trim();
       const existingCarrier = carriers.find(
@@ -74,19 +74,19 @@ export default function EditPackageModal({ onClose, pkg, onSuccess }: EditPackag
           (await createCarrier({ name: carrierName, hidden: false })).id
         : undefined;
 
-      const senderName = sender.name.trim();
-      const existingSender = senders.find(
-        (s) => s.name.toLowerCase() === senderName.toLowerCase(),
+      const vendorName = vendor.name.trim();
+      const existingVendor = vendors.find(
+        (s) => s.name.toLowerCase() === vendorName.toLowerCase(),
       );
-      const senderId = senderName
-        ? sender.id ||
-          existingSender?.id ||
-          (await createSender({ name: senderName, hidden: false })).id
+      const vendorId = vendorName
+        ? vendor.id ||
+          existingVendor?.id ||
+          (await createVendor({ name: vendorName, hidden: false })).id
         : undefined;
 
       await updatePackage(pkg.id, {
         carrierId,
-        senderId,
+        vendorId,
         notes: values.notes || undefined,
       });
       await onSuccess();
@@ -132,14 +132,14 @@ export default function EditPackageModal({ onClose, pkg, onSuccess }: EditPackag
     },
     {
       kind: 'custom',
-      key: 'sender',
+      key: 'vendor',
       render: () => (
-        <FieldWrapper label="Sender" required>
+        <FieldWrapper label="Vendor" required>
           <Combobox
-            items={senders.filter((s) => !s.hidden)}
-            value={sender}
-            onChange={setSender}
-            placeholder="Select or type a new sender…"
+            items={vendors.filter((s) => !s.hidden)}
+            value={vendor}
+            onChange={setVendor}
+            placeholder="Select or type a new vendor…"
             disabled={isSubmitting}
           />
         </FieldWrapper>

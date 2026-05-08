@@ -3,7 +3,7 @@
  *
  * @example
  * ```tsx
- * const tabs = ['Students', 'Carriers', 'Senders'] as const;
+ * const tabs = ['Students', 'Carriers', 'Vendors'] as const;
  * const [activeTab, setActiveTab] = useState(tabs[0]);
  *
  * <AdminTabs

@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get('endDate');
     const activeOnly = searchParams.get('activeOnly') === 'true';
     const carrierId = searchParams.get('carrierId');
-    const senderId = searchParams.get('senderId');
+    const vendorId = searchParams.get('vendorId');
 
     // Build where clause
     const where: Prisma.PackageWhereInput = {};
@@ -35,12 +35,12 @@ export async function GET(request: NextRequest) {
     if (recipientId) where.recipientId = recipientId;
     if (activeOnly) where.datePickedUp = null;
     if (carrierId) where.carrierId = carrierId;
-    if (senderId) where.senderId = senderId;
+    if (vendorId) where.vendorId = vendorId;
 
     if (search) {
       where.OR = [
         { carrier: { name: { contains: search, mode: 'insensitive' } } },
-        { sender:  { name: { contains: search, mode: 'insensitive' } } },
+        { vendor:  { name: { contains: search, mode: 'insensitive' } } },
         { recipient: { fullName: { contains: search, mode: 'insensitive' } } },
         { recipient: { netId:    { contains: search, mode: 'insensitive' } } },
       ];
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
           checkedInBy: true,
           checkedOutBy: true,
           carrier: true,
-          sender: true,
+          vendor: true,
           notifications: { orderBy: { sentAt: 'desc' } },
         },
       }),
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     const {
       recipientId,
       carrierId,
-      senderId,
+      vendorId,
       notes,
       dateArrived,
       checkedInById,
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
       data: {
         recipientId,
         carrierId: carrierId || null,
-        senderId: senderId || null,
+        vendorId: vendorId || null,
         notes: notes || null,
         dateArrived: dateArrived ? new Date(dateArrived) : new Date(),
         checkedInById,

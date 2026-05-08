@@ -1,7 +1,7 @@
 // PT admin page — three tabs:
 //   - Users     (AdminCrudPanel, full CRUD with role select)
 //   - Carriers  (AdminDropdownPanel — drag-reorder + soft-hide)
-//   - Senders   (AdminDropdownPanel — drag-reorder + soft-hide)
+//   - Vendors   (AdminDropdownPanel — drag-reorder + soft-hide)
 //
 // Configs live in lib/admin/<entity>Config{,.tsx}. The Admin page is a
 // thin shell — to add a new tab, drop a new config file and add it to
@@ -16,10 +16,10 @@ import AdminDropdownPanel from '@/components/general/admin/AdminDropdownPanel';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
 import { buildUsersConfig } from '@/lib/admin/usersConfig';
 import { carriersConfig } from '@/lib/admin/carriersConfig';
-import { sendersConfig } from '@/lib/admin/sendersConfig';
+import { vendorsConfig } from '@/lib/admin/vendorsConfig';
 
-type Tab = 'Users' | 'Carriers' | 'Senders';
-const TABS: Tab[] = ['Users', 'Carriers', 'Senders'];
+type Tab = 'Users' | 'Carriers' | 'Vendors';
+const TABS: Tab[] = ['Users', 'Carriers', 'Vendors'];
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>('Users');
@@ -46,8 +46,8 @@ export default function AdminPage() {
             {activeTab === 'Carriers' && (
               <AdminDropdownPanel key="Carriers" title="Carriers" config={carriersConfig} />
             )}
-            {activeTab === 'Senders' && (
-              <AdminDropdownPanel key="Senders" title="Senders" config={sendersConfig} />
+            {activeTab === 'Vendors' && (
+              <AdminDropdownPanel key="Vendors" title="Vendors" config={vendorsConfig} />
             )}
           </div>
         </div>

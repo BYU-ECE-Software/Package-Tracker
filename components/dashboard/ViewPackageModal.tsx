@@ -61,8 +61,8 @@ export default function ViewPackageModal({ onClose, pkg, onSuccess }: ViewPackag
                 <p className="text-byu-navy">{pkg.carrier?.name ?? '—'}</p>
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500">Sender</p>
-                <p className="text-byu-navy">{pkg.sender?.name ?? '—'}</p>
+                <p className="text-xs font-medium text-gray-500">Vendor</p>
+                <p className="text-byu-navy">{pkg.vendor?.name ?? '—'}</p>
               </div>
             </div>
           </div>

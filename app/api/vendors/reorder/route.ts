@@ -12,21 +12,21 @@ export async function PUT(request: NextRequest) {
     }
 
     const ids = orderedIds as string[];
-    const existing = await prisma.sender.findMany({
+    const existing = await prisma.vendor.findMany({
       where: { id: { in: ids } },
       select: { id: true },
     });
     if (existing.length !== ids.length) {
-      return NextResponse.json({ error: 'One or more sender IDs are invalid' }, { status: 400 });
+      return NextResponse.json({ error: 'One or more vendor IDs are invalid' }, { status: 400 });
     }
 
     await prisma.$transaction(
-      ids.map((id, idx) => prisma.sender.update({ where: { id }, data: { order: idx } }))
+      ids.map((id, idx) => prisma.vendor.update({ where: { id }, data: { order: idx } }))
     );
 
     return NextResponse.json({ reordered: true });
   } catch (error) {
-    console.error('Error reordering senders:', error);
-    return NextResponse.json({ error: 'Failed to reorder senders' }, { status: 500 });
+    console.error('Error reordering vendors:', error);
+    return NextResponse.json({ error: 'Failed to reorder vendors' }, { status: 500 });
   }
 }

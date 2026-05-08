@@ -11,8 +11,8 @@ export interface Package {
   updatedAt: Date;
   carrierId: string | null;
   carrier?: DropdownEntity | null;
-  senderId: string | null;
-  sender?: DropdownEntity | null;
+  vendorId: string | null;
+  vendor?: DropdownEntity | null;
   dateArrived: Date;
   datePickedUp: Date | null;
   recipientId: string;
@@ -41,7 +41,7 @@ export interface PackageNotification {
 export interface CreatePackageRequest {
   recipientId: string;
   carrierId?: string;
-  senderId?: string;
+  vendorId?: string;
   notes?: string;
   dateArrived?: Date | string;
   checkedInById: string;
@@ -53,7 +53,7 @@ export interface CreatePackageRequest {
 
 export interface UpdatePackageRequest {
   carrierId?: string;
-  senderId?: string;
+  vendorId?: string;
   dateArrived?: Date | string;
   datePickedUp?: Date | string;
   checkedInById?: string;
@@ -72,5 +72,5 @@ export interface PackageQueryParams {
   recipientId?: string;
   activeOnly?: boolean;
   carrierId?: string;
-  senderId?: string;
+  vendorId?: string;
 }

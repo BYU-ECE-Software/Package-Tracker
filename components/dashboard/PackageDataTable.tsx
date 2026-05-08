@@ -56,9 +56,9 @@ const PackageDataTable: React.FC<PackageDataTableProps> = ({
       render: (row: Package) => row.carrier?.name ?? '—',
     },
     {
-      key: 'sender',
-      header: 'Sender',
-      render: (row: Package) => row.sender?.name ?? '—',
+      key: 'vendor',
+      header: 'Vendor',
+      render: (row: Package) => row.vendor?.name ?? '—',
     },
     {
       key: 'datePickedUp',

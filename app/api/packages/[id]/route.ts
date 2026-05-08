@@ -19,7 +19,7 @@ export async function GET(
         checkedOutBy: true,
         pickedUpBy: true,
         carrier: true,
-        sender: true,
+        vendor: true,
         notifications: { orderBy: { sentAt: 'desc' } },
       },
     });
@@ -53,7 +53,7 @@ export async function PUT(
     
     // Dropdown fields
     if (body.carrierId !== undefined) updateData.carrierId = body.carrierId;
-    if (body.senderId !== undefined) updateData.senderId = body.senderId;
+    if (body.vendorId !== undefined) updateData.vendorId = body.vendorId;
     
     // Date fields
     if (body.dateArrived !== undefined && body.dateArrived !== null) {
@@ -88,7 +88,7 @@ export async function PUT(
         checkedOutBy: true,
         pickedUpBy: true,
         carrier: true,
-        sender: true,
+        vendor: true,
         notifications: { orderBy: { sentAt: 'desc' } },
       },
     });

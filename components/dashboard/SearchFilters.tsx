@@ -11,24 +11,24 @@ export type SearchFiltersState = {
   activeOnly: boolean;
   date: Date | null;
   carrierId: string;
-  senderId: string;
+  vendorId: string;
 };
 
 interface SearchFiltersProps {
   carriers: DropdownEntity[];
-  senders: DropdownEntity[];
+  vendors: DropdownEntity[];
   onSearchChange: (search: string) => void;
   onFiltersChange: (filters: {
     activeOnly: boolean;
     date: Date | null;
     carrierId: string;
-    senderId: string;
+    vendorId: string;
   }) => void;
 }
 
 export default function SearchFilters({
   carriers,
-  senders,
+  vendors,
   onSearchChange,
   onFiltersChange,
 }: SearchFiltersProps) {
@@ -40,7 +40,7 @@ export default function SearchFilters({
   const [activeOnly, setActiveOnly] = useState(true);
   const [date, setDate] = useState<Date | null>(null);
   const [carrierId, setCarrierId] = useState('');
-  const [senderId, setSenderId] = useState('');
+  const [vendorId, setVendorId] = useState('');
 
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
@@ -58,8 +58,8 @@ export default function SearchFilters({
 
   // Notify parent when filters change
   useEffect(() => {
-    onFiltersChange({ activeOnly, date, carrierId, senderId });
-  }, [activeOnly, date, carrierId, senderId, onFiltersChange]);
+    onFiltersChange({ activeOnly, date, carrierId, vendorId });
+  }, [activeOnly, date, carrierId, vendorId, onFiltersChange]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -73,7 +73,7 @@ export default function SearchFilters({
     return () => document.removeEventListener('mousedown', handleClick);
   }, [filtersOpen]);
 
-  const activeFilterCount = [date, carrierId, senderId].filter(Boolean).length;
+  const activeFilterCount = [date, carrierId, vendorId].filter(Boolean).length;
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -164,30 +164,30 @@ export default function SearchFilters({
               )}
             </div>
 
-            {/* Sender Filter */}
+            {/* Vendor Filter */}
             <div className="grid grid-cols-[5rem_1fr_auto] items-center gap-2 text-sm">
-              <label htmlFor="filter-sender" className="text-byu-navy">
-                Sender:
+              <label htmlFor="filter-vendor" className="text-byu-navy">
+                Vendor:
               </label>
               <select
-                id="filter-sender"
-                value={senderId}
-                onChange={(e) => setSenderId(e.target.value)}
+                id="filter-vendor"
+                value={vendorId}
+                onChange={(e) => setVendorId(e.target.value)}
                 className="w-full min-w-0 rounded-md border border-gray-300 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-byu-royal focus:border-byu-royal"
               >
-                <option value="">All senders</option>
-                {senders
+                <option value="">All vendors</option>
+                {vendors
                   .filter((s) => !s.hidden)
-                  .map((sender) => (
-                    <option key={sender.id} value={sender.id}>
-                      {sender.name}
+                  .map((vendor) => (
+                    <option key={vendor.id} value={vendor.id}>
+                      {vendor.name}
                     </option>
                   ))}
               </select>
-              {senderId && (
+              {vendorId && (
                 <button
                   type="button"
-                  onClick={() => setSenderId('')}
+                  onClick={() => setVendorId('')}
                   className="text-xs text-gray-500 hover:text-gray-800 cursor-pointer"
                 >
                   Clear

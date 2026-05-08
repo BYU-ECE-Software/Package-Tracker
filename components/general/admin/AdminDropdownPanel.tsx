@@ -28,7 +28,7 @@ import { FiEye, FiEyeOff, FiEdit2, FiTrash2 } from 'react-icons/fi';
 type EditingState = { id: string; name: string } | null;
 
 export interface AdminDropdownConfig {
-  /** Human-readable singular noun (e.g., "Carrier", "Sender") used in UI messages */
+  /** Human-readable singular noun (e.g., "Carrier", "Vendor") used in UI messages */
   noun: string;
 
   /** Fetch all items (active and inactive) */

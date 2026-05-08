@@ -6,7 +6,7 @@ import type { DropdownEntity } from '@/types/general/DropdownEntity';
 import { createPackage, updatePackage } from '@/lib/api/packages';
 import { fetchUsers, fetchTopRecipients } from '@/lib/api/users';
 import { fetchCarriers, createCarrier } from '@/lib/api/carriers';
-import { fetchSenders, createSender } from '@/lib/api/senders';
+import { fetchVendors, createVendor } from '@/lib/api/vendors';
 import { useAuth } from '@/components/dev/TestingAuthProvider';
 import { useToast } from '@/hooks/useToast'; // Correct hook import
 import StepModal, { type StepConfig } from '@/components/general/overlays/StepModal';
@@ -34,10 +34,10 @@ export default function AddPackageModal({
   const [recipient, setRecipient] = useState<User | null>(null);
   const [topRecipients, setTopRecipients] = useState<User[]>([]);
   const [carriers, setCarriers] = useState<DropdownEntity[]>([]);
-  const [senders, setSenders] = useState<DropdownEntity[]>([]);
+  const [vendors, setVendors] = useState<DropdownEntity[]>([]);
   
   const [carrier, setCarrier] = useState<ComboboxValue>({ id: '', name: '' });
-  const [sender, setSender] = useState<ComboboxValue>({ id: '', name: '' });
+  const [vendor, setVendor] = useState<ComboboxValue>({ id: '', name: '' });
 
   const [packageData, setPackageData] = useState<{
     dateArrived: Date;
@@ -59,10 +59,10 @@ export default function AddPackageModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Fetch ALL carriers/senders (including hidden) so we can match a typed
+    // Fetch ALL carriers/vendors (including hidden) so we can match a typed
     // name against hidden entries and reuse them instead of duplicating.
     fetchCarriers().then(setCarriers).catch(console.error);
-    fetchSenders().then(setSenders).catch(console.error);
+    fetchVendors().then(setVendors).catch(console.error);
     fetchTopRecipients().then(setTopRecipients).catch(console.error);
   }, []);
 
@@ -89,7 +89,7 @@ export default function AddPackageModal({
     setIsSubmitting(true);
 
     try {
-      // Resolve carrier/sender. If the user typed a name that matches an
+      // Resolve carrier/vendor. If the user typed a name that matches an
       // existing entry (including a hidden one), reuse that id. Otherwise
       // create a new entry as visible.
       const carrierName = carrier.name.trim();
@@ -101,19 +101,19 @@ export default function AddPackageModal({
         existingCarrier?.id ||
         (await createCarrier({ name: carrierName, hidden: false })).id;
 
-      const senderName = sender.name.trim();
-      const existingSender = senders.find(
-        (s) => s.name.toLowerCase() === senderName.toLowerCase(),
+      const vendorName = vendor.name.trim();
+      const existingVendor = vendors.find(
+        (s) => s.name.toLowerCase() === vendorName.toLowerCase(),
       );
-      const senderId =
-        sender.id ||
-        existingSender?.id ||
-        (await createSender({ name: senderName, hidden: false })).id;
+      const vendorId =
+        vendor.id ||
+        existingVendor?.id ||
+        (await createVendor({ name: vendorName, hidden: false })).id;
 
       const newPackage = await createPackage({
         recipientId: recipient.id,
         carrierId,
-        senderId,
+        vendorId,
         notes: packageData.notes || undefined,
         dateArrived: packageData.dateArrived,
         checkedInById: user.id,
@@ -157,7 +157,7 @@ export default function AddPackageModal({
   const steps: StepConfig[] = [
     {
       title: 'Enter package details',
-      canAdvance: !!recipient && !!carrier.name.trim() && !!sender.name.trim(),
+      canAdvance: !!recipient && !!carrier.name.trim() && !!vendor.name.trim(),
       content: (
         <FormGrid>
           <FieldWrapper label="Recipient" required className="md:col-span-2">
@@ -186,12 +186,12 @@ export default function AddPackageModal({
             />
           </FieldWrapper>
 
-          <FieldWrapper label="Sender" required>
+          <FieldWrapper label="Vendor" required>
             <Combobox
-              items={senders.filter((s) => !s.hidden)}
-              value={sender}
-              onChange={setSender}
-              placeholder="Select or type a new sender…"
+              items={vendors.filter((s) => !s.hidden)}
+              value={vendor}
+              onChange={setVendor}
+              placeholder="Select or type a new vendor…"
               disabled={isSubmitting}
             />
           </FieldWrapper>

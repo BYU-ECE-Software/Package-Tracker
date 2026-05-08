@@ -19,6 +19,14 @@ enum NotificationType {
   FOLLOW_UP
 }
 
+enum Status {
+  REQUESTED
+  PURCHASED
+  COMPLETED
+  RETURNED
+  CANCELLED
+}
+
 // ─── MODELS ───────────────────────────────────────────────────────────────────
 
 model User {
@@ -28,14 +36,16 @@ model User {
   email    String
   role     Role   @default(STUDENT)
 
-  // Relations
+  // Package relations
   packagesReceived Package[] @relation("PackageRecipient")
   packagesCheckedIn Package[] @relation("CheckedInBy")
   packagesCheckedOut Package[] @relation("CheckedOutBy")
   packagesPickedUp Package[] @relation("PickedUpBy")
-  
-  // Notifications sent to this user
   notifications Notification[]
+
+  // Order relations
+  ordersRequested  Order[] @relation("OrderRequester")
+  ordersPurchased  Order[] @relation("OrderPurchaser")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -55,9 +65,8 @@ model Package {
   carrierId String?
   carrier   Carrier? @relation(fields: [carrierId], references: [id])
   
-  senderId  String?
-  sender    Sender?  @relation(fields: [senderId], references: [id])
-
+  vendorId  String?
+  vendor    Vendor?  @relation(fields: [vendorId], references: [id])
   notes     String?  @db.Text
   
   // Check-in
@@ -83,7 +92,7 @@ model Package {
 
   @@index([recipientId])
   @@index([carrierId])
-  @@index([senderId])
+  @@index([vendorId])
   @@index([dateArrived])
   @@index([datePickedUp])
   @@index([createdAt])
@@ -121,15 +130,128 @@ model Carrier {
   @@index([hidden, order])
 }
 
-model Sender {
+model Vendor {
   id       String    @id @default(cuid())
   name     String    @unique
   hidden   Boolean   @default(false)
   order    Int       @default(0)
   packages Package[]
+  orders   Order[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([hidden, order])
+}
+
+model Order {
+  id                 String   @id @default(cuid())
+
+  // Request info
+  requestDate        DateTime
+  status             Status @default(REQUESTED)
+  shippingPreference String?
+  purpose            String
+  workTag            String
+  cartLink           String?
+  comment            String?
+
+  // Costs
+  tax                Float?
+  total              Float?
+
+  // Requester (student)
+  userId             String
+  user               User     @relation("OrderRequester", fields: [userId], references: [id])
+
+  // Vendor
+  vendorId           String
+  vendor             Vendor @relation(fields: [vendorId], references: [id])
+
+  // Professor association
+  professorId        String
+  professor          Professor @relation(fields: [professorId], references: [id])
+
+  // Categorization
+  spendCategoryId    String
+  spendCategory      SpendCategory @relation(fields: [spendCategoryId], references: [id])
+
+  lineMemoOptionId   Int?
+  lineMemoOption     LineMemoOption? @relation(fields: [lineMemoOptionId], references: [id])
+
+  // Purchase info (filled by secretary)
+  purchasedById      String?
+  purchasedBy        User?     @relation("OrderPurchaser", fields: [purchasedById], references: [id])
+  creditCard         Boolean?
+  purchaseDate       DateTime?
+  receipt            String[]  @default([])
+  adminComment       String?
+
+  // Items
+  items              Item[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([purchasedById])
+  @@index([professorId])
+  @@index([spendCategoryId])
+  @@index([requestDate])
+  @@index([createdAt])
+}
+
+model Item {
+  id       String     @id @default(cuid())
+  name     String
+  quantity Int
+  status   Status @default(REQUESTED)
+  link     String?
+  file     String?
+
+  orderId  String
+  order    Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+}
+
+model SpendCategory {
+  id                String  @id @default(cuid())
+  code              String  @unique
+  description       String
+  visibleToStudents Boolean @default(true)
+  orders            Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([code])
+}
+
+model LineMemoOption {
+  id          Int      @id
+  description String
+  orders      Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Professor {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  title     String?
+  email     String?
+  orders    Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lastName])
 }

@@ -9,23 +9,23 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    const packageCount = await prisma.package.count({ where: { senderId: id } });
+    const packageCount = await prisma.package.count({ where: { vendorId: id } });
     if (packageCount > 0) {
       return NextResponse.json(
-        { error: `Cannot delete: ${packageCount} package${packageCount === 1 ? '' : 's'} use this sender. Consider marking it as hidden instead.` },
+        { error: `Cannot delete: ${packageCount} package${packageCount === 1 ? '' : 's'} use this vendor. Consider marking it as hidden instead.` },
         { status: 409 }
       );
     }
 
-    await prisma.sender.delete({ where: { id } });
+    await prisma.vendor.delete({ where: { id } });
     return NextResponse.json({ deleted: true });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error?.code === 'P2025') {
-      return NextResponse.json({ error: 'Sender not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
     }
-    console.error('Error deleting sender:', error);
-    return NextResponse.json({ error: 'Failed to delete sender' }, { status: 500 });
+    console.error('Error deleting vendor:', error);
+    return NextResponse.json({ error: 'Failed to delete vendor' }, { status: 500 });
   }
 }
 
@@ -41,18 +41,18 @@ export async function PATCH(
     if (body.name !== undefined) updateData.name = body.name;
     if (body.hidden !== undefined) updateData.hidden = body.hidden;
 
-    const sender = await prisma.sender.update({
+    const vendor = await prisma.vendor.update({
       where: { id },
       data: updateData,
     });
 
-    return NextResponse.json(sender);
+    return NextResponse.json(vendor);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error?.code === 'P2025') {
-      return NextResponse.json({ error: 'Sender not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
     }
-    console.error('Error updating sender:', error);
-    return NextResponse.json({ error: 'Failed to update sender' }, { status: 500 });
+    console.error('Error updating vendor:', error);
+    return NextResponse.json({ error: 'Failed to update vendor' }, { status: 500 });
   }
 }
