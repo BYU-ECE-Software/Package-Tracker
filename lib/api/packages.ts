@@ -6,11 +6,13 @@ import type { Package, PackageQueryParams, CreatePackageRequest, UpdatePackageRe
 
 export async function fetchPackages(params: PackageQueryParams) {
   const searchParams = new URLSearchParams();
-  
+
   Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      searchParams.append(key, String(value));
-    }
+    if (value === undefined || value === null) return;
+    // Dates need explicit ISO conversion — String(date) gives a local
+    // human-readable string the server can't parse reliably.
+    const serialized = value instanceof Date ? value.toISOString() : String(value);
+    searchParams.append(key, serialized);
   });
   
   const res = await fetch(`/api/packages?${searchParams}`, {

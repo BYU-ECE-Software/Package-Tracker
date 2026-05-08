@@ -44,9 +44,14 @@ export default function PackageDashboard() {
   const [totalItems, setTotalItems] = useState(0);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<{
+    activeOnly: boolean;
+    date: Date | null;
+    carrierId: string;
+    senderId: string;
+  }>({
     activeOnly: true,
-    date: '',
+    date: null,
     carrierId: '',
     senderId: '',
   });
@@ -92,7 +97,7 @@ export default function PackageDashboard() {
         page: pagination.currentPage,
         pageSize: pagination.pageSize,
         search: searchTerm || undefined,
-        startDate: filters.date || undefined,
+        startDate: filters.date ?? undefined,
         activeOnly: filters.activeOnly,
         carrierId: filters.carrierId || undefined,
         senderId: filters.senderId || undefined,

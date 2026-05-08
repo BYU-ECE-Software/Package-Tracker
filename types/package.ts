@@ -43,7 +43,7 @@ export interface CreatePackageRequest {
   carrierId?: string;
   senderId?: string;
   notes?: string;
-  dateArrived?: string;
+  dateArrived?: Date | string;
   checkedInById: string;
   emailOptions?: {
     subject: string;
@@ -54,8 +54,8 @@ export interface CreatePackageRequest {
 export interface UpdatePackageRequest {
   carrierId?: string;
   senderId?: string;
-  dateArrived?: string;
-  datePickedUp?: string;
+  dateArrived?: Date | string;
+  datePickedUp?: Date | string;
   checkedInById?: string;
   checkedOutById?: string;
   pickedUpByUserId?: string;
@@ -67,8 +67,8 @@ export interface PackageQueryParams {
   page?: number;
   pageSize?: number;
   search?: string;
-  startDate?: string;
-  endDate?: string;
+  startDate?: Date | string;
+  endDate?: Date | string;
   recipientId?: string;
   activeOnly?: boolean;
   carrierId?: string;

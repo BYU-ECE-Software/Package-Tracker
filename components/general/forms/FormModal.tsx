@@ -7,6 +7,7 @@ import FieldWrapper from '@/components/general/forms/FieldWrapper';
 import SelectField from '@/components/general/forms/SelectField';
 import RadioGroupField from '@/components/general/forms/RadioGroupField';
 import TextLikeField from '@/components/general/forms/TextLikeField';
+import DateField from '@/components/general/forms/DateField';
 import PinField from '@/components/general/forms/PinField';
 import CheckboxField from '@/components/general/forms/CheckboxField';
 import Combobox from '@/components/general/forms/Combobox';
@@ -151,6 +152,12 @@ export default function FormModal<T extends Record<string, unknown>>({
                   onChange={(nextValue) => setFieldValue(field.key, nextValue)}
                   placeholder={field.placeholder}
                   adornment={field.adornment}
+                  includeTextColor={false}
+                />
+              ) : field.type === 'date' ? (
+                <DateField
+                  value={rawValue instanceof Date ? rawValue : null}
+                  onChange={(nextValue) => setFieldValue(field.key, nextValue)}
                   includeTextColor={false}
                 />
               ) : field.type === 'pin' ? (

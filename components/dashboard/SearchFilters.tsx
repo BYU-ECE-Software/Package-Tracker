@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { HiOutlineAdjustmentsHorizontal } from 'react-icons/hi2';
 import SearchBar from '@/components/general/data-display/SearchBar';
+import DateField from '@/components/general/forms/DateField';
 import type { DropdownEntity } from '@/types/general/DropdownEntity';
 
 export type SearchFiltersState = {
   searchTerm: string;
   activeOnly: boolean;
-  date: string;
+  date: Date | null;
   carrierId: string;
   senderId: string;
 };
@@ -19,7 +20,7 @@ interface SearchFiltersProps {
   onSearchChange: (search: string) => void;
   onFiltersChange: (filters: {
     activeOnly: boolean;
-    date: string;
+    date: Date | null;
     carrierId: string;
     senderId: string;
   }) => void;
@@ -37,7 +38,7 @@ export default function SearchFilters({
 
   // Filter state
   const [activeOnly, setActiveOnly] = useState(true);
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState<Date | null>(null);
   const [carrierId, setCarrierId] = useState('');
   const [senderId, setSenderId] = useState('');
 
@@ -115,17 +116,16 @@ export default function SearchFilters({
               <label htmlFor="filter-date" className="text-byu-navy">
                 Arrived on:
               </label>
-              <input
+              <DateField
                 id="filter-date"
-                type="date"
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full min-w-0 rounded-md border border-gray-300 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-byu-royal focus:border-byu-royal"
+                onChange={setDate}
+                className="w-full min-w-0"
               />
               {date && (
                 <button
                   type="button"
-                  onClick={() => setDate('')}
+                  onClick={() => setDate(null)}
                   className="text-xs text-gray-500 hover:text-gray-800 cursor-pointer"
                 >
                   Clear

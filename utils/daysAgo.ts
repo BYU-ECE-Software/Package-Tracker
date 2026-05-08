@@ -1,17 +1,16 @@
 // Format a past date as "today" / "1 day ago" / "N days ago".
 //
-// Reads the calendar date directly from the ISO string (UTC) rather than
-// through local-tz Date methods — otherwise a value stored as UTC midnight
-// reads as the previous day in any timezone behind UTC, and "today" becomes
-// "1 day ago". Returns null on nullish input so callers can spread without
+// Compares *calendar dates* in the user's local timezone, not 24-hour
+// windows — otherwise something stored at 9pm yesterday reads "today"
+// until 9pm now. Pair with parseFormDate so stored values are real local
+// instants. Returns null on nullish input so callers can spread without
 // guarding.
 
 export function daysAgo(dateStr: Date | string | null | undefined): string | null {
   if (!dateStr) return null;
 
-  const isoString = dateStr instanceof Date ? dateStr.toISOString() : dateStr;
-  const [y, m, d] = isoString.split(/[T ]/)[0].split('-').map(Number);
-  const startOfThen = new Date(y, m - 1, d);
+  const then = new Date(dateStr);
+  const startOfThen = new Date(then.getFullYear(), then.getMonth(), then.getDate());
 
   const now = new Date();
   const startOfNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());

@@ -13,7 +13,7 @@ import { daysAgo } from '@/utils/daysAgo';
 import StepModal, { type StepConfig } from '@/components/general/overlays/StepModal';
 import FieldWrapper from '@/components/general/forms/FieldWrapper';
 import FormGrid from '@/components/general/forms/FormGrid';
-import TextLikeField from '@/components/general/forms/TextLikeField';
+import DateField from '@/components/general/forms/DateField';
 import Typeahead from '@/components/general/forms/Typeahead';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -38,15 +38,13 @@ export default function CheckOutModal({
 
   const [method, setMethod] = useState<CheckoutMethod>(null);
   const [pickedUpBy, setPickedUpBy] = useState<User | null>(null);
-  const [datePickedUp, setDatePickedUp] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [datePickedUp, setDatePickedUp] = useState<Date>(new Date());
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleClose = () => {
     setMethod(null);
     setPickedUpBy(null);
-    setDatePickedUp(new Date().toISOString().split('T')[0]);
+    setDatePickedUp(new Date());
     onClose();
   };
 
@@ -244,8 +242,8 @@ function Step2Details({
   pkg: Package;
   pickedUpBy: User | null;
   setPickedUpBy: (user: User | null) => void;
-  datePickedUp: string;
-  setDatePickedUp: (v: string) => void;
+  datePickedUp: Date;
+  setDatePickedUp: (v: Date) => void;
   checkedOutBy: User | null;
 }) {
   return (
@@ -271,10 +269,9 @@ function Step2Details({
 
       {/* Date - full width */}
       <FieldWrapper className="md:col-span-2" label="Date" required>
-        <TextLikeField
-          type="date"
+        <DateField
           value={datePickedUp}
-          onChange={setDatePickedUp}
+          onChange={(d) => d && setDatePickedUp(d)}
         />
       </FieldWrapper>
 

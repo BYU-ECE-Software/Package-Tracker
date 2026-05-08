@@ -16,6 +16,7 @@ import Typeahead from '@/components/general/forms/Typeahead';
 import FormGrid from '@/components/general/forms/FormGrid';
 import CheckboxField from '@/components/general/forms/CheckboxField';
 import TextLikeField from '@/components/general/forms/TextLikeField';
+import DateField from '@/components/general/forms/DateField';
 import Combobox, { type ComboboxValue } from '@/components/general/forms/Combobox';
 
 export default function AddPackageModal({
@@ -38,8 +39,13 @@ export default function AddPackageModal({
   const [carrier, setCarrier] = useState<ComboboxValue>({ id: '', name: '' });
   const [sender, setSender] = useState<ComboboxValue>({ id: '', name: '' });
 
-  const [packageData, setPackageData] = useState({
-    dateArrived: new Date().toISOString().split('T')[0],
+  const [packageData, setPackageData] = useState<{
+    dateArrived: Date;
+    notes: string;
+    sendEmail: boolean;
+    deliverToOffice: boolean;
+  }>({
+    dateArrived: new Date(),
     notes: '',
     sendEmail: true,
     deliverToOffice: false,
@@ -191,10 +197,9 @@ export default function AddPackageModal({
           </FieldWrapper>
 
           <FieldWrapper label="Date Arrived" required>
-            <TextLikeField
-              type="date"
+            <DateField
               value={packageData.dateArrived}
-              onChange={(v: string) => setPackageData((p) => ({ ...p, dateArrived: v }))}
+              onChange={(d) => d && setPackageData((p) => ({ ...p, dateArrived: d }))}
             />
           </FieldWrapper>
 
